@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corporate Invoice - M.K.C. TRADE CENTER</title>
+    <!-- Corporate Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Defaults (Classic) */
+            --primary-color: #000000;
+            --secondary-color: #333333;
+            --accent-color: #f4f4f4;
+            --ink: #000000;
+            --border-thick: 2px solid #000000;
+            --border-thin: 1px solid #000000;
+            --table-header-bg: #f8f9fa;
+            --font-main: 'Inter', sans-serif;
+            --header-bg: transparent;
+            --header-text: #000000;
+        }
+
+        /* --- THEME: CORPORATE (Dot Matrix Optimized) --- */
+        .template-corporate {
+            --ink: #000000;
+            --border-thick: 2.5px solid #000000;
+            --border-thin: 1px solid #000000;
+            --table-header-bg: #E0E0E0;
+            --accent-color: #E0E0E0;
+        }
+
+        /* --- THEME: MODERN GREEN --- */
+        .template-modern {
+            --primary-color: #1b5e20;
+            --secondary-color: #2e7d32;
+            --accent-color: #e8f5e9;
+            --ink: #1b5e20;
+            --border-thick: 2px solid #1b5e20;
+            --border-thin: 1px solid #c8e6c9;
+            --table-header-bg: #1b5e20;
+            --header-bg: #1b5e20;
+            --header-text: #ffffff;
+        }
+
+        .template-modern .items-table th {
+            color: #ffffff;
+        }
+
+        .template-modern .company-branding h1 {
+            color: #ffffff;
+        }
+
+        .template-modern .type-label {
+            color: #ffffff;
+        }
+
+        .template-modern .meta-row {
+            color: #ffffff;
+        }
+
+        .template-modern .header-main {
+            background: var(--header-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border-bottom: none;
+        }
+
+        /* --- THEME: MINIMAL --- */
+        .template-minimal {
+            --primary-color: #444444;
+            --ink: #444444;
+            --border-thick: 1px solid #444444;
+            --border-thin: 1px solid #eeeeee;
+            --table-header-bg: transparent;
+            --accent-color: #fafafa;
+        }
+
+        .template-minimal .header-main {
+            border-bottom: 1px solid #eee;
+        }
+
+        .template-minimal .address-card,
+        .template-minimal .summary-mini-card,
+        .template-minimal .items-table,
+        .template-minimal .totals-block {
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+
+        .template-minimal .items-table th {
+            border: none;
+            border-bottom: 2px solid #444;
+            background: none !important;
+        }
+
+        .template-minimal .items-table td {
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            font-family: var(--font-main);
+            margin: 0;
+            padding: 0;
+            color: var(--ink);
+            background: #fff;
+            line-height: 1.3;
+        }
+
+        .invoice-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 15mm;
+            background: white;
+            position: relative;
+        }
+
+        /* --- CORPORATE HEADER --- */
+        .header-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 4px solid var(--ink);
+            padding-bottom: 15px;
+        }
+
+        .company-branding h1 {
+            font-size: 32px;
+            font-weight: 900;
+            margin: 0 0 5px 0;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+        }
+
+        .company-branding p {
+            font-size: 13px;
+            margin: 2px 0;
+            font-weight: 600;
+        }
+
+        .invoice-meta-box {
+            text-align: right;
+            min-width: 250px;
+        }
+
+        .type-label {
+            font-size: 42px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .meta-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        .meta-row b {
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        /* --- ADDRESS & INFO GRID --- */
+        .info-section {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .address-card {
+            border: var(--border-thick);
+            padding: 15px;
+            background-color: var(--accent-color) !important;
+        }
+
+        .address-card h2 {
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border-bottom: var(--border-thin);
+            padding-bottom: 5px;
+            margin: 0 0 10px 0;
+        }
+
+        .address-card p {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 3px 0;
+        }
+
+        /* Payment Brief */
+        .summary-mini-card {
+            border: var(--border-thick);
+            padding: 12px;
+        }
+
+        .summary-mini-card h3 {
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            margin: 0 0 8px 0;
+            text-align: center;
+            border-bottom: var(--border-thin);
+            padding-bottom: 4px;
+        }
+
+        .payment-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
+
+        /* --- THE PROFESSIONAL TABLE --- */
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            border: var(--border-thick);
+        }
+
+        .items-table th {
+            background-color: var(--table-header-bg) !important;
+            border: var(--border-thin);
+            padding: 12px 8px;
+            text-align: left;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .items-table td {
+            border: var(--border-thin);
+            padding: 10px 8px;
+            font-size: 14px;
+            font-weight: 700;
+            vertical-align: top;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        /* --- CALCULATIONS BLOCK --- */
+        .footer-grid {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .terms-conditions {
+            width: 50%;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .terms-conditions h4 {
+            font-size: 12px;
+            margin: 0 0 5px 0;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        .totals-block {
+            width: 320px;
+            border: var(--border-thick);
+            padding: 15px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .total-row.net-total {
+            border-top: 3px double var(--ink);
+            margin-top: 8px;
+            padding-top: 10px;
+            font-size: 24px;
+            font-weight: 900;
+        }
+
+        /* --- CORPORATE SIGNATURES --- */
+        .signature-group {
+            margin-top: 70px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sig-container {
+            width: 280px;
+            text-align: center;
+        }
+
+        .sig-line {
+            border-bottom: 2px solid var(--ink);
+            margin-bottom: 10px;
+            height: 40px;
+        }
+
+        .sig-label {
+            font-size: 13px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .sig-sub {
+            font-size: 10px;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* Duplicate/Status Stamps */
+        .watermark-status {
+            position: absolute;
+            top: 25mm;
+            left: 50%;
+            transform: translateX(-50%) rotate(-15deg);
+            border: 8px solid var(--ink);
+            padding: 20px 40px;
+            font-size: 56px;
+            font-weight: 900;
+            text-transform: uppercase;
+            opacity: 0.15;
+            display: none;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .duplicate-tag {
+            background: #000 !important;
+            color: #fff !important;
+            padding: 5px 15px;
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 14px;
+            position: absolute;
+            top: 0;
+            right: 15mm;
+            display: none;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .invoice-wrapper {
+                border: none;
+                margin: 0;
+                padding: 10mm;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="invoice-wrapper" id="invoice-main">
+        <div class="duplicate-tag" id="duplicate-indicator">Duplicate Copy</div>
+        <div class="watermark-status" id="status-watermark">PAID</div>
+
+        <header class="header-main">
+            <div class="company-branding">
+                <h1 id="comp-display-name">M.K.C. TRADE CENTER</h1>
+                <p id="comp-display-address">--</p>
+                <p id="comp-display-contact"><b>Hotline:</b> --</p>
+            </div>
+            <div class="invoice-meta-box">
+                <span class="type-label">Invoice</span>
+                <div class="meta-row"><b>Invoice #:</b> <span id="inv-no">...</span></div>
+                <div class="meta-row"><b>Print Date:</b> <span id="inv-date">...</span></div>
+                <div class="meta-row" id="load-info" style="display:none;"><b>Load Ref:</b> <span
+                        id="inv-load">...</span></div>
+            </div>
+        </header>
+
+        <section class="info-section">
+            <div class="address-card">
+                <h2>Invoice For (Customer):</h2>
+                <p><strong id="cust-name" style="font-size: 20px;">...</strong></p>
+                <p id="cust-address">...</p>
+                <p id="cust-phone">...</p>
+            </div>
+            <div class="summary-mini-card">
+                <h3>Payment Instrument Details</h3>
+                <div id="payment-breakdown-details">
+                    <!-- Methods & Breakdown -->
+                </div>
+            </div>
+        </section>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;" class="text-center">No.</th>
+                    <th>Product Description & SKU</th>
+                    <th class="text-right" style="width: 120px;">Unit Price (LKR)</th>
+                    <th class="text-center" style="width: 80px;">Qty</th>
+                    <th class="text-center" style="width: 80px;">Disc.</th>
+                    <th class="text-right" style="width: 140px;">Line Total (LKR)</th>
+                </tr>
+            </thead>
+            <tbody id="line-items-body">
+                <!-- Rows -->
+            </tbody>
+        </table>
+
+        <footer class="footer-grid">
+            <div class="terms-conditions">
+                <h4>Terms & Conditions:</h4>
+                <p>1. Payments should be made within 30 days of the invoice date.</p>
+                <p>2. Goods received in good condition cannot be returned.</p>
+                <p>3. Please quote the Invoice Number for all payment references.</p>
+                <p>4. This is a computer-generated invoice and requires no physical seal.</p>
+
+                <div id="cheque-display"
+                    style="margin-top: 20px; display: none; border: 2px dashed #000; padding: 10px; text-align: center;">
+                    <b style="font-size: 10px;">CHEQUE CAPTURE:</b><br>
+                    <img id="cheque-img" src="" style="max-height: 150px; max-width: 100%; margin-top: 5px;">
+                </div>
+            </div>
+
+            <div class="totals-block">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span id="txt-subtotal">0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>Account Discount</span>
+                    <span id="txt-discount">0.00</span>
+                </div>
+                <div class="total-row net-total">
+                    <span>TOTAL</span>
+                    <span id="txt-total">0.00</span>
+                </div>
+                <p style="text-align: right; font-size: 10px; font-weight: 800; margin-top: 10px;">All amounts are in
+                    Sri Lankan Rupees (LKR)</p>
+            </div>
+        </footer>
+
+        <div class="signature-group">
+            <div class="sig-container">
+                <div class="sig-line"></div>
+                <div class="sig-label">Customer's Acknowledgement</div>
+                <div class="sig-sub">I accept the items and terms mentioned above.</div>
+            </div>
+            <div class="sig-container">
+                <div class="sig-line"></div>
+                <div class="sig-label">Authorized Officer</div>
+                <div class="sig-sub">for M.K.C. TRADE CENTER</div>
+            </div>
+        </div>
+
+        <div
+            style="text-align: center; margin-top: 50px; font-size: 11px; font-weight: 700; border-top: 1px dotted #000; padding-top: 10px;">
+            *** Thank You for Your Valued Business! ***
+        </div>
+    </div>
+
+    <script>
+        async function fetchAndRender() {
+            const query = new URLSearchParams(window.location.search);
+            const invoiceId = query.get('id');
+            const isDup = query.get('duplicate') === 'true';
+            const isPreview = query.get('preview') === 'true';
+            const previewTemplate = query.get('template');
+
+            if (isDup) document.getElementById('duplicate-indicator').style.display = 'block';
+
+            if (!invoiceId && !isPreview) return alert("Err: Missing Invoice ID");
+
+            try {
+                // Fetch Company data (always needed)
+                let compRes, invRes;
+                let compData = null;
+                let inv = null;
+
+                try {
+                    const r = await fetch(`/api/settings/company`);
+                    const j = await r.json();
+                    if (j.success) compData = j.data;
+                } catch (e) { console.warn("Failed to load company settings"); }
+
+                if (isPreview) {
+                    // DUMMY DATA FOR PREVIEW
+                    inv = {
+                        invoice_number: 'INV-PREVIEW-001',
+                        invoice_date: new Date().toISOString(),
+                        customer_name: 'Sample Customer Ltd',
+                        customer_address: '45, Industrial Zone, Colombo 03',
+                        customer_phone: '011-2345678',
+                        payment_method: 'credit',
+                        net_total: 12500,
+                        items: [
+                            { product_name: 'Super Grow Fertilizer (50kg)', reference_code: 'FERT-001', msrp: 5000, quantity: 2, discount_percentage: 0, line_total: 10000 },
+                            { product_name: 'Pesticide X-200 (1L)', reference_code: 'PEST-200', msrp: 2500, quantity: 1, discount_percentage: 10, line_total: 2250 }
+                        ]
+                    };
+                } else {
+                    // REAL DATA
+                    const r = await fetch(`/api/sales/${invoiceId}`);
+                    const j = await r.json();
+                    if (!j.success) throw new Error(j.error);
+                    inv = j.data;
+                }
+
+                // --- Apply Company Branding & Template ---
+                if (compData || isPreview) {
+                    const wrapper = document.getElementById('invoice-main');
+
+                    // Priority: URL param (preview) > Database Setting > Default
+                    const template = (isPreview && previewTemplate) ? previewTemplate : (compData ? (compData.invoice_template || 'classic') : 'classic');
+
+                    wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom');
+                    wrapper.classList.add(`template-${template}`);
+
+                    // Data
+                    if (compData) {
+                        document.getElementById('comp-display-name').textContent = compData.company_name;
+                        document.getElementById('comp-display-address').textContent = compData.address;
+                        if (compData.contact_numbers) {
+                            document.getElementById('comp-display-contact').innerHTML = `<b>Hotline:</b> ${compData.contact_numbers}`;
+                        }
+                    } else {
+                        document.getElementById('comp-display-name').textContent = "My Custom Company";
+                        document.getElementById('comp-display-address').textContent = "123 Innovation Drive, Tech City";
+                    }
+
+                    // --- Custom Template Logic ---
+                    if (template === 'custom') {
+                        let config = {};
+
+                        // Check URL param first (Live Preview)
+                        const urlConfig = query.get('customConfig');
+                        if (urlConfig) {
+                            try { config = JSON.parse(decodeURIComponent(urlConfig)); } catch (e) {
+                                console.error("Bad URL config:", e);
+                            }
+                        } else if (compData && compData.invoice_custom_config) {
+                            // Fallback to Saved DB Config
+                            try { config = JSON.parse(compData.invoice_custom_config); } catch (e) { }
+                        }
+
+                        wrapper.style.setProperty('--primary-color', config.color || '#2E7D32');
+                        wrapper.style.fontFamily = config.font || 'Inter, sans-serif';
+
+                        // Header Alignment
+                        const header = document.querySelector('.invoice-header');
+                        if (header) {
+                            header.style.textAlign = config.header || 'left';
+                            if (config.header === 'center') {
+                                header.style.flexDirection = 'column';
+                                header.style.alignItems = 'center';
+                            } else if (config.header === 'right') {
+                                header.style.flexDirection = 'row-reverse';
+                                header.style.textAlign = 'right';
+                            }
+                        }
+
+                        // Show/Hide Elements
+                        const logo = document.getElementById('comp-logo');
+                        if (logo) logo.style.display = (config.showLogo === false) ? 'none' : 'block';
+                    }
+                }
+
+                // 1. Header & Meta
+                document.getElementById('inv-no').textContent = inv.invoice_number;
+                document.getElementById('inv-date').textContent = new Date(inv.invoice_date).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+                if (inv.load_id) {
+                    document.getElementById('load-info').style.display = 'flex';
+                    document.getElementById('inv-load').textContent = 'TRK-' + String(inv.load_id).padStart(4, '0');
+                }
+
+                // 2. Customer
+                document.getElementById('cust-name').textContent = inv.customer_name;
+                document.getElementById('cust-address').textContent = inv.customer_address || 'Address Not Provided';
+                document.getElementById('cust-phone').textContent = inv.customer_phone ? 'Contact: ' + inv.customer_phone : '';
+
+                // 3. Status Watermark
+                const watermark = document.getElementById('status-watermark');
+                if (inv.payment_method === 'account') {
+                    watermark.textContent = 'CREDIT';
+                    watermark.style.display = 'block';
+                } else {
+                    watermark.textContent = 'PAID';
+                    watermark.style.display = 'block';
+                }
+
+                // 4. Payment Brief
+                const payBox = document.getElementById('payment-breakdown-details');
+                let payHtml = '';
+                if (inv.payment_method === 'split') {
+                    const d = typeof inv.payment_details === 'string' ? JSON.parse(inv.payment_details) : (inv.payment_details || {});
+                    if (d.cash > 0) payHtml += `<div class="payment-line"><span>Cash:</span> <span>${d.cash.toFixed(2)}</span></div>`;
+                    if (d.cheque > 0) payHtml += `<div class="payment-line"><span>Cheque:</span> <span>${d.cheque.toFixed(2)}</span></div>`;
+                    if (d.credit > 0) payHtml += `<div class="payment-line"><span>Credit:</span> <span>${d.credit.toFixed(2)}</span></div>`;
+                } else {
+                    payHtml = `<div class="payment-line"><span style="text-transform:uppercase;">Method: ${inv.payment_method}</span></div>`;
+                }
+
+                // Append Cheque Details if any
+                if (inv.cheques && inv.cheques.length > 0) {
+                    inv.cheques.forEach(c => {
+                        payHtml += `<div style="font-size: 10px; margin-top:5px; border-left: 2px solid #000; padding-left: 5px;">
+                            <b>${c.bank_name || c.bank}:</b> #${c.cheque_number || c.number}<br>Due: ${c.cheque_date || c.date}
+                        </div>`;
+                    });
+                    if (inv.cheques[0].image) {
+                        document.getElementById('cheque-display').style.display = 'block';
+                        document.getElementById('cheque-img').src = inv.cheques[0].image;
+                    }
+                }
+                payBox.innerHTML = payHtml;
+
+                // 5. Items Table
+                const tbody = document.getElementById('line-items-body');
+                tbody.innerHTML = inv.items.map((it, idx) => `
+                    <tr>
+                        <td class="text-center">${idx + 1}</td>
+                        <td>
+                            <b>${it.product_name}</b><br>
+                            <small>SKU: ${it.reference_code || 'N/A'}</small>
+                        </td>
+                        <td class="text-right">${it.msrp.toFixed(2)}</td>
+                        <td class="text-center">${it.quantity}</td>
+                        <td class="text-center">${it.discount_percentage > 0 ? it.discount_percentage + '%' : '-'}</td>
+                        <td class="text-right">${it.line_total.toFixed(2)}</td>
+                    </tr>
+                `).join('');
+
+                // 6. Totals
+                const subTotalCalculated = inv.items.reduce((s, i) => s + (i.msrp * i.quantity), 0);
+                const savings = subTotalCalculated - inv.net_total;
+
+                document.getElementById('txt-subtotal').textContent = subTotalCalculated.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                document.getElementById('txt-discount').textContent = savings > 0 ? '-' + savings.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
+                document.getElementById('txt-total').textContent = inv.net_total.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+                // Auto-trigger print
+                setTimeout(() => window.print(), 1000);
+
+            } catch (err) {
+                console.error(err);
+                alert("Critical: Failed to load invoice data.");
+            }
+        }
+
+        fetchAndRender();
+    </script>
+</body>
+
+</html>
