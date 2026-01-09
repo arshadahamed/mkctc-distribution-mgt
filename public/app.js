@@ -3717,38 +3717,106 @@ class AgroDistributionApp {
     // --- LOGGING LOGIC ---
     async loadLogs() {
         try {
+            // 1. Fetch Stats for KPIs
+            if (this.currentUser?.role === 'admin') {
+                try {
+                    const statsRes = await this.apiCall('/api/dashboard/logs/stats');
+                    if (statsRes) {
+                        const statsData = await statsRes.json();
+                        if (statsData.success) {
+                            const s = statsData.data;
+                            const totalEl = document.getElementById('log-stat-total');
+                            const errorEl = document.getElementById('log-stat-errors');
+                            const adminEl = document.getElementById('log-stat-admin');
+                            const userEl = document.getElementById('log-stat-top-user');
+
+                            if (totalEl) totalEl.textContent = (s.total || 0).toLocaleString();
+                            if (errorEl) errorEl.textContent = (s.errors || 0).toLocaleString();
+                            if (adminEl) adminEl.textContent = (s.admin_actions || 0).toLocaleString();
+                            if (userEl) userEl.textContent = s.top_user || 'None';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Log stats fetch failed', e);
+                }
+            }
+
+            // 2. Prepare Filters
+            const query = document.getElementById('log-search')?.value || '';
+            const action = document.getElementById('log-action-filter')?.value || '';
+            const from = document.getElementById('log-date-from')?.value || '';
+            const to = document.getElementById('log-date-to')?.value || '';
+
+            // 3. Fetch Filtered Logs
+            const url = `/api/dashboard/logs?query=${encodeURIComponent(query)}&action=${action}&dateFrom=${from}&dateTo=${to}`;
+            const res = await this.apiCall(url);
+            if (!res) return;
+            const data = await res.json();
+
             // Show clear button only for admins
             const clearBtn = document.getElementById('clear-logs-btn');
             if (clearBtn) {
                 clearBtn.style.display = this.currentUser?.role === 'admin' ? 'block' : 'none';
             }
 
-            const res = await this.apiCall('/api/dashboard/logs');
-            if (!res) return;
-            const data = await res.json();
             if (data.success) {
                 const body = document.getElementById('logs-table-body');
                 if (body) {
                     body.innerHTML = data.data.map(l => {
                         const isError = l.action === 'ERROR';
+                        const isDelete = l.action === 'DELETE' || l.action === 'CLEAR_LOGS';
+                        const isUpdate = l.action === 'UPDATE';
+                        const isSecurity = l.action === 'LOGIN' || l.action === 'LOGOUT';
+
+                        let icon = 'fa-info-circle';
+                        let badgeClass = 'badge-info';
+
+                        if (isError) { icon = 'fa-exclamation-triangle'; badgeClass = 'badge-error'; }
+                        else if (isDelete) { icon = 'fa-trash-can'; badgeClass = 'badge-warning'; }
+                        else if (isUpdate) { icon = 'fa-edit'; badgeClass = 'badge-warning'; }
+                        else if (isSecurity) { icon = 'fa-shield-halved'; badgeClass = 'badge-primary'; }
+                        else if (l.action === 'CREATE') { icon = 'fa-plus-circle'; badgeClass = 'badge-success'; }
+
+                        const logDate = this.parseDBDate(l.created_at);
+
                         return `
-                        <tr style="${isError ? 'background: rgba(244, 67, 54, 0.05);' : ''}">
-                            <td><small>${this.parseDBDate(l.created_at).toLocaleString()}</small></td>
-                            <td><div style="font-weight:600">${l.user_name || 'System'}</div></td>
-                            <td><span class="badge ${isError ? 'badge-error' : 'badge-success'}" style="font-size: 0.7rem;">${l.action}</span></td>
+                        <tr style="${isError ? 'background: rgba(239, 68, 68, 0.02);' : ''}">
                             <td>
-                                <div style="font-size: 0.85rem; max-width: 500px; word-break: break-all;">
-                                    <strong>${l.table_name || ''}</strong>: ${l.details || ''}
+                                <div style="font-weight:700; color:var(--gray-800); font-size:0.85rem;">
+                                    ${logDate.toLocaleDateString()}
+                                </div>
+                                <div style="font-size:0.75rem; color:var(--gray-500);">
+                                    ${logDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <div style="width: 28px; height: 28px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 800; color: #64748b; border: 1px solid #e2e8f0;">
+                                        ${(l.user_name || 'S')[0].toUpperCase()}
+                                    </div>
+                                    <div style="font-weight:600; font-size: 0.9rem; color: var(--gray-800);">${l.user_name || 'System'}</div>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge ${badgeClass}" style="padding: 4px 10px; font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 800; display: inline-flex; align-items: center; gap: 6px; border-radius: 6px;">
+                                    <i class="fas ${icon}" style="font-size: 0.7rem;"></i> ${l.action}
+                                </span>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.85rem; max-width: 600px; color: var(--gray-700);">
+                                    <span style="font-weight: 800; color: #4f46e5; text-transform: uppercase; font-size: 0.65rem; background: #eef2ff; padding: 2px 6px; border-radius: 4px; margin-right: 8px; border: 1px solid #e0e7ff;">
+                                        ${l.table_name || 'GENERAL'}
+                                    </span>
+                                    <span style="line-height: 1.5;">${l.details || ''}</span>
                                 </div>
                             </td>
                         </tr>
-                    `}).join('') || '<tr><td colspan="4">No logs found</td></tr>';
+                    `}).join('') || '<tr><td colspan="4" class="text-center" style="padding: 60px; color: var(--gray-400);"><i class="fas fa-search" style="font-size: 2.5rem; display: block; margin-bottom: 15px; opacity: 0.2;"></i> No logs matching your search parameters.</td></tr>';
                 }
             }
         } catch (err) {
-            alert('Load Logs Warning: ' + err.message);
-            const body = document.getElementById('logs-table-body');
-            if (body) body.innerHTML = '<tr><td colspan="4" style="text-align:center; color: var(--gray-500);">System logs are not available at this time.</td></tr>';
+            console.error('Load Logs Error:', err);
+            this.showNotification('Failed to retrieve system logs', 'error');
         }
     }
 

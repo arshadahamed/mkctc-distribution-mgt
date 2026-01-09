@@ -197,19 +197,63 @@ router.get('/trends/sales', async (req, res) => {
     }
 });
 
+// Get log statistics (Admin only)
+router.get('/logs/stats', isAdmin, async (req, res) => {
+    try {
+        const stats = await getQuery(`
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN action = 'ERROR' THEN 1 ELSE 0 END) as errors,
+                SUM(CASE WHEN action IN ('DELETE', 'UPDATE', 'CLEAR_LOGS', 'RESTORE_BACKUP', 'RESET_DATA') THEN 1 ELSE 0 END) as admin_actions,
+                (SELECT u.name FROM audit_logs l JOIN users u ON l.user_id = u.id GROUP BY l.user_id ORDER BY COUNT(*) DESC LIMIT 1) as top_user
+            FROM audit_logs
+        `);
+        res.json({ success: true, data: stats });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Get system audit logs (Admin only)
 router.get('/logs', isAdmin, async (req, res) => {
     try {
-        const limit = req.query.limit || 50;
-        const logs = await allQuery(`
+        const limit = req.query.limit || 100;
+        const { query, action, dateFrom, dateTo } = req.query;
+
+        let sql = `
             SELECT 
                 l.*,
                 u.name as user_name
             FROM audit_logs l
             LEFT JOIN users u ON l.user_id = u.id
-            ORDER BY l.created_at DESC
-            LIMIT ?
-        `, [limit]);
+            WHERE 1=1
+        `;
+        const params = [];
+
+        if (query) {
+            sql += ` AND (l.details LIKE ? OR l.table_name LIKE ? OR u.name LIKE ?)`;
+            params.push(`%${query}%`, `%${query}%`, `%${query}%`);
+        }
+
+        if (action) {
+            sql += ` AND l.action = ?`;
+            params.push(action);
+        }
+
+        if (dateFrom) {
+            sql += ` AND date(l.created_at) >= date(?)`;
+            params.push(dateFrom);
+        }
+
+        if (dateTo) {
+            sql += ` AND date(l.created_at) <= date(?)`;
+            params.push(dateTo);
+        }
+
+        sql += ` ORDER BY l.created_at DESC LIMIT ?`;
+        params.push(Number(limit));
+
+        const logs = await allQuery(sql, params);
 
         res.json({ success: true, data: logs || [] });
     } catch (error) {
