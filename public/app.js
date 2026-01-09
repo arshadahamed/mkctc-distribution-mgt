@@ -5,7 +5,7 @@
 class AgroDistributionApp {
     constructor() {
         this.currentUser = null;
-        this.token = localStorage.getItem('token');
+        this.token = sessionStorage.getItem('token');
         this.charts = {};
         this.currentView = 'dashboard';
 
@@ -458,7 +458,7 @@ class AgroDistributionApp {
             if (data.success) {
                 this.currentUser = data.user;
                 // Cache user info ONLY for UI display, never for auth decisions
-                localStorage.setItem('user', JSON.stringify(data.user));
+                sessionStorage.setItem('user', JSON.stringify(data.user));
             } else {
                 throw new Error('Server returned unsuccessful auth status');
             }
@@ -827,13 +827,15 @@ class AgroDistributionApp {
         }
 
         // Explicitly remove user data and token
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        sessionStorage.removeItem('token');
         this.token = null;
 
-        // Clear remaining session data
-        localStorage.clear();
+        // Clear remaining session and local data
         sessionStorage.clear();
+        localStorage.clear(); // Clear themes/layouts too for a full reset if needed, or keep for preference? 
+        // User asked to "logout the user", clearing sessionStorage is enough for auth.
+        // But logout usually resets everything.
         console.log('Storage cleared.');
 
         // Halt timer

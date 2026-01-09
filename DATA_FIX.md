@@ -16,7 +16,7 @@ node server.js
 
 ### 2. Test the Dashboard
 1. Go to: `http://localhost:3000`
-2. Login with: `admin` / `admin123`
+2. Login with: `admin` / `admin`
 3. You should now see:
    - ✅ KPI cards with data (Outstanding, Active Trucks, etc.)
    - ✅ Route Performance chart

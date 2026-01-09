@@ -866,9 +866,9 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    localStorage.setItem('user', JSON.stringify(data.data.user));
-                    localStorage.setItem('token', data.data.token);
-                    localStorage.removeItem('session_expiry');
+                    sessionStorage.setItem('user', JSON.stringify(data.data.user));
+                    sessionStorage.setItem('token', data.data.token);
+                    sessionStorage.removeItem('session_expiry');
 
                     // Show Success Animation
                     const charContainer = document.getElementById('character-container');

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroDistribution™ ERP - Documentation</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2E7D32;
+            --secondary: #4F46E5;
+            --text: #1F2937;
+            --bg: #F9FAFB;
+            --white: #FFFFFF;
+            --border: #E5E7EB;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text);
+            line-height: 1.6;
+            background: var(--bg);
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: var(--white);
+            padding: 60px 80px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
+        }
+
+        @media print {
+            .container {
+                box-shadow: none;
+                margin: 0;
+                max-width: 100%;
+                padding: 20px;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+
+        .cover {
+            text-align: center;
+            margin-bottom: 80px;
+            padding-bottom: 40px;
+            border-bottom: 2px solid var(--primary);
+        }
+
+        .cover h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .cover h2 {
+            font-size: 1.25rem;
+            color: #6B7280;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            background: var(--primary);
+            border-radius: 20px;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        h3 {
+            margin-top: 30px;
+            color: #111827;
+            font-weight: 700;
+        }
+
+        p,
+        li {
+            font-size: 1rem;
+            color: #4B5563;
+        }
+
+        code {
+            background: #F3F4F6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: #1F2937;
+            color: #F9FAFB;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.85em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: #F9FAFB;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-primary {
+            background: #E1F5FE;
+            color: #0288D1;
+        }
+
+        .badge-success {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+
+        .toc {
+            background: #F9FAFB;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 60px;
+        }
+
+        .toc h2 {
+            margin-top: 0;
+            border: none;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            margin-bottom: 10px;
+        }
+
+        .toc a {
+            text-decoration: none;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+        }
+
+        .print-btn:hover {
+            background: #1B5E20;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="print-btn no-print" onclick="window.print()">
+        📄 Save as PDF / Print
+    </button>
+
+    <div class="container">
+        <div class="cover">
+            <div class="logo-placeholder">AD</div>
+            <h1>AgroDistribution™ ERP</h1>
+            <h2>User Manual & Technical Documentation</h2>
+            <div style="margin-top: 60px;">
+                <p><strong>Version:</strong> 1.0.0</p>
+                <p><strong>Release Date:</strong> January 9, 2026</p>
+                <p><strong>Prepared for:</strong> MKC Trade Center Operational Integrity</p>
+            </div>
+        </div>
+
+        <div class="toc no-print">
+            <h2>Table of Contents</h2>
+            <ul>
+                <li><a href="#intro">1. Introduction</a></li>
+                <li><a href="#user-manual">2. User Manual: Functional Workflows</a></li>
+                <li><a href="#admin">3. Admin Features</a></li>
+                <li><a href="#tech">4. Technical Documentation</a></li>
+                <li><a href="#deploy">5. Deployment & Maintenance</a></li>
+            </ul>
+        </div>
+
+        <section id="intro">
+            <h2>1. Introduction</h2>
+            <p>The <strong>AgroDistribution™ ERP</strong> is a comprehensive, full-stack management solution designed
+                for agro-chemical distribution centers. It streamlines complex operations including high-velocity
+                inventory tracking, field-based distribution via truck loads, real-time invoicing, and multi-tier
+                financial reconciliation.</p>
+            <p>Built with a "Local-First, Cloud-Ready" philosophy, the system utilizes a high-performance Node.js
+                backend with an optimized SQLite (WAL-enabled) data engine and a premium Vanilla JavaScript frontend
+                design system ("Agro-Green").</p>
+        </section>
+
+        <section id="user-manual">
+            <h2>2. User Manual: Functional Workflows</h2>
+
+            <h3>2.1 Authentication & Security</h3>
+            <p>Access the system via the secure login portal. Passwords are encrypted using the <code>bcrypt</code>
+                algorithm. Inactive sessions are protected by server-side timeouts.</p>
+
+            <h3>2.2 Inventory Management</h3>
+            <p>The Product Registry allows for granular tracking of stock. Features include:</p>
+            <ul>
+                <li><strong>SKU & Barcode Support</strong>: Speed up billing and loading.</li>
+                <li><strong>Unit Management</strong>: Track litres, kilograms, and carton units.</li>
+                <li><strong>Supplier Tracking</strong>: Maintain records of procurement sources and area managers.</li>
+            </ul>
+
+            <h3>2.3 Sales (Point of Sale)</h3>
+            <p>The Sales module supports Credit and Cash transactions. The system automatically memorizes the
+                <strong>last discount percentage</strong> given to a specific customer for a specific product, ensuring
+                pricing consistency in future bills.</p>
+
+            <h3>2.4 Field Distribution (Truck Workflow)</h3>
+            <p>Unique "Load & Reconcile" workflow:</p>
+            <ol>
+                <li><strong>Morning Load</strong>: Assign stock to specific vehicles.</li>
+                <li><strong>Field Sales</strong>: Real-time stock deduction from the vehicle's inventory.</li>
+                <li><strong>Evening Reconcile</strong>: Calculate variance (Loaded - Sold - Returned).</li>
+            </ol>
+        </section>
+
+        <section id="admin">
+            <h2>3. Admin Features</h2>
+            <h3>3.1 User Permissions</h3>
+            <p>The Admin Panel allows for Role-Based Access Control (RBAC). Admins can toggle permissions for sensitive
+                actions like <code>Clear Logs</code> or <code>Database Reset</code>.</p>
+
+            <h3>3.2 System Audit Center</h3>
+            <p>The redesigned Audit module provides full visibility into <code>CREATE</code>, <code>UPDATE</code>, and
+                <code>DELETE</code> events across all ledger tables, identified by timestamp and username.</p>
+        </section>
+
+        <section id="tech">
+            <h2>4. Technical Documentation</h2>
+
+            <h3>4.1 Architecture Overview</h3>
+            <p>The application follows a standard RESTful pattern:</p>
+            <pre>
+Frontend (Browser) <--> Express.js Server <--> Repositories <--> SQLite (WAL)
+            </pre>
+
+            <h3>4.2 Database Schema</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Table</th>
+                        <th>Function</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>products</code></td>
+                        <td>Master inventory records and pricing.</td>
+                    </tr>
+                    <tr>
+                        <td><code>customers</code></td>
+                        <td>Client profiles and ledger balances.</td>
+                    </tr>
+                    <tr>
+                        <td><code>truck_loads</code></td>
+                        <td>Header records for distribution vehicles.</td>
+                    </tr>
+                    <tr>
+                        <td><code>invoices</code></td>
+                        <td>Sales headers with tax and discount summaries.</td>
+                    </tr>
+                    <tr>
+                        <td><code>audit_logs</code></td>
+                        <td>System-wide activity tracking.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>4.3 Core API Endpoints</h3>
+            <ul>
+                <li><code>GET /api/dashboard/kpis</code>: Real-time financial signals.</li>
+                <li><code>POST /api/distribution/load</code>: Inventory allocation.</li>
+                <li><code>GET /api/reports/sales-analytics</code>: Deep intelligence engine.</li>
+            </ul>
+        </section>
+
+        <section id="deploy">
+            <h2>5. Deployment & Maintenance</h2>
+            <p>Deployment requires a standard Node.js environment. Maintenance is simplified through automated midnight
+                backups and integrated log purging modules.</p>
+        </section>
+
+        <div style="margin-top: 100px; text-align: center; font-size: 0.8rem; color: #9CA3AF;">
+            <p>© 2026 MKC Trade Center. All rights reserved. Proprietary & Confidential.</p>
+        </div>
+    </div>
+
+</body>
+
+</html>

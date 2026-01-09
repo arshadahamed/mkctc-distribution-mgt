@@ -49,12 +49,11 @@ router.post('/login', async (req, res) => {
             // Don't send password to frontend
             delete user.password;
 
-            // Set Cookie
+            // Set Cookie as Session Cookie (clears on browser close)
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict',
-                maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                sameSite: 'strict'
             });
 
             res.json({
