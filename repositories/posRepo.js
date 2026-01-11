@@ -12,6 +12,8 @@ const posRepo = {
                 p.name, 
                 p.reference_code,
                 p.msrp,
+                p.allow_free_issue,
+                p.weighted,
                 li.quantity_loaded as loaded_quantity,
                 COALESCE((
                     SELECT SUM(ii.quantity)

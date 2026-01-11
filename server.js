@@ -103,11 +103,16 @@ app.use((req, res) => {
     res.status(404).sendFile(path.join(__dirname, 'public', '404.html'));
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🚀 Agro Distribution System running on http://localhost:${PORT}`);
-    console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
-    console.log(`🔌 API: http://localhost:${PORT}/api\n`);
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`\n🚀 Agro Distribution System running on http://localhost:${PORT}`);
+        console.log(`📊 Dashboard: http://localhost:${PORT}/dashboard`);
+        console.log(`🔌 API: http://localhost:${PORT}/api\n`);
 
-    // Initialize Scheduler
-    backupService.initScheduler();
-});
+        // Initialize Scheduler
+        const backupService = require('./services/backupService');
+        backupService.initScheduler();
+    });
+}
+
+module.exports = app;

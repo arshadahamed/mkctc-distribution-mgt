@@ -768,6 +768,10 @@
                         </button>
                     </div>
                 </div>
+                <div id="caps-lock-warning"
+                    style="display: none; align-items: center; gap: 8px; color: #f59e0b; font-size: 11px; margin-top: 5px; font-weight: 600;">
+                    <i class="fas fa-exclamation-triangle"></i> Caps Lock is ON
+                </div>
 
                 <button type="submit" class="btn-login" id="submit-btn-login">
                     <span>Sign In</span>
@@ -899,8 +903,13 @@
 
                     // Show error
                     errorEl.innerHTML = `<div style="display: flex; flex-direction: column; gap: 4px;">
-                        <div><i class="fas fa-exclamation-circle"></i> ${data.message || 'Invalid credentials'}</div>
-                        <a href="javascript:void(0)" onclick="openAdminContactModal()" style="font-size: 11px; color: #991B1B; font-weight: 700; text-decoration: underline; margin-left: 21px;">Contact Admin for Help?</a>
+                        <div><i class="fas fa-exclamation-circle"></i> ${data.message || 'Invalid username or password'}</div>
+                        <div style="font-size: 11px; color: #991B1B; margin-left: 21px; opacity: 0.8; line-height: 1.4;">
+                            • Check if Caps Lock is correct<br>
+                            • Ensure you are using your assigned username<br>
+                            • Passwords are case-sensitive
+                        </div>
+                        <a href="javascript:void(0)" onclick="openAdminContactModal()" style="font-size: 11px; color: #991B1B; font-weight: 700; text-decoration: underline; margin-left: 21px; margin-top: 4px;">Contact Admin for Password Reset?</a>
                     </div>`;
                     errorEl.classList.add('show');
 
@@ -949,6 +958,25 @@
 
         passwordInput.addEventListener('blur', () => {
             charContainer.classList.remove('password-focused');
+        });
+
+        // Caps Lock Detection
+        const capsWarning = document.getElementById('caps-lock-warning');
+        [usernameInput, passwordInput].forEach(input => {
+            input.addEventListener('keyup', (e) => {
+                if (e.getModifierState && e.getModifierState('CapsLock')) {
+                    capsWarning.style.display = 'flex';
+                } else {
+                    capsWarning.style.display = 'none';
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.getModifierState && e.getModifierState('CapsLock')) {
+                    capsWarning.style.display = 'flex';
+                } else {
+                    capsWarning.style.display = 'none';
+                }
+            });
         });
 
         // Toggle Password Visibility (Updating existing logic to handle character state if needed)

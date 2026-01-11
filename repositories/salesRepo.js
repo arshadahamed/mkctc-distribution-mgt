@@ -30,13 +30,13 @@ class SalesRepository {
             // Insert invoice items
             for (const item of invoiceData.items) {
                 const itemSql = `
-                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, line_total)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 const itemParams = [
                     invoiceId, item.product_id, item.product_name, item.msrp,
                     item.discount_percentage || 0, item.discount_amount || 0,
-                    item.quantity, item.line_total
+                    item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
                 await runQuery(itemSql, itemParams);
 
@@ -212,13 +212,13 @@ class SalesRepository {
             // Insert new invoice items
             for (const item of invoiceData.items) {
                 const itemSql = `
-                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, line_total)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 const itemParams = [
                     id, item.product_id, item.product_name, item.msrp,
                     item.discount_percentage || 0, item.discount_amount || 0,
-                    item.quantity, item.line_total
+                    item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
                 await runQuery(itemSql, itemParams);
             }

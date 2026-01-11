@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const rmaRepo = require('../repositories/rmaRepo');
 const { logEvent, logError } = require('../lib/logger');
+const { checkPermission } = require('../middleware/auth');
 
 // List all RMAs
-router.get('/', async (req, res) => {
+router.get('/', checkPermission('rma', 'view'), async (req, res) => {
     try {
         const filters = {
             status: req.query.status,
@@ -20,7 +21,7 @@ router.get('/', async (req, res) => {
 });
 
 // Generate next RMA ticket number
-router.get('/next-number', async (req, res) => {
+router.get('/next-number', checkPermission('rma', 'create'), async (req, res) => {
     try {
         const number = await rmaRepo.generateTicketNumber();
         res.json({ success: true, data: number });
@@ -30,7 +31,7 @@ router.get('/next-number', async (req, res) => {
 });
 
 // Get damaged stock ledger
-router.get('/ledger/damaged', async (req, res) => {
+router.get('/ledger/damaged', checkPermission('rma', 'view'), async (req, res) => {
     try {
         const data = await rmaRepo.getDamagedStock();
         res.json({ success: true, data });
@@ -40,7 +41,7 @@ router.get('/ledger/damaged', async (req, res) => {
 });
 
 // Get single RMA by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', checkPermission('rma', 'view'), async (req, res) => {
     try {
         const data = await rmaRepo.getById(req.params.id);
         res.json({ success: true, data });
@@ -50,7 +51,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create new RMA
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('rma', 'create'), async (req, res) => {
     try {
         const data = { ...req.body, handled_by: req.user?.id || 1 };
         const id = await rmaRepo.create(data);
@@ -63,7 +64,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update RMA status and process stock actions
-router.put('/:id/status', async (req, res) => {
+router.put('/:id/status', checkPermission('rma', 'process'), async (req, res) => {
     try {
         const { status, action_taken } = req.body;
         await rmaRepo.updateStatus(req.params.id, status, action_taken, req.user?.id || 1);
@@ -75,7 +76,7 @@ router.put('/:id/status', async (req, res) => {
 });
 
 // Delete RMA
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkPermission('rma', 'delete'), async (req, res) => {
     try {
         await rmaRepo.delete(req.params.id);
         await logEvent(req.user?.id || 1, 'DELETE_RMA', 'rma_requests', req.params.id, 'RMA deleted');

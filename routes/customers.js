@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const customerRepo = require('../repositories/customerRepo');
 const { logEvent, logError } = require('../lib/logger');
+const { checkPermission } = require('../middleware/auth');
 
 // Get all customers with filters
-router.get('/', async (req, res) => {
+router.get('/', checkPermission('customers', 'view'), async (req, res) => {
     try {
         const filters = {
             status: req.query.status,

@@ -100,6 +100,199 @@
             border-bottom: 1px solid #eee;
         }
 
+        /* --- POS THERMAL FORMAT (80mm) --- */
+        body.format-pos {
+            background: #fff;
+            padding: 0;
+            margin: 0;
+            width: 80mm;
+            font-family: Arial, Helvetica, sans-serif !important;
+        }
+
+        body.format-pos .invoice-wrapper {
+            width: 80mm;
+            padding: 4mm;
+            min-height: auto;
+            border: none;
+            margin: 0;
+        }
+
+        body.format-pos .header-main {
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 12px;
+            border-bottom: 2px dashed var(--ink);
+            padding-bottom: 8px;
+        }
+
+        body.format-pos .company-branding {
+            text-align: center;
+        }
+
+        body.format-pos .company-branding h1 {
+            font-size: 20px;
+            letter-spacing: 0;
+            margin-bottom: 5px;
+            font-weight: 900;
+        }
+
+        body.format-pos .company-branding p {
+            font-size: 12px;
+            margin: 2px 0;
+            font-weight: 700;
+        }
+
+        body.format-pos .invoice-meta-box {
+            text-align: center;
+            min-width: 100%;
+            margin-top: 8px;
+        }
+
+        body.format-pos .type-label {
+            font-size: 22px;
+            letter-spacing: 1px;
+            margin-bottom: 2px;
+        }
+
+        body.format-pos .meta-row {
+            justify-content: center;
+            font-size: 13px;
+            gap: 12px;
+            font-weight: 800;
+        }
+
+        body.format-pos .info-section {
+            grid-template-columns: 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        body.format-pos .address-card {
+            padding: 6px;
+            border: 1px solid var(--ink);
+            background: transparent !important;
+        }
+
+        body.format-pos .address-card h2 {
+            font-size: 10px;
+            padding-bottom: 3px;
+            margin-bottom: 5px;
+        }
+
+        body.format-pos .address-card p {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        body.format-pos .summary-mini-card {
+            padding: 6px;
+            background: transparent !important;
+        }
+
+        body.format-pos .summary-mini-card h3 {
+            font-size: 10px;
+        }
+
+        body.format-pos .payment-line {
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        body.format-pos .items-table {
+            border: none;
+            border-top: 1px solid var(--ink);
+            border-bottom: 1px solid var(--ink);
+            margin-bottom: 12px;
+        }
+
+        body.format-pos .items-table thead {
+            display: none;
+            /* Hide header for POS */
+        }
+
+        body.format-pos .items-table td {
+            padding: 10px 0;
+            border: none;
+            border-bottom: 1px solid #000;
+        }
+
+        body.format-pos .footer-grid {
+            flex-direction: column;
+        }
+
+        body.format-pos .terms-conditions {
+            width: 100%;
+            margin-top: 15px;
+            order: 2;
+            text-align: center;
+            font-size: 11px;
+            line-height: 1.4;
+            font-weight: 700;
+        }
+
+        body.format-pos .terms-conditions h4 {
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        body.format-pos .totals-block {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            border-top: 2px solid var(--ink);
+            order: 1;
+        }
+
+        body.format-pos .total-row {
+            font-size: 14px;
+            padding: 4px 0;
+            font-weight: 800;
+        }
+
+        body.format-pos .total-row.net-total {
+            font-size: 22px;
+            border-top: 1px solid var(--ink);
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+
+        body.format-pos .signature-group {
+            flex-direction: column;
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        body.format-pos .sig-container {
+            width: 100%;
+        }
+
+        body.format-pos .sig-line {
+            height: 30px;
+        }
+
+        body.format-pos .watermark-status {
+            font-size: 32px;
+            top: 60mm;
+            padding: 8px 15px;
+            border-width: 3px;
+            opacity: 0.8 !important;
+            display: none !important;
+            /* Hide by default in POS to save space/ink unless specifically needed */
+        }
+
+        body.format-pos .duplicate-tag {
+            right: 5mm;
+            font-size: 10px;
+            padding: 2px 8px;
+        }
+
+        @media print {
+            body.format-pos {
+                width: 80mm;
+            }
+        }
+
         * {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact;
@@ -490,9 +683,14 @@
         async function fetchAndRender() {
             const query = new URLSearchParams(window.location.search);
             const invoiceId = query.get('id');
+            const format = query.get('format') || 'a4';
             const isDup = query.get('duplicate') === 'true';
             const isPreview = query.get('preview') === 'true';
             const previewTemplate = query.get('template');
+
+            if (format === 'pos') {
+                document.body.classList.add('format-pos');
+            }
 
             if (isDup) document.getElementById('duplicate-indicator').style.display = 'block';
 
@@ -540,8 +738,10 @@
                     // Priority: URL param (preview) > Database Setting > Default
                     const template = (isPreview && previewTemplate) ? previewTemplate : (compData ? (compData.invoice_template || 'classic') : 'classic');
 
-                    wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom');
-                    wrapper.classList.add(`template-${template}`);
+                    if (format !== 'pos') {
+                        wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom');
+                        wrapper.classList.add(`template-${template}`);
+                    }
 
                     // Data
                     if (compData) {
@@ -551,12 +751,12 @@
                             document.getElementById('comp-display-contact').innerHTML = `<b>Hotline:</b> ${compData.contact_numbers}`;
                         }
                     } else {
-                        document.getElementById('comp-display-name').textContent = "My Custom Company";
-                        document.getElementById('comp-display-address').textContent = "123 Innovation Drive, Tech City";
+                        document.getElementById('comp-display-name').textContent = "M.K.C. TRADE CENTER";
+                        document.getElementById('comp-display-address').textContent = "No. 69, Kurunegala Road, Galgamuwa.";
                     }
 
                     // --- Custom Template Logic ---
-                    if (template === 'custom') {
+                    if (template === 'custom' && format !== 'pos') {
                         let config = {};
 
                         // Check URL param first (Live Preview)
@@ -631,11 +831,11 @@
                 // Append Cheque Details if any
                 if (inv.cheques && inv.cheques.length > 0) {
                     inv.cheques.forEach(c => {
-                        payHtml += `<div style="font-size: 10px; margin-top:5px; border-left: 2px solid #000; padding-left: 5px;">
-                            <b>${c.bank_name || c.bank}:</b> #${c.cheque_number || c.number}<br>Due: ${c.cheque_date || c.date}
+                        payHtml += `<div style="font-size: 12px; margin-top:8px; border-left: 3px solid #000; padding-left: 8px; font-weight: 800;">
+                            <b>${c.bank_name || c.bank}:</b> #${c.cheque_number || c.number}<br>DUE: ${c.cheque_date || c.date}
                         </div>`;
                     });
-                    if (inv.cheques[0].image) {
+                    if (inv.cheques[0].image && format !== 'pos') {
                         document.getElementById('cheque-display').style.display = 'block';
                         document.getElementById('cheque-img').src = inv.cheques[0].image;
                     }
@@ -644,19 +844,42 @@
 
                 // 5. Items Table
                 const tbody = document.getElementById('line-items-body');
-                tbody.innerHTML = inv.items.map((it, idx) => `
-                    <tr>
-                        <td class="text-center">${idx + 1}</td>
-                        <td>
-                            <b>${it.product_name}</b><br>
-                            <small>SKU: ${it.reference_code || 'N/A'}</small>
-                        </td>
-                        <td class="text-right">${it.msrp.toFixed(2)}</td>
-                        <td class="text-center">${it.quantity}</td>
-                        <td class="text-center">${it.discount_percentage > 0 ? it.discount_percentage + '%' : '-'}</td>
-                        <td class="text-right">${it.line_total.toFixed(2)}</td>
-                    </tr>
-                `).join('');
+                if (format === 'pos') {
+                    tbody.innerHTML = inv.items.map((it, idx) => `
+                        <tr>
+                            <td colspan="6" style="padding: 10px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
+                                    <div style="font-weight: 800; font-size: 14px; color: var(--ink); flex: 1; padding-right: 15px;">
+                                        ${it.product_name} ${it.is_free ? '<span style="color:red; font-size:10px;">(FREE ISSUE)</span>' : ''}
+                                    </div>
+                                    <div style="font-weight: 900; font-size: 14px; white-space: nowrap;">
+                                        ${it.is_free ? '0.00' : it.line_total.toFixed(2)}
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 800; color: #000;">
+                                    <span>${it.quantity} ${it.unit || 'unit'}</span>
+                                    <span>@ ${it.msrp.toFixed(2)}</span>
+                                    ${it.discount_percentage > 0 ? `<span>(DISC: ${it.discount_percentage}%)</span>` : ''}
+                                    ${it.is_free ? '<b style="color:var(--primary-color)">[ FREE ]</b>' : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = inv.items.map((it, idx) => `
+                        <tr>
+                            <td class="text-center">${idx + 1}</td>
+                            <td>
+                                <b>${it.product_name}</b> ${it.is_free ? '<span style="color:red; font-size:10px; font-weight:900;">(FREE ISSUE)</span>' : ''}<br>
+                                <small>SKU: ${it.reference_code || 'N/A'}</small>
+                            </td>
+                            <td class="text-right">${it.msrp.toFixed(2)}</td>
+                            <td class="text-center">${it.quantity}</td>
+                            <td class="text-center">${it.is_free ? '-' : (it.discount_percentage > 0 ? it.discount_percentage + '%' : '-')}</td>
+                            <td class="text-right"><b>${it.is_free ? 'FREE' : it.line_total.toFixed(2)}</b></td>
+                        </tr>
+                    `).join('');
+                }
 
                 // 6. Totals
                 const subTotalCalculated = inv.items.reduce((s, i) => s + (i.msrp * i.quantity), 0);

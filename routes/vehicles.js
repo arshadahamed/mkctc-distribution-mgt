@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 const vehicleRepo = require('../repositories/vehicleRepo');
 const { logEvent, logError } = require('../lib/logger');
+const { checkPermission } = require('../middleware/auth');
 
-router.get('/', async (req, res) => {
+router.get('/', checkPermission('vehicles', 'view'), async (req, res) => {
     try {
         const vehicles = await vehicleRepo.getAll();
         res.json({ success: true, data: vehicles });
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:id', checkPermission('vehicles', 'view'), async (req, res) => {
     try {
         const vehicle = await vehicleRepo.getById(req.params.id);
         if (vehicle) {
@@ -27,7 +28,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('vehicles', 'create'), async (req, res) => {
     try {
         const id = await vehicleRepo.create(req.body);
         const userId = req.user?.id || 0;
@@ -39,7 +40,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('vehicles', 'edit'), async (req, res) => {
     try {
         await vehicleRepo.update(req.params.id, req.body);
         const userId = req.user?.id || 0;
@@ -51,7 +52,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkPermission('vehicles', 'delete'), async (req, res) => {
     try {
         await vehicleRepo.delete(req.params.id);
         const userId = req.user?.id || 0;

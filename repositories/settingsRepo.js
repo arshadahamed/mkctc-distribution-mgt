@@ -31,19 +31,56 @@ const SettingsRepository = {
     },
 
     async resetTransactionalData() {
-        return await transaction(async () => {
-            await runQuery('DELETE FROM invoice_items');
-            await runQuery('DELETE FROM receipt_allocations');
-            await runQuery('DELETE FROM truck_load_items');
-            await runQuery('DELETE FROM invoices');
-            await runQuery('DELETE FROM receipts');
-            await runQuery('DELETE FROM shop_visits');
-            await runQuery('DELETE FROM truck_loads');
-            await runQuery('DELETE FROM expenses');
-            await runQuery('DELETE FROM audit_logs');
-            await runQuery('UPDATE customers SET account_balance = 0');
-            return true;
-        });
+        // Disable foreign keys temporarily for a clean wipe
+        // Note: Foreign keys MUST be disabled OUTSIDE of a transaction block in SQLite
+        await runQuery('PRAGMA foreign_keys = OFF');
+
+        try {
+            return await transaction(async () => {
+                // Transactional & Operation Data
+                await runQuery('DELETE FROM invoice_items');
+                await runQuery('DELETE FROM invoices');
+                await runQuery('DELETE FROM receipt_allocations');
+                await runQuery('DELETE FROM receipts');
+                await runQuery('DELETE FROM cheque_details');
+                await runQuery('DELETE FROM shop_visits');
+                await runQuery('DELETE FROM expenses');
+                await runQuery('DELETE FROM audit_logs');
+                await runQuery('DELETE FROM pre_order_items');
+                await runQuery('DELETE FROM pre_orders');
+                await runQuery('DELETE FROM customer_product_discounts');
+                await runQuery('DELETE FROM rma_items');
+                await runQuery('DELETE FROM rma_requests');
+                await runQuery('DELETE FROM damaged_stock_ledger');
+
+                // Distribution Data
+                await runQuery('DELETE FROM unload_items');
+                await runQuery('DELETE FROM truck_unloads');
+                await runQuery('DELETE FROM load_items');
+                await runQuery('DELETE FROM truck_loads');
+                await runQuery('DELETE FROM trucks');
+
+                // Master Data
+                await runQuery('DELETE FROM product_prices');
+                await runQuery('DELETE FROM products');
+                await runQuery('DELETE FROM customers');
+                await runQuery('DELETE FROM suppliers');
+                await runQuery('DELETE FROM routes');
+                await runQuery('DELETE FROM brands');
+                await runQuery('DELETE FROM categories');
+                await runQuery('DELETE FROM departments');
+                await runQuery('DELETE FROM units');
+                await runQuery('DELETE FROM sizes');
+
+                // Reset IDs (sqlite_sequence) for all tables except users, company_settings, etc.
+                await runQuery("DELETE FROM sqlite_sequence WHERE name NOT IN ('users', 'company_settings', 'app_settings')");
+
+                return true;
+            });
+        } finally {
+            // Always re-enable foreign keys after the transaction is settled
+            await runQuery('PRAGMA foreign_keys = ON');
+        }
     },
 
     async getSetting(key) {

@@ -68,7 +68,7 @@ const isAuthenticated = async (req, res, next) => {
         }
 
         // Check token version (Force Logout Support)
-        if (payload.token_version !== undefined && user.token_version !== payload.token_version) {
+        if (payload.token_version !== undefined && (user.token_version || 0) !== (payload.token_version || 0)) {
             return res.status(401).json({ success: false, message: 'Session expired. Please log in again.' });
         }
 
@@ -92,4 +92,37 @@ const isAdmin = (req, res, next) => {
     res.status(403).json({ success: false, message: 'Forbidden. Admin access required.' });
 };
 
-module.exports = { isAuthenticated, isAdmin, JWT_SECRET, encrypt, decrypt };
+const checkPermission = (module, action) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        // Admins bypass all permission checks
+        if (req.user.role === 'admin') {
+            return next();
+        }
+
+        // Parse permissions if they are still a string
+        let permissions = [];
+        try {
+            permissions = typeof req.user.permissions === 'string'
+                ? JSON.parse(req.user.permissions || '[]')
+                : (req.user.permissions || []);
+        } catch (e) {
+            permissions = (req.user.permissions || '').split(',').filter(p => p);
+        }
+
+        const requiredPermission = `${module}:${action}`;
+        if (permissions.includes(requiredPermission)) {
+            return next();
+        }
+
+        res.status(403).json({
+            success: false,
+            message: `Forbidden. You do not have permission to ${action} ${module}.`
+        });
+    };
+};
+
+module.exports = { isAuthenticated, isAdmin, checkPermission, JWT_SECRET, encrypt, decrypt };

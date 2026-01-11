@@ -94,8 +94,8 @@ class ProductRepository {
             const sql = `
                 INSERT INTO products 
                 (name, description, chemical_name, initial_stock, department_id, category_id, brand_id, supplier_id, 
-                 unit, size, units_per_carton, cost, msrp, supplier_discount, weighted, reference_code, barcode, product_image, tags, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 unit, size, units_per_carton, cost, msrp, supplier_discount, weighted, reference_code, barcode, product_image, tags, status, allow_free_issue)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
             const params = [
@@ -118,7 +118,8 @@ class ProductRepository {
                 product.barcode || null,
                 product.product_image || null,
                 product.tags || null,
-                product.status || 'active'
+                product.status || 'active',
+                product.allow_free_issue !== undefined ? (product.allow_free_issue ? 1 : 0) : 1
             ];
 
             const result = await runQuery(sql, params);
@@ -144,7 +145,8 @@ class ProductRepository {
                 UPDATE products SET
                     name = ?, description = ?, chemical_name = ?, initial_stock = ?, department_id = ?, category_id = ?,
                     brand_id = ?, supplier_id = ?, unit = ?, size = ?, units_per_carton = ?, cost = ?, msrp = ?,
-                    supplier_discount = ?, weighted = ?, reference_code = ?, barcode = ?, product_image = ?, tags = ?, status = ?
+                    supplier_discount = ?, weighted = ?, reference_code = ?, barcode = ?, product_image = ?, tags = ?, status = ?,
+                    allow_free_issue = ?
                 WHERE id = ?
             `;
 
@@ -169,6 +171,7 @@ class ProductRepository {
                 product.product_image || null,
                 product.tags || null,
                 product.status || 'active',
+                product.allow_free_issue !== undefined ? (product.allow_free_issue ? 1 : 0) : 1,
                 id
             ];
 

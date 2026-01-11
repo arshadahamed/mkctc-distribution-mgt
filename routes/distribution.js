@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const distributionRepo = require('../repositories/distributionRepo');
-
 const { logEvent, logError } = require('../lib/logger');
+const { checkPermission } = require('../middleware/auth');
 
 // Get active truck loads
-router.get('/active-loads', async (req, res) => {
+router.get('/active-loads', checkPermission('distribution', 'view'), async (req, res) => {
     try {
         const filters = {
             search: req.query.search,
@@ -21,7 +21,7 @@ router.get('/active-loads', async (req, res) => {
 });
 
 // Get load details
-router.get('/loads/:id', async (req, res) => {
+router.get('/loads/:id', checkPermission('distribution', 'view'), async (req, res) => {
     try {
         const load = await distributionRepo.getLoadById(req.params.id);
         if (load) {
@@ -36,7 +36,7 @@ router.get('/loads/:id', async (req, res) => {
 });
 
 // Create truck load
-router.post('/loads', async (req, res) => {
+router.post('/loads', checkPermission('distribution', 'create'), async (req, res) => {
     try {
         const loadId = await distributionRepo.createLoad(req.body);
         const userId = req.user?.id || 0;
@@ -49,7 +49,7 @@ router.post('/loads', async (req, res) => {
 });
 
 // Update truck load
-router.put('/loads/:id', async (req, res) => {
+router.put('/loads/:id', checkPermission('distribution', 'edit'), async (req, res) => {
     try {
         await distributionRepo.updateLoad(req.params.id, req.body);
         const userId = req.user?.id || 0;
@@ -62,7 +62,7 @@ router.put('/loads/:id', async (req, res) => {
 });
 
 // Create truck unload (reconciliation)
-router.post('/unloads', async (req, res) => {
+router.post('/unloads', checkPermission('distribution', 'create'), async (req, res) => {
     try {
         const unloadId = await distributionRepo.createUnload(req.body);
         const userId = req.user?.id || 0;
@@ -75,7 +75,7 @@ router.post('/unloads', async (req, res) => {
 });
 
 // Get all truck loads (History)
-router.get('/loads', async (req, res) => {
+router.get('/loads', checkPermission('distribution', 'view'), async (req, res) => {
     try {
         const filters = {
             search: req.query.search,
@@ -92,7 +92,7 @@ router.get('/loads', async (req, res) => {
 });
 
 // Delete truck load
-router.delete('/loads/:id', async (req, res) => {
+router.delete('/loads/:id', checkPermission('distribution', 'delete'), async (req, res) => {
     try {
         await distributionRepo.deleteLoad(req.params.id);
         const userId = req.user?.id || 0;
@@ -105,7 +105,7 @@ router.delete('/loads/:id', async (req, res) => {
 });
 
 // Get variance report for a load
-router.get('/variance/:loadId', async (req, res) => {
+router.get('/variance/:loadId', checkPermission('distribution', 'view'), async (req, res) => {
     try {
         const report = await distributionRepo.getVarianceReport(req.params.loadId);
         res.json({ success: true, data: report });

@@ -24,6 +24,8 @@ class AgroDistributionApp {
             'units': ['view', 'create', 'edit', 'delete'],
             'expenses': ['view', 'create', 'edit', 'delete'],
             'distribution': ['view', 'create', 'edit', 'delete'],
+            'vehicles': ['view', 'create', 'edit', 'delete'],
+            'routes': ['view', 'create', 'edit', 'delete'],
             'pre-orders': ['view', 'create', 'edit', 'delete'],
             'rma': ['view', 'create', 'edit', 'process'],
             'quick_actions': ['visit', 'payment', 'product', 'customer', 'dbtools', 'sale', 'expense', 'products', 'customers', 'suppliers', 'distribution', 'reports', 'settings']
@@ -371,9 +373,9 @@ class AgroDistributionApp {
         this.updateDateTime();
         setInterval(() => this.updateDateTime(), 1000);
 
-        // Periodic Session Validation (every 15s)
+        // Periodic Session Validation (every 5s)
         // This ensures kicked users are redirected even if idle
-        setInterval(() => this.validateSession(), 15000);
+        setInterval(() => this.validateSession(), 5000);
 
         this.handleRouting();
         window.addEventListener('popstate', () => this.handleRouting());
@@ -442,8 +444,13 @@ class AgroDistributionApp {
     async checkAuth() {
         // 1. Check for token existence
         if (!this.token) {
-            console.warn('No token found, redirecting to login.');
-            window.location.replace('/');
+            console.warn('No token found in app state, checking sessionStorage directly...');
+            this.token = sessionStorage.getItem('token');
+        }
+
+        if (!this.token || this.token === 'undefined' || this.token === 'null') {
+            console.warn('No valid token found, redirecting to login.');
+            window.location.replace('/login');
             return;
         }
 
@@ -502,11 +509,11 @@ class AgroDistributionApp {
         // 1. Sidebar Navigation Hiding
         const navMap = {
             'products': ['product-submenu'], // Parent menu
-            'customers': ['customers'],
+            'customers': ['customers-submenu'], // Corrected from customers
             'suppliers': ['suppliers'],
-            'sales': ['sales'],
+            'sales': ['sales-submenu'], // Parent menu
             'payments': ['payments'],
-            'visits': ['distribution-submenu'], // Parent menu
+            'distribution': ['distribution-submenu'], // Parent menu
             'admin': ['admin'],
             'logs': ['logs']
         };
@@ -514,13 +521,22 @@ class AgroDistributionApp {
         // Reset all first
         document.querySelectorAll('.nav-item').forEach(el => el.style.display = 'block');
 
-        // Check specific modules
+        // Check specific Parent Modules
         if (!this.hasPermission('products', 'view')) {
             const link = document.querySelector('[data-target="product-submenu"]');
             if (link) link.closest('.nav-item').style.display = 'none';
         }
-        if (!this.hasPermission('visits', 'view')) {
+        if (!this.hasPermission('customers', 'view') && !this.hasPermission('visits', 'view')) {
+            const link = document.querySelector('[data-target="customers-submenu"]');
+            if (link) link.closest('.nav-item').style.display = 'none';
+        }
+        if (!this.hasPermission('distribution', 'view') && !this.hasPermission('vehicles', 'view') &&
+            !this.hasPermission('routes', 'view') && !this.hasPermission('rma', 'view')) {
             const link = document.querySelector('[data-target="distribution-submenu"]');
+            if (link) link.closest('.nav-item').style.display = 'none';
+        }
+        if (!this.hasPermission('sales', 'view') && !this.hasPermission('pre-orders', 'view')) {
+            const link = document.querySelector('[data-target="sales-submenu"]');
             if (link) link.closest('.nav-item').style.display = 'none';
         }
 
@@ -534,8 +550,13 @@ class AgroDistributionApp {
 
         // Direct links
         // Direct links & Submenus
-        ['customers', 'suppliers', 'sales', 'payments', 'admin', 'logs'].forEach(module => {
-            if (!this.hasPermission(module, 'view') && !(module === 'admin' && role === 'admin')) {
+        const subModules = ['customers', 'suppliers', 'sales', 'payments', 'admin', 'logs', 'distribution', 'routes', 'vehicles', 'rma', 'visits', 'pre-orders', 'sales-history', 'customer-map'];
+        subModules.forEach(module => {
+            let checkMod = module;
+            if (module === 'sales-history') checkMod = 'sales';
+            if (module === 'customer-map') checkMod = 'customers';
+
+            if (!this.hasPermission(checkMod, 'view') && !(checkMod === 'admin' && role === 'admin')) {
                 const link = document.querySelector(`.nav-link[data-page="${module}"]`);
                 if (link) {
                     if (link.classList.contains('submenu-link')) {
@@ -1218,6 +1239,32 @@ class AgroDistributionApp {
     }
 
     async navigateTo(page, updateHistory = true) {
+        // --- PERMISSION CHECK ---
+        // Check if the page being navigated to requires specific permissions
+        // 'dashboard', 'settings', etc. are usually public to authenticated users
+        const publicPages = ['dashboard', 'settings', 'profile'];
+
+        if (!publicPages.includes(page)) {
+            // Determine module name (sometimes page name differs from module name)
+            let module = page;
+            if (['categories', 'brands', 'units', 'sizes'].includes(page)) module = page;
+            if (page === 'sales-history') module = 'sales';
+            if (page === 'customer-map') module = 'customers';
+            if (page === 'pre-orders') module = 'pre-orders';
+
+            // If the page is a module in PERMISSIONS, check 'view' access
+            if (this.PERMISSIONS[module] && !this.hasPermission(module, 'view')) {
+                this.showNotification('Access Denied: You do not have permission to view this section.', 'error');
+
+                // If this was triggered by a URL load (history reset), go to dashboard
+                if (this.currentView === page) {
+                    this.currentView = 'dashboard';
+                    this.navigateTo('dashboard', true);
+                }
+                return;
+            }
+        }
+
         this.currentView = page;
         document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.dataset.page === page));
         document.querySelectorAll('.view-content').forEach(v => v.style.display = 'none');
@@ -1322,7 +1369,8 @@ class AgroDistributionApp {
             'inventory-intelligence': () => this.initInventoryIntelligenceView(),
             'demand-forecast': () => this.initDemandForecastingView(),
             'report-center': () => this.initReportCenterView(),
-            rma: () => this.loadRmaData()
+            rma: () => this.loadRmaData(),
+            'customer-map': () => this.loadCustomerMap()
         };
         if (loaders[view]) await loaders[view]();
     }
@@ -1603,48 +1651,12 @@ class AgroDistributionApp {
 
                 const statusEl = document.getElementById('p-status');
                 if (statusEl) statusEl.checked = p.status === 'active';
-                this.updatePreview(p.product_image);
-
-                // Populate Prices
-                if (p.prices && p.prices.length > 0) {
-                    p.prices.forEach(pr => this.addProductPriceRow(pr));
-                } else {
-                    this.addProductPriceRow({ label: 'MSRP', price: p.msrp, is_primary: 1 });
-                }
-            } else {
-                this.updatePreview('');
-                this.addProductPriceRow({ label: 'MSRP', price: 0, is_primary: 1 });
-            }
-
-            // Re-populate fields
-            if (p) {
-                const fields = {
-                    'p-name': p.name,
-                    'p-chemical': p.chemical_name || '',
-                    'p-ref': p.reference_code || '',
-                    'p-barcode': p.barcode || '',
-                    'p-image-url': p.product_image || '',
-                    'p-image-manual': p.product_image || '',
-                    'p-carton': p.units_per_carton || 1,
-                    'p-stock': p.initial_stock || 0,
-                    'p-cost': p.cost || 0,
-                    'p-msrp': p.msrp || 0,
-                    'p-discount': p.supplier_discount || 0,
-                    'p-size': p.size || '',
-                    'p-tags': p.tags || '',
-                    'p-desc': p.description || ''
-                };
-
-                Object.entries(fields).forEach(([id, val]) => {
-                    const el = document.getElementById(id);
-                    if (el) el.value = val;
-                });
-
-                const statusEl = document.getElementById('p-status');
-                if (statusEl) statusEl.checked = p.status === 'active';
 
                 const weightedEl = document.getElementById('p-weighted');
                 if (weightedEl) weightedEl.checked = !!p.weighted;
+
+                const allowFreeEl = document.getElementById('p-allow-free');
+                if (allowFreeEl) allowFreeEl.checked = p.allow_free_issue !== 0;
 
                 this.updatePreview(p.product_image);
 
@@ -1659,6 +1671,8 @@ class AgroDistributionApp {
                 this.addProductPriceRow({ label: 'MSRP', price: 0, is_primary: 1 });
                 const weightedEl = document.getElementById('p-weighted');
                 if (weightedEl) weightedEl.checked = false;
+                const allowFreeEl = document.getElementById('p-allow-free');
+                if (allowFreeEl) allowFreeEl.checked = true;
             }
             this.calculateProductCost();
         } catch (err) {
@@ -1726,7 +1740,8 @@ class AgroDistributionApp {
             product_image: document.getElementById('p-image-url').value || document.getElementById('p-image-manual').value || null,
             description: document.getElementById('p-desc').value,
             status: document.getElementById('p-status').checked ? 'active' : 'inactive',
-            weighted: document.getElementById('p-weighted').checked
+            weighted: document.getElementById('p-weighted').checked,
+            allow_free_issue: document.getElementById('p-allow-free').checked
         };
 
         const method = id ? 'PUT' : 'POST';
@@ -1746,6 +1761,12 @@ class AgroDistributionApp {
             if (resData.success) {
                 this.showNotification('Product Saved!');
                 this.loadProducts();
+
+                // Refresh truck stock if in POS view and a load is selected
+                if (this.currentView === 'sales' && this.posState.selectedLoadId) {
+                    this.loadTruckStock(this.posState.selectedLoadId);
+                }
+
                 if (saveAndNew) {
                     this.openProductModal();
                 } else {
@@ -2267,22 +2288,56 @@ class AgroDistributionApp {
         }
     }
 
+    showResetConfirmation() {
+        // Generate a random code
+        const code = 'RESET-' + Math.floor(1000 + Math.random() * 9000);
+        this.resetCode = code;
+
+        document.getElementById('reset-code-display').textContent = code;
+        document.getElementById('reset-confirmation-input').value = '';
+        document.getElementById('final-reset-btn').disabled = true;
+
+        document.getElementById('initial-reset-action').style.display = 'none';
+        document.getElementById('danger-confirmation-step').style.display = 'block';
+    }
+
+    validateResetCode(val) {
+        const btn = document.getElementById('final-reset-btn');
+        if (val.trim().toUpperCase() === this.resetCode) {
+            btn.disabled = false;
+        } else {
+            btn.disabled = true;
+        }
+    }
+
+    cancelReset() {
+        document.getElementById('initial-reset-action').style.display = 'block';
+        document.getElementById('danger-confirmation-step').style.display = 'none';
+    }
+
     async handleDataReset() {
-        if (!confirm('Are you sure you want to reset all data? This action cannot be undone.')) return;
-
         try {
-            this.showNotification('Resetting data...', 'info');
-            const res = await this.apiCall('/api/reset-data', { method: 'POST' });
-            // The original snippet had a malformed `});` here, which is removed.
-            // The following `if (res && res.status === 200)` block is assumed to be part of handleDataReset.
+            this.showNotification('Executing system wipe...', 'info');
 
-            if (res && res.status === 200) {
-                this.showNotification('Data reset successfully. Reloading...', 'success');
-                setTimeout(() => window.location.reload(), 2000);
+            const btn = document.getElementById('final-reset-btn');
+            if (btn) btn.disabled = true;
+            if (btn) btn.textContent = 'Wiping Data...';
+
+            const res = await this.apiCall('/api/reset-data', { method: 'POST' });
+
+            if (res && res.ok) {
+                this.showNotification('System successfully wiped. Logging out...', 'success');
+                setTimeout(() => {
+                    localStorage.removeItem('user');
+                    window.location.replace('/');
+                }, 3000);
+            } else {
+                throw new Error('Server returned an error');
             }
         } catch (e) {
             console.error('Reset failed:', e);
-            this.showNotification('Failed to reset data', 'error');
+            this.showNotification('System wipe failed: ' + e.message, 'error');
+            this.cancelReset();
         }
     }
 
@@ -5858,6 +5913,12 @@ class AgroDistributionApp {
         }
     }
 
+    getCartQtyForProduct(productId) {
+        return (this.posState.cart || [])
+            .filter(item => item.product_id === productId)
+            .reduce((sum, item) => sum + item.quantity, 0);
+    }
+
     renderProductTiles(products) {
         const grid = document.getElementById('pos-product-grid');
         if (!grid) return;
@@ -5869,8 +5930,7 @@ class AgroDistributionApp {
 
         grid.innerHTML = products.map(p => {
             // Subtract cart quantity from displayed stock
-            const cartItem = (this.posState.cart || []).find(item => item.product_id === p.id);
-            const cartQty = cartItem ? cartItem.quantity : 0;
+            const cartQty = this.getCartQtyForProduct(p.id);
             const remainingQty = Math.max(0, p.available_quantity - cartQty);
 
             const stockClass = remainingQty <= 0 ? 'no-stock' : (remainingQty < 10 ? 'low-stock' : '');
@@ -5885,13 +5945,18 @@ class AgroDistributionApp {
             ` : '';
 
             return `
-                <div class="product-card ${stockClass}" onclick="app.checkAndAddToCart(${p.id})">
+                <div class="product-card ${stockClass}" onclick="app.checkAndAddToCart(${p.id}, false)">
                     <div class="product-sku">${p.reference_code || 'N/A'}</div>
+                    ${p.allow_free_issue === 1 ? `
+                        <button class="btn-free-add" title="Add as FREE Issue" onclick="event.stopPropagation(); app.checkAndAddToCart(${p.id}, true)">
+                            <i class="fas fa-gift"></i> FREE+
+                        </button>
+                    ` : ''}
                     <div class="product-name">${p.name}</div>
                     <div class="product-stock">
                         <span class="stock-tag ${tagClass}">${stockLabel}: ${remainingQty}</span>
                     </div>
-                    <div class="product-price">LKR ${p.msrp.toFixed(2)}</div>
+                    <div class="product-price">${remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toFixed(2)}</div>
                     ${discHtml}
                 </div>
             `;
@@ -5907,50 +5972,54 @@ class AgroDistributionApp {
         );
     }
 
-    checkAndAddToCart(productId) {
+    checkAndAddToCart(productId, isFree = false) {
         // Feature Request: Popup/Notify if discount exists
         const disc = (this.posState.customerDiscounts || {})[productId];
-        if (disc && disc.percentage > 0) {
-            // Option 1: Simple Notification (User requested "popup", but efficient POS usually avoids blocking modals for every item)
-            // Let's use a distinct notification first.
+        if (!isFree && disc && disc.percentage > 0) {
             this.showNotification(`Applying ${disc.percentage}% discount from last invoice!`, 'info');
         }
-        this.addToCart(productId);
+        this.addToCart(productId, isFree);
     }
 
-    addToCart(productId) {
+    addToCart(productId, isFree = false) {
         const product = this.posState.products.find(p => p.id === productId);
         if (!product) return;
 
-        if (product.available_quantity <= 0) {
-            this.showNotification('Product is out of stock in this truck load', 'warning');
+        const currentCartQty = this.getCartQtyForProduct(productId);
+        if (currentCartQty + 1 > product.available_quantity) {
+            this.showNotification('Exceeds available truck stock', 'warning');
             return;
         }
 
-        const cartItem = this.posState.cart.find(item => item.product_id === productId);
+        if (isFree && product.allow_free_issue !== 1) {
+            this.showNotification('This product is not allowed for Free Issue', 'warning');
+            return;
+        }
+
+        // Merge with existing item ONLY if the FREE status matches.
+        // This allows having one PAID line and one FREE line for the same product.
+        const cartItem = this.posState.cart.find(item => item.product_id === productId && !!item.is_free === !!isFree);
+
         if (cartItem) {
-            if (cartItem.quantity + 1 > product.available_quantity) {
-                this.showNotification('Exceeds available truck stock', 'warning');
-                return;
-            }
-            cartItem.quantity += 1; // Always integer increment on click
-            cartItem.line_total = cartItem.quantity * cartItem.msrp * (1 - (cartItem.discount_percentage / 100));
+            cartItem.quantity += 1;
+            this.recalculateLineTotal(cartItem);
         } else {
             const disc = (this.posState.customerDiscounts || {})[product.id] || { percentage: 0, amount: 0 };
 
-            // Initial Add: Default to 1. Even for weighted, 1 is a safe start.
             this.posState.cart.push({
                 product_id: product.id,
                 product_name: product.name,
                 msrp: product.msrp,
-                quantity: 1, // Integer start
-                discount_percentage: disc.percentage,
-                discount_amount: disc.amount,
-                line_total: product.msrp * (1 - (disc.percentage / 100)),
-                weighted: product.weighted // Store property for UI checks
+                quantity: 1,
+                discount_percentage: isFree ? 0 : disc.percentage,
+                discount_amount: isFree ? 0 : disc.amount,
+                is_free: isFree,
+                line_total: isFree ? 0 : product.msrp * (1 - (disc.percentage / 100)),
+                weighted: product.weighted,
+                allow_free_issue: product.allow_free_issue
             });
 
-            if (disc.percentage > 0) {
+            if (!isFree && disc.percentage > 0) {
                 this.showNotification(`Applied last discount: ${disc.percentage}% for this customer`, 'info');
             }
         }
@@ -5958,14 +6027,24 @@ class AgroDistributionApp {
         this.updateCartUI();
     }
 
-    removeFromCart(productId) {
-        this.posState.cart = this.posState.cart.filter(item => item.product_id !== productId);
+    removeFromCart(index) {
+        this.posState.cart.splice(index, 1);
         this.updateCartUI();
     }
 
-    updateCartQty(productId, newQty) {
-        const item = this.posState.cart.find(i => i.product_id === productId);
-        const product = this.posState.products.find(p => p.id === productId);
+    clearCart() {
+        if (this.posState.cart.length === 0) return;
+        if (confirm('Are you sure you want to clear all items from the cart?')) {
+            this.posState.cart = [];
+            this.updateCartUI();
+            this.showNotification('Cart cleared', 'info');
+        }
+    }
+
+    updateCartQty(index, newQty) {
+        const item = this.posState.cart[index];
+        if (!item) return;
+        const product = this.posState.products.find(p => p.id === item.product_id);
 
         if (item && product) {
             let qty = parseFloat(newQty) || 0;
@@ -5976,7 +6055,12 @@ class AgroDistributionApp {
                 qty = Math.round(qty); // Force integer
             }
 
-            if (qty > product.available_quantity) {
+            // Total cart qty excluding this line
+            const otherCartQty = this.posState.cart
+                .filter((_, idx) => idx !== index && _.product_id === item.product_id)
+                .reduce((sum, i) => sum + i.quantity, 0);
+
+            if (otherCartQty + qty > product.available_quantity) {
                 this.showNotification('Exceeds available truck stock', 'warning');
                 this.updateCartUI(); // Reset UI
                 return;
@@ -5988,19 +6072,19 @@ class AgroDistributionApp {
         }
     }
 
-    updateCartPrice(productId, newPrice) {
-        const item = this.posState.cart.find(i => i.product_id === productId);
+    updateCartPrice(index, newPrice) {
+        const item = this.posState.cart[index];
         if (item) {
             const price = parseFloat(newPrice) || 0;
             item.msrp = price;
-            item.is_custom_price = true; // Flag to indicate manual override if needed logic later
+            item.is_custom_price = true;
             this.recalculateLineTotal(item);
             this.updateCartUI();
         }
     }
 
-    updateCartDiscount(productId, newDisc) {
-        const item = this.posState.cart.find(i => i.product_id === productId);
+    updateCartDiscount(index, newDisc) {
+        const item = this.posState.cart[index];
         if (item) {
             const disc = parseFloat(newDisc) || 0;
             item.discount_percentage = Math.min(Math.max(disc, 0), 100);
@@ -6009,8 +6093,39 @@ class AgroDistributionApp {
         }
     }
 
+    toggleFreeIssue(index, isFree) {
+        const item = this.posState.cart[index];
+        if (item) {
+            if (isFree && item.allow_free_issue !== 1) {
+                this.showNotification('This product is not allowed for Free Issue', 'warning');
+                this.updateCartUI(); // Reset UI checkbox state
+                return;
+            }
+            item.is_free = isFree;
+
+            // Check if there is another item of the same product with the same status to merge
+            // e.g. if we toggle an item to free, and there's already a free item of the same product, merge them.
+            const otherIndex = this.posState.cart.findIndex((i, idx) => idx !== index && i.product_id === item.product_id && i.is_free === isFree);
+
+            if (otherIndex !== -1) {
+                const otherItem = this.posState.cart[otherIndex];
+                otherItem.quantity += item.quantity;
+                this.recalculateLineTotal(otherItem);
+                this.posState.cart.splice(index, 1);
+            } else {
+                this.recalculateLineTotal(item);
+            }
+
+            this.updateCartUI();
+        }
+    }
+
     recalculateLineTotal(item) {
-        item.line_total = item.quantity * item.msrp * (1 - (item.discount_percentage / 100));
+        if (item.is_free) {
+            item.line_total = 0;
+        } else {
+            item.line_total = item.quantity * item.msrp * (1 - (item.discount_percentage / 100));
+        }
     }
 
     updateCartUI() {
@@ -6035,27 +6150,38 @@ class AgroDistributionApp {
             const step = isWeighted ? "0.01" : "1";
 
             return `
-            <tr>
+            <tr class="${item.is_free ? 'pos-row-free' : ''}">
                 <td style="color: #64748b; font-size: 0.8rem; vertical-align: middle;">${index + 1}</td>
-                <td><span class="cart-item-name">${item.product_name}</span></td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="cart-item-name">${item.product_name}</span>
+                        ${item.is_free ? '<span class="badge" style="background: var(--primary-green); color: white; border: none; font-size: 0.65rem; padding: 2px 6px;">FREE ISSUE</span>' : ''}
+                    </div>
+                </td>
                 <td>
                     <input type="number" class="cart-qty-input" value="${item.quantity}" 
-                        onchange="app.updateCartQty(${item.product_id}, this.value)" min="1" step="${step}">
+                        onchange="app.updateCartQty(${index}, this.value)" min="${isWeighted ? '0.01' : '1'}" step="${step}">
+                </td>
+                <td class="text-center">
+                    <input type="checkbox" class="free-issue-check" ${item.is_free ? 'checked' : ''} 
+                        onchange="app.toggleFreeIssue(${index}, this.checked)" 
+                        ${item.allow_free_issue !== 1 && !item.is_free ? 'disabled title="Free issue not allowed for this product"' : ''}
+                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-green);">
                 </td>
                 <td>
                     <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.msrp.toFixed(2)}" 
-                        onchange="app.updateCartPrice(${item.product_id}, this.value)" step="0.01">
+                        onchange="app.updateCartPrice(${index}, this.value)" step="0.01" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
                 </td>
                 <td>
                     <div style="display: flex; align-items: center; gap: 2px;">
                         <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.discount_percentage}" 
-                            onchange="app.updateCartDiscount(${item.product_id}, this.value)" min="0" max="100">
+                            onchange="app.updateCartDiscount(${index}, this.value)" min="0" max="100" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
                         <span>%</span>
                     </div>
                 </td>
-                <td class="text-right"><strong>${item.line_total.toFixed(2)}</strong></td>
+                <td class="text-right"><strong style="${item.is_free ? 'color: var(--primary-green); font-style: italic;' : ''}">${item.is_free ? 'FREE' : item.line_total.toFixed(2)}</strong></td>
                 <td>
-                    <button class="btn btn-sm" onclick="app.removeFromCart(${item.product_id})" style="color: var(--error);">
+                    <button class="btn btn-sm" onclick="app.removeFromCart(${index})" style="color: var(--error);">
                         <i class="fas fa-times"></i>
                     </button>
                 </td>
@@ -6492,6 +6618,7 @@ class AgroDistributionApp {
                     quantity: item.quantity,
                     discount_percentage: item.discount_percentage,
                     discount_amount: item.discount_amount,
+                    is_free: item.is_free || false,
                     line_total: item.line_total
                 }));
 
@@ -6760,23 +6887,25 @@ class AgroDistributionApp {
 
         if (existingRow) {
             const qtyInput = existingRow.querySelector('.item-qty');
-            qtyInput.value = parseFloat(qtyInput.value) + 1;
+            const upc = parseFloat(existingRow.dataset.upc || 1);
+            qtyInput.value = parseFloat(qtyInput.value) + upc;
             this.updatePreOrderCartonsFromQty(qtyInput);
             this.calculatePreOrderTotal();
             return;
         }
 
+        const upc = product.units_per_carton || 1;
         const row = document.createElement('tr');
         row.dataset.id = product.id;
         row.dataset.name = product.name;
         row.dataset.unit = product.unit || '';
-        row.dataset.upc = product.units_per_carton || 1;
+        row.dataset.upc = upc;
         row.dataset.weighted = product.weighted ? 'true' : 'false';
         row.innerHTML = `
             <td>${product.name}</td>
-            <td><input type="number" class="form-control item-price" value="${product.msrp || 0}" step="0.01" oninput="app.calculatePreOrderTotal()"></td>
-            <td><input type="number" class="form-control item-cartons" placeholder="0" step="${product.weighted ? '0.01' : '1'}" oninput="app.updatePreOrderQtyFromCartons(this)"></td>
-            <td><input type="number" class="form-control item-qty" value="1" step="${product.weighted ? '0.01' : '1'}" oninput="app.updatePreOrderCartonsFromQty(this)"></td>
+            <td><input type="number" class="form-control item-price" value="${product.msrp || 0}" step="any" oninput="app.calculatePreOrderTotal()"></td>
+            <td><input type="number" class="form-control item-cartons" value="1" step="any" oninput="app.updatePreOrderQtyFromCartons(this)" onblur="app.enforcePreOrderMinimums(this)"></td>
+            <td><input type="number" class="form-control item-qty" value="${upc}" step="any" oninput="app.updatePreOrderCartonsFromQty(this)" onblur="app.enforcePreOrderMinimums(this)"></td>
             <td class="item-total">0.00</td>
             <td>
                 <button type="button" class="btn-icon text-error" onclick="this.closest('tr').remove(); app.calculatePreOrderTotal();">
@@ -6785,16 +6914,23 @@ class AgroDistributionApp {
             </td>
         `;
         tbody.appendChild(row);
-        this.updatePreOrderCartonsFromQty(row.querySelector('.item-qty'));
         this.calculatePreOrderTotal();
     }
 
     updatePreOrderQtyFromCartons(input) {
         const row = input.closest('tr');
         const upc = parseFloat(row.dataset.upc || 1);
-        const cartons = parseFloat(input.value || 0);
+        let cartons = parseFloat(input.value || 0);
+
+        // If user is typing 0.x, we let them type, but for calculation/sync:
+        const effectiveCartons = (cartons > 0 && cartons < 1) ? 1 : cartons;
+
         const qtyInput = row.querySelector('.item-qty');
-        qtyInput.value = (cartons * upc).toFixed(2);
+        qtyInput.value = (effectiveCartons * upc).toFixed(2);
+
+        // If it was forced to 1 effectively, we should probably update the field too if they are not active on it
+        // But for now, just ensure calculation is correct.
+
         this.calculatePreOrderTotal();
     }
 
@@ -6805,20 +6941,47 @@ class AgroDistributionApp {
         const isWeighted = row.dataset.weighted === 'true';
 
         // Enforce integer for non-weighted
-        if (!isWeighted && !Number.isInteger(qty)) {
-            // Optional: warn user only once or just subtly round
-            // For strict enforcement:
+        if (!isWeighted && qty > 0 && !Number.isInteger(qty)) {
             qty = Math.round(qty);
-            input.value = qty; // Update input immediately
+            input.value = qty;
         }
 
         const cartonInput = row.querySelector('.item-cartons');
-        if (upc > 0 && qty % upc === 0) {
-            cartonInput.value = qty / upc;
-        } else if (upc > 0) {
-            cartonInput.value = (qty / upc).toFixed(2); // Show decimal cartons if qty doesn't match perfectly
+
+        // Effective minimum of 1 carton worth of units
+        const effectiveQty = (qty > 0 && qty < upc) ? upc : qty;
+
+        if (upc > 0) {
+            const calculatedCartons = effectiveQty / upc;
+            if (Number.isInteger(calculatedCartons)) {
+                cartonInput.value = calculatedCartons;
+            } else {
+                cartonInput.value = calculatedCartons.toFixed(2);
+            }
         } else {
             cartonInput.value = '';
+        }
+        this.calculatePreOrderTotal();
+    }
+
+    enforcePreOrderMinimums(input) {
+        const row = input.closest('tr');
+        const upc = parseFloat(row.dataset.upc || 1);
+
+        if (input.classList.contains('item-cartons')) {
+            let cartons = parseFloat(input.value || 0);
+            if (cartons > 0 && cartons < 1) {
+                input.value = 1;
+                const qtyInput = row.querySelector('.item-qty');
+                qtyInput.value = upc;
+            }
+        } else if (input.classList.contains('item-qty')) {
+            let qty = parseFloat(input.value || 0);
+            if (qty > 0 && qty < upc) {
+                input.value = upc;
+                const cartonInput = row.querySelector('.item-cartons');
+                cartonInput.value = 1;
+            }
         }
         this.calculatePreOrderTotal();
     }
@@ -6826,8 +6989,15 @@ class AgroDistributionApp {
     calculatePreOrderTotal() {
         let grandTotal = 0;
         document.querySelectorAll('#po-items-body tr').forEach(row => {
+            const upc = parseFloat(row.dataset.upc || 1);
             const price = parseFloat(row.querySelector('.item-price').value) || 0;
-            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            let qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+
+            // Treat < 1 carton as 1 full carton for the total calculation
+            if (qty > 0 && qty < upc) {
+                qty = upc;
+            }
+
             const total = price * qty;
             row.querySelector('.item-total').textContent = total.toLocaleString(undefined, { minimumFractionDigits: 2 });
             grandTotal += total;
@@ -6837,6 +7007,20 @@ class AgroDistributionApp {
 
     async handlePreOrderSubmit(e) {
         e.preventDefault();
+
+        // Before submitting, force all minimums again
+        document.querySelectorAll('#po-items-body tr').forEach(row => {
+            const upc = parseFloat(row.dataset.upc || 1);
+            const qtyInput = row.querySelector('.item-qty');
+            const cartonInput = row.querySelector('.item-cartons');
+            let qty = parseFloat(qtyInput.value || 0);
+            if (qty > 0 && qty < upc) {
+                qtyInput.value = upc;
+                cartonInput.value = 1;
+            }
+        });
+        this.calculatePreOrderTotal();
+
         const items = [];
         document.querySelectorAll('#po-items-body tr').forEach(row => {
             items.push({
@@ -8429,6 +8613,152 @@ class AgroDistributionApp {
             </html>
         `);
         printWindow.document.close();
+    }
+
+    async loadCustomerMap() {
+        const mapContainer = document.getElementById('customer-leaflet-map');
+        if (!mapContainer) return;
+
+        // Ensure Leaflet is loaded
+        if (typeof L === 'undefined') {
+            this.showNotification('Map library (Leaflet) not loaded.', 'error');
+            return;
+        }
+
+        try {
+            // 1. Fetch ALL customers (limit to a large number to get all on map)
+            const res = await this.apiCall('/api/customers?limit=2000');
+            if (!res) return;
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error);
+
+            const customers = data.data;
+            const located = customers.filter(c => c.latitude && c.longitude);
+
+            // Update stats
+            document.getElementById('map-total-count').textContent = customers.length;
+            document.getElementById('map-located-count').textContent = located.length;
+            document.getElementById('map-unlocated-count').textContent = customers.length - located.length;
+
+            // 2. Initialize or Refresh Map
+            if (this.customerMap) {
+                this.customerMap.remove();
+            }
+
+            // Default center (Sri Lanka approximate center if no customers, otherwise center of located items)
+            let center = [7.8731, 80.7718]; // Sri Lanka
+            let zoom = 8;
+
+            if (located.length > 0) {
+                // Calculate average center
+                const avgLat = located.reduce((sum, c) => sum + parseFloat(c.latitude), 0) / located.length;
+                const avgLng = located.reduce((sum, c) => sum + parseFloat(c.longitude), 0) / located.length;
+                center = [avgLat, avgLng];
+                zoom = 10;
+            }
+
+            this.customerMap = L.map('customer-leaflet-map').setView(center, zoom);
+
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(this.customerMap);
+
+            // 3. Add Markers
+            const markers = [];
+            located.forEach(c => {
+                const color = c.status === 'active' ? '#1b5e20' : '#d32f2f'; // Green for active, Red for blocked
+
+                const customIcon = L.divIcon({
+                    className: 'custom-marker',
+                    html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.3);"></div>`,
+                    iconSize: [12, 12],
+                    iconAnchor: [6, 6]
+                });
+
+                const marker = L.marker([c.latitude, c.longitude], { icon: customIcon })
+                    .bindPopup(`
+                        <div style="font-family: inherit; padding: 5px;">
+                            <strong style="font-size: 1.1rem; color: var(--primary-green-dark);">${c.name}</strong><br>
+                            <span style="color: #666; font-size: 0.8rem;">${c.address || 'No address'}</span><br>
+                            <hr style="margin: 8px 0; border: none; border-top: 1px solid #eee;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                <span class="badge badge-${c.status === 'active' ? 'success' : 'danger'}" style="font-size: 0.7rem;">${c.status.toUpperCase()}</span>
+                                <span style="font-weight: 700; color: #333;">LKR ${parseFloat(c.account_balance).toLocaleString()}</span>
+                            </div>
+                            <button class="btn btn-sm btn-primary" style="width: 100%; border-radius: 4px; padding: 4px;" onclick="app.openCustomerModalById(${c.id})">
+                                <i class="fas fa-edit"></i> Edit Customer
+                            </button>
+                        </div>
+                    `);
+
+                marker.addTo(this.customerMap);
+                markers.push(marker);
+            });
+
+            // Adjust view to fit all markers if multiple
+            if (markers.length > 1) {
+                const group = new L.featureGroup(markers);
+                this.customerMap.fitBounds(group.getBounds().pad(0.1));
+            }
+
+        } catch (err) {
+            console.error(err);
+            this.showNotification('Failed to load customer map: ' + err.message, 'error');
+        }
+    }
+
+    async openCustomerModalById(id) {
+        try {
+            const res = await this.apiCall(`/api/customers/${id}`);
+            if (!res) return;
+            const data = await res.json();
+            if (data.success) {
+                this.openCustomerModal(data.data);
+            }
+        } catch (e) {
+            this.showNotification('Failed to fetch customer data', 'error');
+        }
+    }
+
+    captureCustomerLocation() {
+        if (!navigator.geolocation) {
+            this.showNotification('Geolocation is not supported by your browser', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('get-location-btn');
+        const icon = btn.querySelector('i');
+        const originalText = btn.innerHTML;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                document.getElementById('c-lat').value = position.coords.latitude.toFixed(6);
+                document.getElementById('c-lng').value = position.coords.longitude.toFixed(6);
+
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Success';
+                btn.style.backgroundColor = 'var(--success)';
+                btn.style.color = 'white';
+
+                this.showNotification('Location captured successfully!', 'success');
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.backgroundColor = '';
+                    btn.style.color = '';
+                }, 3000);
+            },
+            (error) => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                this.showNotification('Geolocation error: ' + error.message, 'error');
+            },
+            { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+        );
     }
 }
 

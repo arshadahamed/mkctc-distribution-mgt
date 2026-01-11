@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const routeRepo = require('../repositories/routeRepo');
-
 const { logEvent, logError } = require('../lib/logger');
+const { checkPermission } = require('../middleware/auth');
 
-router.get('/', async (req, res) => {
+router.get('/', checkPermission('routes', 'view'), async (req, res) => {
     try {
         const routes = await routeRepo.getAll();
         res.json({ success: true, data: routes });
@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.post('/', async (req, res) => {
+router.post('/', checkPermission('routes', 'create'), async (req, res) => {
     try {
         const id = await routeRepo.create(req.body);
         const userId = req.user?.id || 0;
@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', checkPermission('routes', 'edit'), async (req, res) => {
     try {
         await routeRepo.update(req.params.id, req.body);
         const userId = req.user?.id || 0;
@@ -38,7 +38,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', checkPermission('routes', 'delete'), async (req, res) => {
     try {
         await routeRepo.delete(req.params.id);
         const userId = req.user?.id || 0;

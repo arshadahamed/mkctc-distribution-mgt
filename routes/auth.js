@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
 
-        const user = await getQuery('SELECT * FROM users WHERE username = ?', [username]);
+        const user = await getQuery('SELECT * FROM users WHERE LOWER(username) = LOWER(?)', [username]);
 
         if (user) {
             // Verify Password using bcrypt
@@ -53,7 +53,8 @@ router.post('/login', async (req, res) => {
             res.cookie('token', token, {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
-                sameSite: 'strict'
+                sameSite: 'strict',
+                path: '/'
             });
 
             res.json({
