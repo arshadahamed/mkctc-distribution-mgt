@@ -129,9 +129,9 @@ class ProductRepository {
             if (product.prices && Array.isArray(product.prices)) {
                 for (const p of product.prices) {
                     await runQuery(`
-                        INSERT INTO product_prices (product_id, label, price, is_primary)
-                        VALUES (?, ?, ?, ?)
-                    `, [productId, p.label, p.price, p.is_primary ? 1 : 0]);
+                        INSERT INTO product_prices (product_id, label, batch_number, price, cost, supplier_discount, price_level_id, is_primary)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `, [productId, p.label, p.batch_number || null, p.price, p.cost || 0, p.supplier_discount || 0, p.price_level_id || null, p.is_primary ? 1 : 0]);
                 }
             }
 
@@ -180,11 +180,12 @@ class ProductRepository {
             // Update prices: simpler to delete existing and re-insert
             if (product.prices && Array.isArray(product.prices)) {
                 await runQuery('DELETE FROM product_prices WHERE product_id = ?', [id]);
+                // Handle multiple prices
                 for (const p of product.prices) {
                     await runQuery(`
-                        INSERT INTO product_prices (product_id, label, price, is_primary)
-                        VALUES (?, ?, ?, ?)
-                    `, [id, p.label, p.price, p.is_primary ? 1 : 0]);
+                        INSERT INTO product_prices (product_id, label, batch_number, price, cost, supplier_discount, price_level_id, is_primary)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `, [id, p.label, p.batch_number || null, p.price, p.cost || 0, p.supplier_discount || 0, p.price_level_id || null, p.is_primary ? 1 : 0]);
                 }
             }
 

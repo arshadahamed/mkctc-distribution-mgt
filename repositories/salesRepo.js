@@ -30,11 +30,11 @@ class SalesRepository {
             // Insert invoice items
             for (const item of invoiceData.items) {
                 const itemSql = `
-                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO invoice_items (invoice_id, product_id, product_name, batch_number, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 const itemParams = [
-                    invoiceId, item.product_id, item.product_name, item.msrp,
+                    invoiceId, item.product_id, item.product_name, item.batch_number || null, item.msrp,
                     item.discount_percentage || 0, item.discount_amount || 0,
                     item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
@@ -45,6 +45,7 @@ class SalesRepository {
                     await this.updateCustomerProductDiscount(
                         invoiceData.customer_id,
                         item.product_id,
+                        item.selected_price_id || 0,
                         item.discount_percentage || 0,
                         item.discount_amount || 0
                     );
@@ -212,11 +213,11 @@ class SalesRepository {
             // Insert new invoice items
             for (const item of invoiceData.items) {
                 const itemSql = `
-                    INSERT INTO invoice_items (invoice_id, product_id, product_name, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO invoice_items (invoice_id, product_id, product_name, batch_number, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 const itemParams = [
-                    id, item.product_id, item.product_name, item.msrp,
+                    id, item.product_id, item.product_name, item.batch_number || null, item.msrp,
                     item.discount_percentage || 0, item.discount_amount || 0,
                     item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
@@ -372,23 +373,19 @@ class SalesRepository {
     }
 
     async getCustomerProductDiscounts(customerId) {
-        return await allQuery('SELECT product_id, discount_percentage, discount_amount FROM customer_product_discounts WHERE customer_id = ?', [customerId]);
+        return await allQuery('SELECT product_id, price_id, discount_percentage, discount_amount FROM customer_product_discounts WHERE customer_id = ?', [customerId]);
     }
 
-    async getProductDiscountForCustomer(customerId, productId) {
-        return await getQuery('SELECT discount_percentage, discount_amount FROM customer_product_discounts WHERE customer_id = ? AND product_id = ?', [customerId, productId]);
+    async getProductDiscountForCustomer(customerId, productId, priceId = 0) {
+        return await getQuery('SELECT discount_percentage, discount_amount FROM customer_product_discounts WHERE customer_id = ? AND product_id = ? AND price_id = ?', [customerId, productId, priceId || 0]);
     }
 
-    async updateCustomerProductDiscount(customerId, productId, percentage, amount) {
+    async updateCustomerProductDiscount(customerId, productId, priceId, percentage, amount) {
         const sql = `
-            INSERT INTO customer_product_discounts (customer_id, product_id, discount_percentage, discount_amount, last_updated)
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(customer_id, product_id) DO UPDATE SET
-                discount_percentage = excluded.discount_percentage,
-                discount_amount = excluded.discount_amount,
-                last_updated = CURRENT_TIMESTAMP
+            INSERT OR REPLACE INTO customer_product_discounts (customer_id, product_id, price_id, discount_percentage, discount_amount, last_updated)
+            VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
         `;
-        return await runQuery(sql, [customerId, productId, percentage, amount]);
+        return await runQuery(sql, [customerId, productId, priceId || 0, percentage, amount]);
     }
 }
 

@@ -8,6 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Animation & 3D Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.155.0/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         :root {
             --primary: #2E7D32;
@@ -156,25 +162,35 @@
             justify-content: center;
             text-align: center;
             overflow: hidden;
-            padding: 0 5%;
+            background: #000;
         }
 
-        .hero-bg-container {
+        .hero-video-container {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 1;
+            overflow: hidden;
         }
 
-        .hero-bg-image {
+        .hero-video {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            filter: brightness(0.7) contrast(1.1);
-            animation: cinematicZoom 20s infinite alternate ease-in-out;
-            transform: scale(1);
+            opacity: 0.6;
+            filter: grayscale(30%) contrast(1.2);
+        }
+
+        #bg-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
         }
 
         .hero-overlay {
@@ -183,130 +199,135 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: radial-gradient(circle, transparent 20%, rgba(15, 23, 42, 0.4) 80%),
-                linear-gradient(to bottom, rgba(15, 23, 42, 0.3), transparent 20%, transparent 80%, rgba(15, 23, 42, 0.6));
-            z-index: 0;
-        }
-
-        @keyframes cinematicZoom {
-            0% {
-                transform: scale(1);
-            }
-
-            100% {
-                transform: scale(1.15);
-            }
+            background: radial-gradient(circle at center, transparent 0%, rgba(15, 23, 42, 0.4) 60%, rgba(15, 23, 42, 0.9) 100%);
+            z-index: 3;
         }
 
         .hero-content {
             position: relative;
             z-index: 10;
-            max-width: 900px;
+            max-width: 1000px;
             padding: 2rem;
+            opacity: 0;
+            transform: translateY(50px);
         }
 
         .hero-tag {
-            background: rgba(76, 175, 80, 0.2);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(76, 175, 80, 0.4);
-            color: #A5D6A7;
-            padding: 0.6rem 1.4rem;
-            border-radius: 50px;
+            background: rgba(76, 175, 80, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #81C784;
+            padding: 0.8rem 1.8rem;
+            border-radius: 100px;
             font-weight: 700;
             font-size: 0.9rem;
-            display: inline-block;
-            margin-bottom: 2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 2.5rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            animation: fadeInUp 1s ease-out;
+            letter-spacing: 3px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .hero-tag i {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.2);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .hero h1 {
-            font-size: 5rem;
+            font-size: 6rem;
             font-weight: 800;
-            line-height: 1;
+            line-height: 1.1;
             margin-bottom: 2rem;
             color: #FFFFFF;
-            text-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            animation: fadeInUp 1s ease-out 0.2s both;
+            letter-spacing: -2px;
         }
 
         .hero h1 span {
             display: block;
-            background: linear-gradient(to right, #81C784, #4CAF50);
+            background: linear-gradient(135deg, #fff 0%, #4CAF50 50%, #1B5E20 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 0.9em;
+            font-style: italic;
         }
 
         .hero p {
-            font-size: 1.4rem;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
             margin-bottom: 3.5rem;
-            max-width: 700px;
+            max-width: 800px;
             margin-left: auto;
             margin-right: auto;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-            animation: fadeInUp 1s ease-out 0.4s both;
+            line-height: 1.8;
+            font-weight: 400;
         }
 
         .hero-btns {
             display: flex;
-            gap: 1.5rem;
+            gap: 2rem;
             justify-content: center;
-            animation: fadeInUp 1s ease-out 0.6s both;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
         }
 
         .btn-primary {
             background: var(--primary);
             color: white;
-            padding: 1.4rem 3rem;
+            padding: 1.5rem 3.5rem;
             border-radius: 100px;
             text-decoration: none;
             font-weight: 700;
             font-size: 1.2rem;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             display: flex;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 10px 40px rgba(46, 125, 50, 0.4);
+            gap: 15px;
+            box-shadow: 0 15px 45px rgba(46, 125, 50, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-primary:hover {
-            transform: translateY(-5px) scale(1.02);
+            transform: translateY(-8px) scale(1.05);
             background: var(--primary-light);
-            box-shadow: 0 20px 60px rgba(46, 125, 50, 0.6);
+            box-shadow: 0 25px 65px rgba(46, 125, 50, 0.6);
+            letter-spacing: 1px;
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             color: white;
-            padding: 1.4rem 3rem;
+            padding: 1.5rem 3.5rem;
             border-radius: 100px;
             text-decoration: none;
             font-weight: 700;
             font-size: 1.2rem;
-            transition: all 0.4s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.3);
         }
 
         /* Subtle Water Shimmer Overlay */
@@ -473,37 +494,46 @@
 
     <main>
         <section class="hero">
-            <div class="hero-bg-container">
-                <img src="/images/hero-bg.png" alt="Paddy Field Aerial View" class="hero-bg-image">
-                <div class="hero-overlay"></div>
-                <div class="hero-shimmer"></div>
+            <!-- Background Elements -->
+            <div class="hero-video-container">
+                <video autoplay muted loop playsinline class="hero-video">
+                    <source
+                        src="https://assets.mixkit.co/videos/preview/mixkit-delivery-truck-driving-on-the-highway-34531-large.mp4"
+                        type="video/mp4">
+                </video>
             </div>
 
+            <canvas id="bg-canvas"></canvas>
+            <div class="hero-overlay"></div>
+
             <div class="hero-content">
-                <div class="hero-tag">Smart Distribution ERP</div>
+                <div class="hero-tag">
+                    <i class="fas fa-satellite"></i>
+                    <span>Next-Gen Distribution Hub</span>
+                </div>
                 <h1>Empowering Agro <span>Supply Chains</span></h1>
-                <p>MKC Trade Center provides world-class distribution logistics and real-time inventory management
-                    tailored for the modern agro-industry.</p>
+                <p>MKC Trade Center revolutionizes distribution with precision logistics, real-time intelligence, and
+                    seamless inventory orchestration for the modern enterprise.</p>
 
                 <div class="hero-btns">
                     <a href="/login" class="btn-primary">
-                        Access Dashboard <i class="fas fa-arrow-right"></i>
+                        Access Hub <i class="fas fa-rocket"></i>
                     </a>
-                    <a href="#features" class="btn-secondary">Explore Features</a>
+                    <a href="#features" class="btn-secondary">Explore Tech</a>
                 </div>
 
                 <div class="stats">
                     <div class="stat-item">
-                        <h4>100%</h4>
-                        <span>Uptime</span>
+                        <h4 class="counter">100</h4>
+                        <span>% Uptime</span>
                     </div>
                     <div class="stat-item">
-                        <h4>Real-time</h4>
-                        <span>Tracking</span>
+                        <h4 class="counter">24</h4>
+                        <span>/7 Monitoring</span>
                     </div>
                     <div class="stat-item">
-                        <h4>Secure</h4>
-                        <span>Encryption</span>
+                        <h4 class="counter">128</h4>
+                        <span>bit Encryption</span>
                     </div>
                 </div>
             </div>
@@ -540,31 +570,163 @@
     </footer>
 
     <script>
+        // GSAP Initialization
+        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+
+        // Three.js Background Logic
+        const initThree = () => {
+            const canvas = document.querySelector('#bg-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            camera.position.z = 20;
+
+            // Geometry: Distribution Network (Points)
+            const pointsCount = 400;
+            const positions = new Float32Array(pointsCount * 3);
+            const colors = new Float32Array(pointsCount * 3);
+
+            for (let i = 0; i < pointsCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 60;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 60;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+
+                colors[i * 3] = 0.3; // R
+                colors[i * 3 + 1] = 0.8; // G
+                colors[i * 3 + 2] = 0.4; // B
+            }
+
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: 0.15,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const points = new THREE.Points(geometry, material);
+            scene.add(points);
+
+            // Connect some points with lines to simulate distribution routes
+            const linesMaterial = new THREE.LineBasicMaterial({ color: 0x2e7d32, transparent: true, opacity: 0.1 });
+            const linesGeometry = new THREE.BufferGeometry();
+            const linePositions = [];
+
+            for (let i = 0; i < 50; i++) {
+                const idx1 = Math.floor(Math.random() * pointsCount);
+                const idx2 = Math.floor(Math.random() * pointsCount);
+                linePositions.push(positions[idx1 * 3], positions[idx1 * 3 + 1], positions[idx1 * 3 + 2]);
+                linePositions.push(positions[idx2 * 3], positions[idx2 * 3 + 1], positions[idx2 * 3 + 2]);
+            }
+
+            linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
+            const lines = new THREE.LineSegments(linesGeometry, linesMaterial);
+            scene.add(lines);
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                points.rotation.y += 0.001;
+                points.rotation.x += 0.0005;
+                lines.rotation.y += 0.001;
+                lines.rotation.x += 0.0005;
+
+                renderer.render(scene, camera);
+            };
+
+            const resize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            };
+
+            window.addEventListener('resize', resize);
+            resize();
+            animate();
+        };
+
+        // UI Animations
+        const initAnimations = () => {
+            const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+
+            tl.to(".hero-content", {
+                duration: 1.5,
+                opacity: 1,
+                y: 0,
+                stagger: 0.2
+            })
+                .from(".hero-tag", { duration: 1, scale: 0.8, opacity: 0 }, "-=1")
+                .from(".hero h1 span", { duration: 1.2, x: -50, opacity: 0 }, "-=0.8")
+                .from(".hero-btns a", { duration: 0.8, y: 20, opacity: 0, stagger: 0.1 }, "-=0.5")
+                .from(".stat-item", { duration: 1, y: 30, opacity: 0, stagger: 0.1 }, "-=0.5");
+
+            // Mouse Move Parallax
+            document.addEventListener('mousemove', (e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 20;
+                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+                gsap.to(".hero-content", {
+                    x: x * 0.5,
+                    y: y * 0.5,
+                    duration: 1
+                });
+            });
+
+            // Feature Cards Scroll Animation
+            gsap.utils.toArray(".feature-card").forEach((card, i) => {
+                gsap.from(card, {
+                    scrollTrigger: {
+                        trigger: card,
+                        start: "top 85%",
+                        toggleActions: "play none none reverse"
+                    },
+                    duration: 1,
+                    y: 60,
+                    opacity: 0,
+                    ease: "power3.out",
+                    delay: i * 0.1
+                });
+            });
+
+            // Counter Animation
+            const counters = document.querySelectorAll('.counter');
+            counters.forEach(counter => {
+                const target = +counter.innerText;
+                gsap.from(counter, {
+                    textContent: 0,
+                    duration: 2,
+                    snap: { textContent: 1 },
+                    scrollTrigger: {
+                        trigger: counter,
+                        start: "top 90%"
+                    }
+                });
+            });
+        };
+
+        // Window Load
+        window.addEventListener('load', () => {
+            initThree();
+            initAnimations();
+        });
+
         // Smooth scroll for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
-
-        // Animation on scroll (Simple observer)
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.style.opacity = '1';
-                    entry.target.style.transform = 'translateY(0)';
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    gsap.to(window, {
+                        duration: 1,
+                        scrollTo: target.offsetTop - 100,
+                        ease: "power3.inOut"
+                    });
                 }
             });
-        }, { threshold: 0.1 });
-
-        document.querySelectorAll('.feature-card').forEach(card => {
-            card.style.opacity = '0';
-            card.style.transform = 'translateY(30px)';
-            card.style.transition = 'all 0.6s ease-out';
-            observer.observe(card);
         });
     </script>
 </body>

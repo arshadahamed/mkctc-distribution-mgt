@@ -6,6 +6,7 @@ class CustomerRepository {
         let baseQuery = `
             FROM customers c
             LEFT JOIN routes r ON c.route_id = r.id
+            LEFT JOIN price_levels pl ON c.price_level_id = pl.id
             WHERE c.is_deleted = ${showDeleted ? 1 : 0}
         `;
 
@@ -43,7 +44,7 @@ class CustomerRepository {
         const totalPages = Math.ceil(totalCount / limit);
 
         const query = `
-            SELECT c.*, r.name as route_name
+            SELECT c.*, r.name as route_name, pl.name as price_level_name
             ${baseQuery}
             ORDER BY c.name
             LIMIT ? OFFSET ?
@@ -69,12 +70,12 @@ class CustomerRepository {
 
     async create(customer) {
         const sql = `
-            INSERT INTO customers (name, address, contact, category, route_id, credit_limit, account_balance, status, latitude, longitude, is_deleted)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO customers (name, address, contact, category, route_id, price_level_id, credit_limit, account_balance, status, latitude, longitude, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         `;
         const params = [
             customer.name, customer.address, customer.contact, customer.category,
-            customer.route_id, customer.credit_limit || 0, customer.account_balance || 0, customer.status || 'active',
+            customer.route_id, customer.price_level_id || null, customer.credit_limit || 0, customer.account_balance || 0, customer.status || 'active',
             customer.latitude || null, customer.longitude || null
         ];
         const result = await runQuery(sql, params);
@@ -85,13 +86,13 @@ class CustomerRepository {
         const sql = `
             UPDATE customers SET
                 name = ?, address = ?, contact = ?, category = ?,
-                route_id = ?, credit_limit = ?, account_balance = ?, status = ?,
+                route_id = ?, price_level_id = ?, credit_limit = ?, account_balance = ?, status = ?,
                 latitude = ?, longitude = ?
             WHERE id = ? AND is_deleted = 0
         `;
         const params = [
             customer.name, customer.address, customer.contact, customer.category,
-            customer.route_id, customer.credit_limit || 0, customer.account_balance || 0, customer.status,
+            customer.route_id, customer.price_level_id || null, customer.credit_limit || 0, customer.account_balance || 0, customer.status,
             customer.latitude || null, customer.longitude || null, id
         ];
         return await runQuery(sql, params);

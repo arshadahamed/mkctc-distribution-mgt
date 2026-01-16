@@ -53,6 +53,7 @@ app.use('/api/banking', isAuthenticated, require('./routes/banking'));
 app.use('/api/backup', isAuthenticated, require('./routes/backup'));
 app.use('/api/reports', isAuthenticated, require('./routes/reports'));
 app.use('/api/rma', isAuthenticated, require('./routes/rma'));
+app.use('/api/price-levels', isAuthenticated, require('./routes/priceLevels'));
 
 // Image Upload Endpoint (Protected)
 app.post('/api/upload', isAuthenticated, upload.single('image'), (req, res) => {

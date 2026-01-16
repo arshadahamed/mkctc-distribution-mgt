@@ -22,6 +22,7 @@ class AgroDistributionApp {
             'categories': ['view', 'create', 'edit', 'delete'],
             'brands': ['view', 'create', 'edit', 'delete'],
             'units': ['view', 'create', 'edit', 'delete'],
+            'price-levels': ['view', 'create', 'edit', 'delete'],
             'expenses': ['view', 'create', 'edit', 'delete'],
             'distribution': ['view', 'create', 'edit', 'delete'],
             'vehicles': ['view', 'create', 'edit', 'delete'],
@@ -1271,7 +1272,7 @@ class AgroDistributionApp {
 
         // Dynamic View Selection
         let targetView = document.getElementById(`${page}-view`);
-        if (!targetView && ['categories', 'brands', 'units', 'sizes', 'routes'].includes(page)) targetView = document.getElementById('master-view');
+        if (!targetView && ['categories', 'brands', 'units', 'sizes', 'routes', 'price-levels'].includes(page)) targetView = document.getElementById('master-view');
 
         if (targetView) {
             targetView.style.display = 'block';
@@ -1351,6 +1352,7 @@ class AgroDistributionApp {
             brands: () => this.loadMasterData('brands'),
             units: () => this.loadMasterData('units'),
             routes: () => this.loadMasterData('routes'),
+            'price-levels': () => this.loadMasterData('price-levels'),
             payments: () => this.loadPayments(),
             visits: () => { this.loadVisits(); this.loadVisitFilters(); },
             settings: () => this.loadSettings(),
@@ -1386,45 +1388,104 @@ class AgroDistributionApp {
         row.id = rowId;
         row.style = "display: flex; gap: 10px; margin-bottom: 8px; align-items: center; background: white; padding: 5px 8px; border-radius: 6px; border: 1px solid #eee;";
 
+        const plOptions = (this.availablePriceLevels || []).map(pl =>
+            `<option value="${pl.id}" ${data?.price_level_id == pl.id ? 'selected' : ''} data-name="${pl.name}">${pl.name}</option>`
+        ).join('');
+
         row.innerHTML = `
-            <div style="flex: 2;">
-                <input type="text" class="form-control price-label" placeholder="Label (e.g. MSRP)" value="${data?.label || (count === 0 ? 'MSRP' : '')}" style="margin-bottom: 0;">
+            <div style="flex: 1.2;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">Price Level</label>
+                <select class="form-control price-level-select" style="margin-bottom: 0;">
+                    <option value="">Custom/Other</option>
+                    ${plOptions}
+                </select>
+                <input type="text" class="form-control price-label" placeholder="Custom Label" value="${data?.label || ''}" style="margin-top: 4px; display: ${data?.price_level_id ? 'none' : 'block'}; height: 26px; font-size: 0.75rem;">
             </div>
-            <div style="flex: 2;">
-                <input type="number" class="form-control price-value" step="0.01" placeholder="Price" value="${data?.price || ''}" style="margin-bottom: 0;" required oninput="app.calculateProductCost()">
+            <div style="flex: 1;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">MSRP (LKR)</label>
+                <input type="number" class="form-control price-value" step="0.01" placeholder="Selling Price" value="${data?.price || ''}" style="margin-bottom: 0;" oninput="app.calculateProductCost()">
             </div>
-            <div style="flex: 1; text-align: center;">
-                <label style="font-size: 0.7rem; display: block; color: #666;">Primary</label>
+            <div style="flex: 1;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">Supplier Disc (%)</label>
+                <input type="number" class="form-control price-discount" step="0.01" placeholder="Disc %" value="${data?.supplier_discount || ''}" style="margin-bottom: 0;" oninput="app.calculateProductCost()">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">Cost (LKR)</label>
+                <input type="number" class="form-control price-cost" step="0.01" placeholder="Cost" title="Calculated Cost" value="${data?.cost || ''}" style="margin-bottom: 0; background: #f8fafc; font-weight: 600;" readonly>
+            </div>
+            <div style="flex: 0.8;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">Batch #</label>
+                <input type="text" class="form-control price-batch" placeholder="Batch" value="${data?.batch_number || ''}" style="margin-bottom: 0; padding: 4px 8px; font-size: 0.85rem;">
+            </div>
+            <div style="flex: 0.8; text-align: center;">
+                <label style="font-size: 0.65rem; display: block; color: #666; margin-bottom: 2px;">Primary</label>
                 <input type="radio" name="primary-price" class="price-primary" ${data?.is_primary || count === 0 ? 'checked' : ''} onchange="app.calculateProductCost()">
             </div>
-            <div style="flex: 0.5;">
+            <div style="flex: 0.4;">
                 <button type="button" class="btn btn-sm" onclick="this.closest('.price-row').remove(); app.calculateProductCost();" style="background: #fee2e2; color: #ef4444; border: none; padding: 5px 8px;">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         `;
         container.appendChild(row);
+
+        // Add event listener for price level change
+        const select = row.querySelector('.price-level-select');
+        const labelInput = row.querySelector('.price-label');
+        select.addEventListener('change', (e) => {
+            const selectedOpt = e.target.options[e.target.selectedIndex];
+            if (e.target.value) {
+                labelInput.style.display = 'none';
+                labelInput.value = selectedOpt.dataset.name;
+            } else {
+                labelInput.style.display = 'block';
+            }
+        });
     }
 
     calculateProductCost() {
         const discountField = document.getElementById('p-discount');
         const costField = document.getElementById('p-cost');
-        if (!discountField || !costField) return;
+        if (!costField) return;
 
-        const discount = parseFloat(discountField.value) || 0;
+        const globalDiscount = (discountField ? parseFloat(discountField.value) : 0) || 0;
         const priceRows = document.querySelectorAll('.price-row');
-        let primaryPrice = 0;
+        let primaryCost = 0;
+        let primaryMsrp = 0;
+        let primaryDiscount = globalDiscount;
 
         priceRows.forEach(row => {
+            const msrp = parseFloat(row.querySelector('.price-value').value) || 0;
+            const rowDiscountInput = row.querySelector('.price-discount');
+            let discount = rowDiscountInput ? parseFloat(rowDiscountInput.value) : globalDiscount;
+
+            // If row discount is 0 and global is not, maybe use global? 
+            // Better to just use what's in the row, defaulting to 0 if not provided.
+            if (rowDiscountInput && rowDiscountInput.value === "" && globalDiscount > 0) {
+                discount = globalDiscount;
+                rowDiscountInput.placeholder = globalDiscount + "%";
+            }
+
+            const cost = msrp * (1 - (discount / 100));
+            const costInput = row.querySelector('.price-cost');
+            if (costInput) costInput.value = cost.toFixed(2);
+
             const isPrimary = row.querySelector('.price-primary').checked;
             if (isPrimary) {
-                primaryPrice = parseFloat(row.querySelector('.price-value').value) || 0;
+                primaryCost = cost;
+                primaryMsrp = msrp;
+                primaryDiscount = discount;
             }
         });
 
-        if (primaryPrice > 0) {
-            const calculatedCost = primaryPrice * (1 - (discount / 100));
-            costField.value = calculatedCost.toFixed(2);
+        // Update overall product cost/msrp/discount based on primary selection
+        if (costField) costField.value = primaryCost.toFixed(2);
+        const msrpField = document.getElementById('p-msrp');
+        if (msrpField) msrpField.value = primaryMsrp.toFixed(2);
+        if (discountField && primaryDiscount !== globalDiscount && primaryMsrp > 0) {
+            // Only update global discount if we have a primary row with its own discount
+            // Actually, keep them in sync if possible or just rely on primary row
+            discountField.value = primaryDiscount.toFixed(2);
         }
     }
 
@@ -1599,12 +1660,15 @@ class AgroDistributionApp {
                 }
             };
 
-            const [sups, cats, brands, units] = await Promise.all([
+            const [sups, cats, brands, units, priceLevels] = await Promise.all([
                 fetchJson('/api/suppliers'),
                 fetchJson('/api/categories'),
                 fetchJson('/api/brands'),
-                fetchJson('/api/units')
+                fetchJson('/api/units'),
+                fetchJson('/api/price-levels')
             ]);
+
+            this.availablePriceLevels = priceLevels.data || [];
 
             // Helper for population
             const populate = (id, data, val, valueKey = 'id') => {
@@ -1713,10 +1777,25 @@ class AgroDistributionApp {
         priceRows.forEach(row => {
             const label = row.querySelector('.price-label').value;
             const price = parseFloat(row.querySelector('.price-value').value) || 0;
+            const discount = parseFloat(row.querySelector('.price-discount').value) || 0;
+            const cost = parseFloat(row.querySelector('.price-cost').value) || 0;
             const isPrimary = row.querySelector('.price-primary').checked;
+            const priceLevelId = row.querySelector('.price-level-select').value || null;
+            const batchNumber = row.querySelector('.price-batch').value || null;
+
             if (label || price) {
-                prices.push({ label, price, is_primary: isPrimary });
-                if (isPrimary) primaryMsrp = price;
+                prices.push({
+                    label,
+                    batch_number: batchNumber,
+                    price,
+                    supplier_discount: discount,
+                    cost,
+                    price_level_id: priceLevelId,
+                    is_primary: isPrimary
+                });
+                if (isPrimary) {
+                    primaryMsrp = price;
+                }
             }
         });
 
@@ -2040,20 +2119,33 @@ class AgroDistributionApp {
             if (titleField) titleField.textContent = c ? 'Edit Customer' : 'Add New Customer';
             if (saveBtn) saveBtn.textContent = c ? 'Update Customer' : 'Save Customer';
 
-            // 2. Try loading routes (Don't crash if this fails)
+            // 2. Try loading routes and price levels (Don't crash if this fails)
             try {
                 const routeSelect = document.getElementById('c-route');
-                if (routeSelect) {
-                    const routeRes = await this.apiCall('/api/master/routes');
-                    if (!routeRes) throw new Error('Failed to fetch routes');
+                const plSelect = document.getElementById('c-price-level');
+
+                const [routeRes, plRes] = await Promise.all([
+                    this.apiCall('/api/master/routes'),
+                    this.apiCall('/api/price-levels')
+                ]);
+
+                if (routeSelect && routeRes) {
                     const routeData = await routeRes.json();
                     if (routeData.success && Array.isArray(routeData.data)) {
                         routeSelect.innerHTML = '<option value="">Select Route</option>' +
                             routeData.data.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
                     }
                 }
+
+                if (plSelect && plRes) {
+                    const plData = await plRes.json();
+                    if (plData.success && Array.isArray(plData.data)) {
+                        plSelect.innerHTML = '<option value="">Select Price Level (Default)</option>' +
+                            plData.data.map(pl => `<option value="${pl.id}">${pl.name}</option>`).join('');
+                    }
+                }
             } catch (routeErr) {
-                alert('Could not load routes: ' + routeErr.message);
+                console.error('Could not load dropdown data:', routeErr);
             }
 
             // 3. Populate fields
@@ -2065,6 +2157,7 @@ class AgroDistributionApp {
                     'c-contact': c.contact || '',
                     'c-category': c.category || 'Retailer',
                     'c-route': c.route_id || '',
+                    'c-price-level': c.price_level_id || '',
                     'c-balance': c.account_balance || 0,
                     'c-credit-limit': c.credit_limit || 0,
                     'c-lat': c.latitude || '',
@@ -2120,6 +2213,7 @@ class AgroDistributionApp {
             contact: document.getElementById('c-contact').value,
             category: document.getElementById('c-category').value,
             route_id: document.getElementById('c-route').value,
+            price_level_id: document.getElementById('c-price-level').value || null,
             account_balance: document.getElementById('c-balance').value,
             credit_limit: document.getElementById('c-credit-limit').value,
             latitude: document.getElementById('c-lat').value || null,
@@ -2185,7 +2279,8 @@ class AgroDistributionApp {
                     'brands': 'Brand',
                     'units': 'Unit',
                     'sizes': 'Size',
-                    'routes': 'Route'
+                    'routes': 'Route',
+                    'price-levels': 'Price Level'
                 };
                 const singularName = singularMap[type] || 'Item';
 
@@ -2234,7 +2329,8 @@ class AgroDistributionApp {
             'brands': 'Brand',
             'units': 'Unit',
             'sizes': 'Size',
-            'routes': 'Route'
+            'routes': 'Route',
+            'price-levels': 'Price Level'
         };
         const singularName = singularMap[type] || 'Item';
 
@@ -4299,7 +4395,7 @@ class AgroDistributionApp {
                         <td><img src="${v.vehicle_image || placeholder}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;" onerror="this.src='${placeholder}'"></td>
                         <td>
                             <div style="font-weight:700; color:var(--primary-green-dark);">${v.registration_number}</div>
-                            <div style="font-size: 0.8rem; color:#666;">Code: #${v.id}</div>
+                            <div style="font-size: 0.8rem; color:#666;">${v.model || 'Standard Truck'}</div>
                         </td>
                         <td>
                             <div>${v.vehicle_type || 'N/A'}</div>
@@ -4336,8 +4432,10 @@ class AgroDistributionApp {
         if (v) {
             document.getElementById('v-plate').value = v.registration_number || '';
             document.getElementById('v-type').value = v.vehicle_type || 'Truck';
+            document.getElementById('v-model').value = v.model || '';
             document.getElementById('v-driver').value = v.driver_name || '';
             document.getElementById('v-capacity').value = v.capacity || '';
+            document.getElementById('v-location').value = v.current_location || 'Warehouse';
             document.getElementById('v-fuel').value = v.fuel_type || 'Diesel';
             document.getElementById('v-status').value = v.status || 'active';
             document.getElementById('v-image-url').value = v.vehicle_image || '';
@@ -4357,8 +4455,10 @@ class AgroDistributionApp {
         const payload = {
             registration_number: document.getElementById('v-plate').value,
             vehicle_type: document.getElementById('v-type').value,
+            model: document.getElementById('v-model').value,
             driver_name: document.getElementById('v-driver').value,
             capacity: document.getElementById('v-capacity').value,
+            current_location: document.getElementById('v-location').value,
             fuel_type: document.getElementById('v-fuel').value,
             status: document.getElementById('v-status').value,
             vehicle_image: document.getElementById('v-image-url').value
@@ -4554,11 +4654,11 @@ class AgroDistributionApp {
 
             if (activeRes) {
                 const active = await activeRes.json();
-                this.renderLoadsTable(active.data, 'active-loads-table-body');
+                this.renderLoadsCards(active.data, 'active-loads-grid');
             }
             if (allRes) {
                 const all = await allRes.json();
-                this.renderLoadsTable(all.data, 'history-loads-table-body');
+                this.renderLoadsCards(all.data, 'history-loads-grid');
             }
         } catch (err) {
             this.showNotification('Error loading distribution data', 'error');
@@ -4575,31 +4675,156 @@ class AgroDistributionApp {
         this.loadDistributionData();
     }
 
-    renderLoadsTable(loads, tbodyId) {
-        const tbody = document.getElementById(tbodyId);
-        if (!tbody) return;
+    renderLoadsCards(loads, containerId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
 
-        tbody.innerHTML = (loads || []).map(l => `
-            <tr>
-                <td>${new Date(l.load_date).toLocaleDateString()}</td>
-                <td><strong>${l.registration_number}</strong></td>
-                <td>${l.driver_name || '-'}</td>
-                <td>${l.loaded_by_name || '-'}</td>
-                <td><span class="badge ${l.status === 'loaded' ? 'bg-primary' : 'bg-success'}">${l.status.toUpperCase()}</span></td>
-                <td>
-                    <div class="action-btns">
-                        ${l.status === 'loaded' ? `
-                            <button class="btn btn-sm btn-primary" onclick="app.openUnloadModal(${l.id})">Unload/Reconcile</button>
-                            <button class="btn-icon btn-edit" onclick="app.openLoadModal(${l.id})"><i class="fas fa-edit"></i></button>
-                        ` : `
-                            <button class="btn btn-sm btn-secondary" onclick="app.viewLoadReport(${l.id})">Report</button>
-                        `}
-                        <button class="btn-icon btn-delete" onclick="app.handleDeleteLoad(${l.id})"><i class="fas fa-trash"></i></button>
+        if (!loads || loads.length === 0) {
+            container.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--gray-400);">No truck loads found in this category.</div>';
+            return;
+        }
+
+        container.innerHTML = loads.map(l => {
+            const statusColor = l.status === 'loaded' ? '#3b82f6' : '#10b981';
+            const statusLabel = l.status === 'loaded' ? 'Loaded' : 'Completed';
+
+            // Placeholder for data not yet in some records
+            const model = l.model || 'Standard Delivery Truck';
+            const capacity = l.capacity || '4,500 Kg';
+            const location = l.current_location || 'Warehouse';
+
+            // Real data from recalculated repository results
+            const totalQty = (l.total_quantity || 0).toLocaleString();
+            const totalCartons = (l.total_cartons || 0).toFixed(1);
+
+            return `
+                <div class="truck-card-modern" onclick="app.toggleTruckActions(this, event)">
+                    <div class="truck-card-header">
+                        <div class="truck-card-title">
+                            <h3>${l.registration_number}</h3>
+                            <span>${model}</span>
+                        </div>
+                        <div class="truck-status-indicator active"></div>
                     </div>
-                </td>
-            </tr>
-        `).join('') || '<tr><td colspan="6" class="text-center">No loads found</td></tr>';
+
+                    <div class="truck-info-grid">
+                        <div class="truck-info-item">
+                            <span class="truck-info-label">Status</span>
+                            <span class="truck-info-value status">
+                                <i class="fas fa-check-circle"></i> ${statusLabel}
+                            </span>
+                        </div>
+                        <div class="truck-info-item">
+                            <span class="truck-info-label">Capacity</span>
+                            <span class="truck-info-value">${capacity}</span>
+                        </div>
+                        <div class="truck-info-item">
+                            <span class="truck-info-label">Location</span>
+                            <span class="truck-info-value">${location}</span>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Truck Visual -->
+                    <div class="truck-visual-wrapper">
+                        <!-- Redesigned Integrated Truck Tractor SVG (Facing Left) -->
+                        <svg class="truck-cabin-img" viewBox="0 0 140 100" xmlns="http://www.w3.org/2000/svg">
+                            <!-- Main Chassis (Continuous Beam) -->
+                            <rect x="10" y="72" width="125" height="10" rx="2" fill="#1e293b"/>
+                            
+                            <!-- Cabin Main Shell -->
+                            <path d="M125,75 L125,20 Q125,12 115,12 L70,12 Q65,12 60,20 L25,48 L15,55 L15,75 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+                            
+                            <!-- Aerodynamic Roof Cap -->
+                            <path d="M125,25 L125,18 Q125,10 115,10 L75,10 Q70,10 65,15 Z" fill="#f8fafc"/>
+
+                            <!-- Improved Glass & Pillars -->
+                            <path d="M62,18 L35,45 L22,53 L45,53 L65,18 Z" fill="#3b82f6" opacity="0.3"/> <!-- Front Windshield -->
+                            <rect x="70" y="20" width="45" height="28" rx="4" fill="#3b82f6" opacity="0.15"/> <!-- Main Side Window -->
+                            
+                            <!-- Front Details (Grille & Bumper) -->
+                            <rect x="15" y="58" width="5" height="15" fill="#f1f5f9"/> <!-- Front Edge -->
+                            <rect x="10" y="68" width="25" height="10" rx="3" fill="#0f172a"/> <!-- Heavy Bumper -->
+                            <rect x="15" y="62" width="8" height="4" rx="1" fill="#fbbf24" opacity="0.9"/> <!-- Headlight -->
+
+                            <!-- Mirrors & Handles -->
+                            <rect x="55" y="28" width="4" height="12" rx="2" fill="#1e293b"/> <!-- Side Mirror -->
+                            <rect x="95" y="52" width="12" height="3" rx="1.5" fill="#94a3b8"/> <!-- Door Handle -->
+
+                            <!-- Integrated Heavy-Duty Wheels - Matched to CSS .wheel styling -->
+                            <g class="tractor-wheels">
+                                <!-- Steering Wheel -->
+                                <circle cx="35" cy="88" r="14" fill="#1e293b" stroke="#475569" stroke-width="4"/>
+                                <circle cx="35" cy="88" r="7" fill="#94a3b8" opacity="0.3"/>
+                                
+                                <!-- Drive Wheel -->
+                                <circle cx="105" cy="88" r="14" fill="#1e293b" stroke="#475569" stroke-width="4"/>
+                                <circle cx="105" cy="88" r="7" fill="#94a3b8" opacity="0.3"/>
+                            </g>
+                        </svg>
+
+
+
+
+
+                        <div class="truck-cargo-container ${l.status === 'loaded' ? '' : 'unloaded'}" onclick="app.toggleTruckActions(this.closest('.truck-card-modern'), event)">
+                            ${l.status === 'loaded' ? `
+                                <div class="cargo-weight" style="font-size: 0.65rem; margin-bottom: 2px; text-transform: uppercase; opacity: 0.7;">TOTAL QUANTITY</div>
+                                <div class="cargo-percent" style="font-size: 1.4rem; margin-bottom: 5px;">${totalQty}</div>
+                                <div class="cargo-weight" style="font-size: 0.8rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 4px; font-weight: 700;">${totalCartons} CARTONS</div>
+                            ` : `
+                                <div class="cargo-percent" style="font-size: 1.1rem; letter-spacing: 2px;">EMPTY</div>
+                                <div class="cargo-weight" style="font-size: 0.6rem; text-transform: uppercase;"><i class="fas fa-check"></i> Stock Delivered</div>
+                            `}
+                        </div>
+
+                        <div class="truck-wheels">
+                            <!-- Integrated Tractor Wheels are above inside SVG. Only Rear Trailer Wheels here. -->
+                            <div class="wheel" style="margin-left: auto;"></div> <!-- Rear Trailer 1 -->
+                            <div class="wheel" style="margin-left: 10px; margin-right: 15px;"></div> <!-- Rear Trailer 2 -->
+                        </div>
+                    </div>
+
+
+
+                    <div class="truck-card-actions">
+                        ${l.status === 'loaded' ? `
+                            <button class="btn btn-sm btn-primary" onclick="app.openUnloadModal(${l.id})">
+                                <i class="fas fa-box-open"></i> Unload
+                            </button>
+                            <button class="btn-icon btn-edit" onclick="app.openLoadModal(${l.id})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        ` : `
+                            <button class="btn btn-sm btn-secondary" onclick="app.viewLoadReport(${l.id})">
+                                <i class="fas fa-file-alt"></i> Report
+                            </button>
+                        `}
+                        <button class="btn-icon btn-delete" onclick="app.handleDeleteLoad(${l.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+
+                    <div style="margin-top: auto; padding-top: 15px; border-top: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #718096;">
+                        <span><i class="fas fa-calendar"></i> ${new Date(l.load_date).toLocaleDateString()}</span>
+                        <span><i class="fas fa-user"></i> ${l.driver_name || 'No Driver'}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
     }
+
+    toggleTruckActions(card, event) {
+        if (event) event.stopPropagation();
+
+        // Hide all others first
+        document.querySelectorAll('.truck-card-modern').forEach(c => {
+            if (c !== card) c.classList.remove('actions-visible');
+        });
+
+        // Toggle the current one
+        card.classList.toggle('actions-visible');
+    }
+
 
     switchDistributionTab(tab, btn) {
         const activeContainer = document.getElementById('active-loads-container');
@@ -4968,6 +5193,17 @@ class AgroDistributionApp {
     async addRmaItemRow(itemData = null) {
         const tbody = document.getElementById('rma-items-body');
         if (!tbody) return;
+
+        // If it's a manual add (itemData is null), check for authorization
+        if (itemData === null) {
+            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+            if (user.role !== 'admin') {
+                this.pendingRmaProduct = { isManualRow: true };
+                this.openSupervisorModal();
+                return;
+            }
+        }
+
         const rowId = `rma-row-${Date.now()}`;
         const row = document.createElement('tr');
         row.id = rowId;
@@ -4985,9 +5221,11 @@ class AgroDistributionApp {
             }
         }
 
-        const qty = itemData ? itemData.quantity : 1;
+        const qty = itemData ? itemData.quantity : 0;
         const price = itemData ? itemData.msrp : 0;
         const productId = itemData ? itemData.product_id : '';
+        const notes = itemData ? (itemData.notes || '') : '';
+        const maxQty = itemData ? (itemData.max_qty || '') : '';
 
         row.innerHTML = `
             <td>
@@ -4995,10 +5233,11 @@ class AgroDistributionApp {
                     <option value="">Search Product...</option>
                     ${this.allProducts?.map(p => `<option value="${p.id}" data-price="${p.msrp}" ${p.id == productId ? 'selected' : ''}>${p.name}</option>`).join('')}
                 </select>
+                ${maxQty ? `<small style="color:var(--gray-500); display:block; font-size:0.7rem;">Invoice Qty: ${maxQty}</small>` : ''}
             </td>
-            <td><input type="number" step="0.01" class="form-control rma-qty" value="${qty}" style="margin:0;" required oninput="app.updateRmaTotal()"></td>
+            <td><input type="number" step="0.01" class="form-control rma-qty" value="${qty}" style="margin:0;" required oninput="app.updateRmaTotal()" ${maxQty ? `max="${maxQty}"` : ''}></td>
             <td><input type="number" step="0.01" class="form-control rma-price" value="${price}" style="margin:0;" required oninput="app.updateRmaTotal()"></td>
-            <td><input type="text" class="form-control rma-reason" placeholder="e.g. Broken Seal" style="margin:0;" required></td>
+            <td><input type="text" class="form-control rma-reason" placeholder="e.g. Broken Seal" value="${notes}" style="margin:0;" required></td>
             <td>
                 <select class="form-control rma-condition" style="margin:0;">
                     <option value="damaged">Damaged</option>
@@ -5012,7 +5251,160 @@ class AgroDistributionApp {
                 </button>
             </td>
         `;
+        tbody.appendChild(row);
         this.updateRmaTotal();
+    }
+
+    async searchRmaProducts(query) {
+        const resultsDiv = document.getElementById('rma-search-results');
+        if (!query || query.length < 1) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        if (!this.allProducts) {
+            const res = await this.apiCall('/api/products?limit=1000');
+            if (res) {
+                const pData = await res.json();
+                this.allProducts = pData.data;
+            }
+        }
+
+        const filtered = this.allProducts.filter(p =>
+            p.name.toLowerCase().includes(query.toLowerCase()) ||
+            (p.brand_name && p.brand_name.toLowerCase().includes(query.toLowerCase())) ||
+            (p.category_name && p.category_name.toLowerCase().includes(query.toLowerCase()))
+        ).slice(0, 10);
+
+        if (filtered.length > 0) {
+            resultsDiv.innerHTML = filtered.map(p => `
+                <div class="search-result-item" onclick="app.selectRmaProduct(${p.id})">
+                    <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+                        <div>
+                            <div class="product-name" style="font-weight:700;">${p.name}</div>
+                            <div class="product-info" style="font-size:0.75rem; color:var(--gray-500);">${p.brand_name || ''} | ${p.category_name || ''}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:700; color:var(--primary-green);">${this.formatCurrency(p.msrp)}</div>
+                            <div style="font-size:0.7rem; color:var(--gray-400);">Stock: ${p.initial_stock || 0} ${p.unit || ''}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            resultsDiv.style.display = 'block';
+        } else {
+            resultsDiv.innerHTML = '<div class="search-result-item text-muted">No products found</div>';
+            resultsDiv.style.display = 'block';
+        }
+    }
+
+    selectFirstRmaProduct() {
+        const resultsDiv = document.getElementById('rma-search-results');
+        const firstResult = resultsDiv.querySelector('.search-result-item');
+        if (firstResult && !firstResult.classList.contains('text-muted')) {
+            firstResult.click();
+        }
+    }
+
+    async selectRmaProduct(productId) {
+        const product = this.allProducts.find(p => p.id == productId);
+        if (product) {
+            // Check if supervisor authorization is needed
+            // If there's a linked invoice, check if this product is in that invoice
+            const invoiceId = document.getElementById('rma-invoice').value;
+            let needsAuth = true;
+
+            if (invoiceId) {
+                // If it's in the invoice, it might have been loaded already or user is re-adding it
+                // But generally, the prompt implies manual entry "apart from linked invoice" needs auth
+            }
+
+            // Always ask for auth for manual search additions for now to be safe, unless user is admin
+            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+            if (user.role === 'admin') {
+                needsAuth = false;
+            }
+
+            if (needsAuth) {
+                this.pendingRmaProduct = product;
+                this.openSupervisorModal();
+                return;
+            }
+
+            await this.addRmaItemRow({
+                product_id: product.id,
+                quantity: 1,
+                msrp: product.msrp
+            });
+            document.getElementById('rma-product-search').value = '';
+            document.getElementById('rma-search-results').style.display = 'none';
+        }
+    }
+
+    openSupervisorModal() {
+        const modal = document.getElementById('supervisor-auth-modal');
+        if (modal) {
+            modal.classList.add('active');
+            modal.style.display = 'flex';
+            document.getElementById('sup-username').focus();
+        }
+    }
+
+    closeSupervisorModal() {
+        const modal = document.getElementById('supervisor-auth-modal');
+        if (modal) {
+            modal.classList.remove('active');
+            modal.style.display = 'none';
+        }
+        document.getElementById('supervisor-auth-form').reset();
+        this.pendingRmaProduct = null;
+    }
+
+    async handleSupervisorAuth(e) {
+        e.preventDefault();
+        const username = document.getElementById('sup-username').value;
+        const password = document.getElementById('sup-password').value;
+
+        try {
+            const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await res.json();
+            if (data.success && (data.data.user.role === 'admin' || data.data.user.role === 'supervisor')) {
+                this.showNotification('Authorization Successful', 'success');
+                const adminName = data.data.user.name;
+                this.closeSupervisorModal();
+
+                if (this.pendingRmaProduct) {
+                    if (this.pendingRmaProduct.isManualRow) {
+                        // Special item Data to bypass the auth check in addRmaItemRow
+                        await this.addRmaItemRow({
+                            product_id: '',
+                            quantity: 0,
+                            msrp: 0,
+                            notes: `Manual row authorized by ${adminName}`
+                        });
+                    } else {
+                        await this.addRmaItemRow({
+                            product_id: this.pendingRmaProduct.id,
+                            quantity: 1,
+                            msrp: this.pendingRmaProduct.msrp,
+                            notes: `Authorized by ${adminName}`
+                        });
+                        document.getElementById('rma-product-search').value = '';
+                        document.getElementById('rma-search-results').style.display = 'none';
+                    }
+                }
+            } else {
+                this.showNotification('Unauthorized: Supervisor or Admin credentials required', 'error');
+            }
+        } catch (err) {
+            console.error('Auth check failed:', err);
+            this.showNotification('Authentication service unavailable', 'error');
+        }
     }
 
     async toggleRmaLoadSelect(val) {
@@ -5056,7 +5448,13 @@ class AgroDistributionApp {
     }
 
     async handleRmaInvoiceChange(invoiceId) {
-        if (!invoiceId) return;
+        if (!invoiceId) {
+            const tbody = document.getElementById('rma-items-body');
+            if (tbody.children.length === 0) {
+                await this.addRmaItemRow();
+            }
+            return;
+        }
 
         this.showNotification('Loading invoice items...', 'info');
         const res = await this.apiCall(`/api/sales/${invoiceId}`);
@@ -5067,14 +5465,23 @@ class AgroDistributionApp {
             if (invoice && invoice.items) {
                 const tbody = document.getElementById('rma-items-body');
                 tbody.innerHTML = ''; // Clear current rows
+
+                // Track items in invoice for later validation if needed
+                this.currentRmaInvoiceItems = invoice.items;
+
                 for (const item of invoice.items) {
-                    const discountedPrice = item.quantity > 0 ? (item.line_total / item.quantity) : item.msrp;
+                    // Calculate price based on net_total / quantity if available to get actual sold price
+                    const soldPrice = item.quantity > 0 ? (item.line_total / item.quantity) : item.msrp;
+
                     await this.addRmaItemRow({
                         product_id: item.product_id,
-                        quantity: item.quantity,
-                        msrp: discountedPrice
+                        quantity: 0, // Default to 0, user will enter how many they want to return
+                        msrp: soldPrice,
+                        max_qty: item.quantity,
+                        notes: `From Invoice ${invoice.invoice_number}`
                     });
                 }
+                this.showNotification(`Loaded ${invoice.items.length} items from invoice. Use "Add Item" or search for items not in this invoice.`, 'success');
             }
         }
     }
@@ -5103,10 +5510,11 @@ class AgroDistributionApp {
         const items = [];
         document.querySelectorAll('#rma-items-body tr').forEach(row => {
             const pId = row.querySelector('.rma-product-select').value;
-            if (pId) {
+            const qty = parseFloat(row.querySelector('.rma-qty').value) || 0;
+            if (pId && qty > 0) {
                 items.push({
                     product_id: pId,
-                    quantity: parseFloat(row.querySelector('.rma-qty').value),
+                    quantity: qty,
                     unit_price: parseFloat(row.querySelector('.rma-price').value),
                     reason: row.querySelector('.rma-reason').value,
                     condition: row.querySelector('.rma-condition').value
@@ -5115,7 +5523,7 @@ class AgroDistributionApp {
         });
 
         if (items.length === 0) {
-            alert('Please add at least one item');
+            this.showNotification('Please add at least one item with a quantity greater than zero', 'warning');
             return;
         }
 
@@ -5265,6 +5673,8 @@ class AgroDistributionApp {
                         for (const item of load.items) {
                             await this.addLoadItemRow({
                                 product_id: item.product_id,
+                                price_id: item.price_id,
+                                batch_number: item.batch_number,
                                 quantity_loaded: item.quantity_loaded,
                                 unit: item.unit
                             });
@@ -5314,7 +5724,7 @@ class AgroDistributionApp {
 
         row.innerHTML = `
             <td>
-                <select class="form-control item-product" required onchange="app.updateLoadItemUnit(this)">
+                <select class="form-control item-product" required onchange="app.updateLoadItemBatches(this)">
                     <option value="">Select Product</option>
                     ${this.productCache.map(p => `
                         <option value="${p.id}" 
@@ -5324,6 +5734,11 @@ class AgroDistributionApp {
                             ${p.name}
                         </option>
                     `).join('')}
+                </select>
+            </td>
+            <td>
+                <select class="form-control item-batch" style="margin-bottom: 0;">
+                    <option value="">Default/Primary</option>
                 </select>
             </td>
             <td>
@@ -5342,6 +5757,11 @@ class AgroDistributionApp {
                 <button type="button" class="btn-icon text-error" onclick="document.getElementById('${rowId}').remove()"><i class="fas fa-minus-circle"></i></button>
             </td>
         `;
+
+        if (data && data.product_id) {
+            // If data is passed (e.g. from existing load), populate batches dropdown
+            await this.updateLoadItemBatches(row.querySelector('.item-product'), data.price_id);
+        }
         tbody.appendChild(row);
 
         // Focus cartons field of the new row if it's from search
@@ -5427,6 +5847,44 @@ class AgroDistributionApp {
         }
     }
 
+    async updateLoadItemBatches(select, selectedPriceId = null) {
+        const row = select.closest('tr');
+        const productId = select.value;
+        const batchSelect = row.querySelector('.item-batch');
+        const unit = select.options[select.selectedIndex].dataset.unit || '';
+        row.querySelector('.unit-text').textContent = unit;
+
+        if (!productId) {
+            batchSelect.innerHTML = '<option value="">-</option>';
+            return;
+        }
+
+        try {
+            const res = await this.apiCall(`/api/products/${productId}`);
+            if (res) {
+                const product = (await res.json()).data;
+                const prices = product.prices || [];
+
+                if (prices.length > 0) {
+                    batchSelect.innerHTML = prices.map(p => `
+                        <option value="${p.id}" data-batch="${p.batch_number || ''}" ${selectedPriceId == p.id ? 'selected' : ''}>
+                            ${p.batch_number || 'Default'} - LKR ${p.price}
+                        </option>
+                    `).join('');
+                } else {
+                    batchSelect.innerHTML = '<option value="">Default</option>';
+                }
+            }
+        } catch (err) {
+            console.error('Error fetching product prices:', err);
+        }
+
+        const cartonInput = row.querySelector('.item-cartons');
+        if (cartonInput && cartonInput.value) {
+            this.updateLoadItemQtyFromCartons(cartonInput);
+        }
+    }
+
     selectLoadProduct(productId) {
         const product = this.productCache.find(p => p.id == productId);
         if (product) {
@@ -5436,7 +5894,7 @@ class AgroDistributionApp {
             if (rows.length === 1) {
                 const firstSelect = rows[0].querySelector('.item-product');
                 const firstQty = rows[0].querySelector('.item-qty');
-                if (firstSelect && firstSelect.value === '' && firstQty && firstQty.value === '') {
+                if (firstSelect && (firstSelect.value === '' || firstSelect.value == productId) && firstQty && firstQty.value === '') {
                     rows[0].remove();
                 }
             }
@@ -5469,8 +5927,19 @@ class AgroDistributionApp {
         const items = [];
         document.querySelectorAll('#load-items-body tr').forEach(tr => {
             const productId = tr.querySelector('.item-product').value;
+            const batchSelect = tr.querySelector('.item-batch');
+            const priceId = batchSelect.value;
+            const batchNumber = batchSelect.options[batchSelect.selectedIndex]?.dataset.batch || null;
             const qty = tr.querySelector('.item-qty').value;
-            if (productId && qty) items.push({ product_id: productId, quantity_loaded: parseFloat(qty) });
+
+            if (productId && qty) {
+                items.push({
+                    product_id: productId,
+                    price_id: priceId || null,
+                    batch_number: batchNumber,
+                    quantity_loaded: parseFloat(qty)
+                });
+            }
         });
 
         if (items.length === 0) return this.showNotification('Add at least one item', 'error');
@@ -5525,10 +5994,13 @@ class AgroDistributionApp {
 
         const tbody = document.getElementById('unload-items-body');
         tbody.innerHTML = load.items.map(item => {
-            const vInfo = varianceData.find(v => v.product_name === item.product_name) || { sold: 0 };
+            const vInfo = varianceData.find(v => v.product_name === item.product_name && v.batch_number === item.batch_number) || { sold: 0 };
             return `
-                <tr data-product-id="${item.product_id}">
-                    <td><strong>${item.product_name}</strong></td>
+                <tr data-product-id="${item.product_id}" data-price-id="${item.price_id || ''}" data-batch="${item.batch_number || ''}">
+                    <td>
+                        <strong>${item.product_name}</strong>
+                        <div style="font-size: 0.75rem; color: #64748b;">Batch: ${item.batch_number || 'Default'}</div>
+                    </td>
                     <td style="text-align: right;">${item.quantity_loaded} ${item.unit}</td>
                     <td style="text-align: right; color: var(--primary-green);">${vInfo.sold} ${item.unit}</td>
                     <td><input type="number" class="form-control form-control-sm ul-returned" step="0.01" value="0" oninput="app.calculateUnloadVariance(this, ${item.quantity_loaded}, ${vInfo.sold})"></td>
@@ -5557,6 +6029,8 @@ class AgroDistributionApp {
         document.querySelectorAll('#unload-items-body tr').forEach(tr => {
             items.push({
                 product_id: tr.dataset.productId,
+                price_id: tr.dataset.priceId || null,
+                batch_number: tr.dataset.batch || null,
                 quantity_remaining: parseFloat(tr.querySelector('.ul-returned').value || 0),
                 variance_reason: tr.querySelector('.ul-reason').value
             });
@@ -5669,22 +6143,9 @@ class AgroDistributionApp {
 
         await Promise.all([
             this.loadPOSActiveLoads(),
-            this.loadPOSCustomers()
+            this.loadPOSCustomers(),
+            this.loadPOSPriceLevels()
         ]);
-
-        // Default to first customer (Cash Customer) only if not already set (e.g. from recall)
-        const custSelect = document.getElementById('pos-customer-selector');
-        if (custSelect && !this.posState.currentInvoiceId && custSelect.selectedIndex === -1) {
-            if (custSelect.options.length > 1) {
-                // Find "Cash Customer" in options
-                for (let i = 0; i < custSelect.options.length; i++) {
-                    if (custSelect.options[i].text.includes('Cash')) {
-                        custSelect.selectedIndex = i;
-                        break;
-                    }
-                }
-            }
-        }
 
         this.updateCartUI();
     }
@@ -5707,6 +6168,18 @@ class AgroDistributionApp {
             }
         } catch (e) {
             console.error('Failed to get invoice number', e);
+        }
+    }
+
+    async loadPOSPriceLevels() {
+        try {
+            const res = await this.apiCall('/api/price-levels');
+            const data = await res.json();
+            if (data.success) {
+                this.availablePriceLevels = data.data || [];
+            }
+        } catch (e) {
+            console.error('Failed to load POS price levels:', e);
         }
     }
 
@@ -5807,6 +6280,8 @@ class AgroDistributionApp {
         const display = document.getElementById('pos-selected-customer');
         display.style.display = 'flex';
 
+        document.getElementById('pos-customer-selector').value = customer.id;
+
         document.getElementById('pos-cust-name').textContent = customer.name;
         document.getElementById('pos-cust-detail').textContent =
             (customer.address || '') + (customer.phone ? ' • ' + customer.phone : '');
@@ -5815,15 +6290,43 @@ class AgroDistributionApp {
         if (balanceEl) {
             const bal = customer.account_balance || customer.outstanding_balance || 0;
             balanceEl.textContent = parseFloat(bal).toLocaleString(undefined, { minimumFractionDigits: 2 });
-            balanceEl.style.color = bal > 0 ? '#ef4444' : '#166534'; // Red if they owe money, Green if clear
+            balanceEl.style.color = bal > 0 ? '#ef4444' : '#166534';
         }
 
-        // Hide results dropdown
-        document.getElementById('pos-customer-results').style.display = 'none';
+        this.posState.selectedCustomer = customer;
 
-        // Set Value
-        const hiddenInput = document.getElementById('pos-customer-selector');
-        if (hiddenInput) hiddenInput.value = customer.id;
+        // Auto-update cart items to customer's price level if applicable
+        if (customer.price_level_id && this.posState.cart.length > 0) {
+            let updatedCount = 0;
+            this.posState.cart.forEach(item => {
+                if (item.is_free) return;
+                const product = this.posState.products.find(p => p.id === item.product_id);
+                if (product && product.prices) {
+                    const leveledPrice = product.prices.find(p =>
+                        p.price_level_id == customer.price_level_id &&
+                        (!item.batch_number || p.batch_number === item.batch_number)
+                    );
+                    if (leveledPrice) {
+                        item.msrp = leveledPrice.price;
+                        item.batch_number = leveledPrice.batch_number; // Sync batch number if it changed or was missing
+                        item.allowed_discount = leveledPrice.supplier_discount || 0;
+                        item.selected_price_id = leveledPrice.id;
+
+                        // Re-cap existing discount
+                        if (item.discount_percentage > item.allowed_discount) {
+                            item.discount_percentage = item.allowed_discount;
+                        }
+
+                        this.recalculateLineTotal(item);
+                        updatedCount++;
+                    }
+                }
+            });
+            if (updatedCount > 0) {
+                this.showNotification(`Updated ${updatedCount} items to Customer's Price Level`, 'info');
+                this.updateCartUI();
+            }
+        }
 
         // Fetch customer-specific discounts
         this.posState.customerDiscounts = {};
@@ -5833,10 +6336,19 @@ class AgroDistributionApp {
                 const data = await res.json();
                 if (data.success) {
                     data.data.forEach(d => {
-                        this.posState.customerDiscounts[d.product_id] = {
+                        // Store as specific key
+                        const specKey = d.price_id ? `${d.product_id}_${d.price_id}` : d.product_id;
+                        this.posState.customerDiscounts[specKey] = {
                             percentage: d.discount_percentage,
                             amount: d.discount_amount
                         };
+                        // Also store as simple product key if not already set (fallback for UI)
+                        if (!this.posState.customerDiscounts[d.product_id]) {
+                            this.posState.customerDiscounts[d.product_id] = {
+                                percentage: d.discount_percentage,
+                                amount: d.discount_amount
+                            };
+                        }
                     });
                 }
             }
@@ -5852,11 +6364,19 @@ class AgroDistributionApp {
         // Update existing cart items if customer changed
         if (this.posState.cart.length > 0) {
             this.posState.cart.forEach(item => {
-                const disc = (this.posState.customerDiscounts || {})[item.product_id];
-                if (disc) {
-                    item.discount_percentage = disc.percentage;
-                    item.discount_amount = disc.amount;
-                    item.line_total = item.quantity * item.msrp * (1 - (item.discount_percentage / 100));
+                const specKey = item.selected_price_id ? `${item.product_id}_${item.selected_price_id}` : item.product_id;
+                const disc = (this.posState.customerDiscounts || {})[specKey] || (this.posState.customerDiscounts || {})[item.product_id];
+
+                if (disc && !item.is_free) {
+                    let appliedDisc = disc.percentage;
+                    const allowed = item.allowed_discount || 0;
+
+                    if (appliedDisc > allowed) {
+                        appliedDisc = allowed;
+                    }
+
+                    item.discount_percentage = appliedDisc;
+                    this.recalculateLineTotal(item);
                 }
             });
             this.updateCartUI();
@@ -5915,52 +6435,75 @@ class AgroDistributionApp {
 
     getCartQtyForProduct(productId) {
         return (this.posState.cart || [])
-            .filter(item => item.product_id === productId)
+            .filter(item => item.product_id == productId)
             .reduce((sum, item) => sum + item.quantity, 0);
     }
 
     renderProductTiles(products) {
         const grid = document.getElementById('pos-product-grid');
+        const footer = document.getElementById('pos-truck-footer');
         if (!grid) return;
 
         if (!products || products.length === 0) {
             grid.innerHTML = '<div class="pos-empty-state"><p>No products found in this truck load.</p></div>';
+            if (footer) footer.style.display = 'none';
             return;
         }
+
+        // Calculate Truck Totals
+        let totalQty = 0;
+        let totalItems = products.length;
 
         grid.innerHTML = products.map(p => {
             // Subtract cart quantity from displayed stock
             const cartQty = this.getCartQtyForProduct(p.id);
             const remainingQty = Math.max(0, p.available_quantity - cartQty);
+            totalQty += remainingQty;
 
+            const stockStatus = remainingQty <= 0 ? 'out' : (remainingQty < 10 ? 'low' : 'in');
             const stockClass = remainingQty <= 0 ? 'no-stock' : (remainingQty < 10 ? 'low-stock' : '');
             const stockLabel = remainingQty <= 0 ? 'Out of Stock' : (remainingQty < 10 ? 'Low Stock' : 'In Stock');
-            const tagClass = remainingQty <= 0 ? 'out' : (remainingQty < 10 ? 'low' : 'in');
 
             const lastDisc = (this.posState.customerDiscounts || {})[p.id];
             const discHtml = (lastDisc && lastDisc.percentage > 0) ? `
-                <div class="special-rate-hint" style="font-size: 0.75rem; color: var(--primary-green); font-weight: 700; background: rgba(46, 125, 50, 0.1); padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 5px;">
-                    <i class="fas fa-tag"></i> Last Disc: ${lastDisc.percentage}%
+                <div class="special-rate-hint" style="font-size: 0.75rem; color: var(--primary-green); font-weight: 700; background: rgba(46, 125, 50, 0.1); padding: 2px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 4px; margin-top: 5px;">
+                    <i class="fas fa-certificate"></i> Last: ${lastDisc.percentage}%
                 </div>
             ` : '';
 
             return `
-                <div class="product-card ${stockClass}" onclick="app.checkAndAddToCart(${p.id}, false)">
+                <div class="product-card ${stockClass}" onclick="${remainingQty > 0 ? `app.checkAndAddToCart(${p.id}, false)` : ''}">
                     <div class="product-sku">${p.reference_code || 'N/A'}</div>
-                    ${p.allow_free_issue === 1 ? `
-                        <button class="btn-free-add" title="Add as FREE Issue" onclick="event.stopPropagation(); app.checkAndAddToCart(${p.id}, true)">
-                            <i class="fas fa-gift"></i> FREE+
+                    ${p.allow_free_issue === 1 && remainingQty > 0 ? `
+                        <button class="btn-free-add" title="Add as FREE Issue" onclick="event.stopPropagation(); app.checkAndAddToCart(${p.id}, true)" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--primary-green); color: white; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; z-index: 10;">
+                            <i class="fas fa-gift"></i>
                         </button>
                     ` : ''}
                     <div class="product-name">${p.name}</div>
                     <div class="product-stock">
-                        <span class="stock-tag ${tagClass}">${stockLabel}: ${remainingQty}</span>
+                        <span class="stock-tag ${stockStatus}">
+                            <i class="fas ${stockStatus === 'out' ? 'fa-times-circle' : (stockStatus === 'low' ? 'fa-exclamation-triangle' : 'fa-check-circle')}"></i>
+                            ${stockLabel}: ${remainingQty}
+                        </span>
                     </div>
-                    <div class="product-price">${remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toFixed(2)}</div>
+                    <div class="product-price">${remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     ${discHtml}
                 </div>
             `;
         }).join('');
+
+        // Update Footer Stats
+        if (footer) {
+            footer.style.display = 'flex';
+            document.getElementById('pos-total-items-count').textContent = totalItems;
+            document.getElementById('pos-total-truck-qty').textContent = totalQty.toLocaleString();
+
+            // Try to find the truck name from selector
+            const selector = document.getElementById('pos-load-selector');
+            if (selector && selector.selectedIndex > 0) {
+                document.getElementById('pos-selected-truck-name').textContent = selector.options[selector.selectedIndex].text;
+            }
+        }
     }
 
     filterPOSProducts(query) {
@@ -5981,8 +6524,54 @@ class AgroDistributionApp {
         this.addToCart(productId, isFree);
     }
 
+    openBatchSelectionModal(product, isFree) {
+        const modal = document.getElementById('pos-batch-modal');
+        const body = document.getElementById('batch-selection-body');
+        document.getElementById('batch-product-name').textContent = product.name;
+        document.getElementById('batch-product-code').textContent = product.reference_code || 'SKU: N/A';
+
+        // Filter valid prices
+        const priceLevels = (this.availablePriceLevels || []);
+
+        body.innerHTML = product.prices.map(p => {
+            const level = priceLevels.find(l => l.id == p.price_level_id);
+            const levelName = level ? level.name : (p.label || 'Default');
+            const isMatch = this.posState.selectedCustomer?.price_level_id == p.price_level_id;
+            const available = p.available_qty !== undefined ? p.available_qty : product.available_quantity;
+
+            return `
+                <tr style="${isMatch ? 'background: #f0fdf4;' : ''}; ${available <= 0 ? 'opacity: 0.6;' : ''}">
+                    <td><strong>${p.batch_number || '-'}</strong></td>
+                    <td><span class="badge ${isMatch ? 'badge-success' : 'badge-secondary'}">${levelName}</span></td>
+                    <td class="text-right"><strong>${p.price.toFixed(2)}</strong></td>
+                    <td class="text-right" style="color: ${available <= 0 ? 'var(--error)' : 'inherit'}; font-weight: 600;">${available.toFixed(2)}</td>
+                    <td class="text-center">
+                        <button class="btn btn-primary btn-sm" onclick="app.selectBatchPrice(${product.id}, ${p.id}, ${isFree})" ${available <= 0 ? 'disabled' : ''}>
+                            <i class="fas fa-plus"></i> Select
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        modal.classList.add('active');
+    }
+
+    selectBatchPrice(productId, priceId, isFree) {
+        const product = this.posState.products.find(p => p.id == productId);
+        if (!product) return;
+        const price = product.prices.find(p => p.id == priceId);
+        if (!price) return;
+
+        // Close modal
+        document.getElementById('pos-batch-modal').classList.remove('active');
+
+        // Add to cart with specific price
+        this.addToCart(productId, isFree, price);
+    }
+
     addToCart(productId, isFree = false) {
-        const product = this.posState.products.find(p => p.id === productId);
+        const product = this.posState.products.find(p => p.id == productId);
         if (!product) return;
 
         const currentCartQty = this.getCartQtyForProduct(productId);
@@ -5996,31 +6585,72 @@ class AgroDistributionApp {
             return;
         }
 
-        // Merge with existing item ONLY if the FREE status matches.
-        // This allows having one PAID line and one FREE line for the same product.
-        const cartItem = this.posState.cart.find(item => item.product_id === productId && !!item.is_free === !!isFree);
+        // Feature: Batch/Price Selection
+        if (!isFree && product.prices && product.prices.length > 1 && !arguments[2]) {
+            this.openBatchSelectionModal(product, isFree);
+            return;
+        }
+
+        const selectedPrice = arguments[2]; // If passed from modal
+
+        // Determine the price level to use
+        let targetPrice = selectedPrice || (product.prices || []).find(p => p.is_primary);
+        if (!selectedPrice && this.posState.selectedCustomer?.price_level_id) {
+            const leveledPrice = (product.prices || []).find(p => p.price_level_id == this.posState.selectedCustomer.price_level_id);
+            if (leveledPrice) targetPrice = leveledPrice;
+        }
+
+        const priceId = targetPrice ? targetPrice.id : null;
+
+        // Lookup discount: Check price-specific first, then product-default
+        const specKey = priceId ? `${productId}_${priceId}` : productId;
+        const disc = (this.posState.customerDiscounts || {})[specKey] || (this.posState.customerDiscounts || {})[productId];
+
+        // Merge with existing item ONLY if the FREE status AND Price ID matches.
+        // This allows having multiple lines for the same product with different prices/batches.
+        const cartItem = this.posState.cart.find(item =>
+            item.product_id == productId &&
+            !!item.is_free === !!isFree &&
+            item.selected_price_id == priceId
+        );
 
         if (cartItem) {
             cartItem.quantity += 1;
             this.recalculateLineTotal(cartItem);
         } else {
-            const disc = (this.posState.customerDiscounts || {})[product.id] || { percentage: 0, amount: 0 };
+            // Fallback to basic product fields if no prices found
+            const msrp = targetPrice ? targetPrice.price : product.msrp;
+            const allowed = targetPrice ? (targetPrice.supplier_discount || 0) : (product.supplier_discount || 0);
+            // const priceId = targetPrice ? targetPrice.id : null; (already defined above)
+
+            let appliedDisc = isFree ? 0 : (disc ? disc.percentage : 0);
+
+            if (!isFree && appliedDisc > allowed) {
+                appliedDisc = allowed;
+            }
 
             this.posState.cart.push({
                 product_id: product.id,
                 product_name: product.name,
-                msrp: product.msrp,
+                msrp: msrp,
                 quantity: 1,
-                discount_percentage: isFree ? 0 : disc.percentage,
-                discount_amount: isFree ? 0 : disc.amount,
+                batch_number: targetPrice ? targetPrice.batch_number : null,
+                discount_percentage: appliedDisc,
+                discount_amount: isFree ? 0 : (msrp * (appliedDisc / 100)),
                 is_free: isFree,
-                line_total: isFree ? 0 : product.msrp * (1 - (disc.percentage / 100)),
+                line_total: isFree ? 0 : msrp * (1 - (appliedDisc / 100)),
                 weighted: product.weighted,
-                allow_free_issue: product.allow_free_issue
+                allow_free_issue: product.allow_free_issue,
+                allowed_discount: allowed,
+                selected_price_id: priceId
             });
 
-            if (!isFree && disc.percentage > 0) {
-                this.showNotification(`Applied last discount: ${disc.percentage}% for this customer`, 'info');
+            if (!isFree && disc && disc.percentage > 0) {
+                if (disc.percentage > allowed) {
+                    this.showNotification(`Applied capped discount: ${allowed}% (Supplier limit for primary price)`, 'info');
+                } else {
+                    this.showNotification(`Applied last discount: ${disc.percentage}% for this customer`, 'info');
+                }
             }
         }
 
@@ -6044,7 +6674,7 @@ class AgroDistributionApp {
     updateCartQty(index, newQty) {
         const item = this.posState.cart[index];
         if (!item) return;
-        const product = this.posState.products.find(p => p.id === item.product_id);
+        const product = this.posState.products.find(p => p.id == item.product_id);
 
         if (item && product) {
             let qty = parseFloat(newQty) || 0;
@@ -6083,10 +6713,64 @@ class AgroDistributionApp {
         }
     }
 
+    updateCartPriceLevel(index, priceId) {
+        const item = this.posState.cart[index];
+        if (!item) return;
+
+        if (priceId === 'custom') {
+            item.is_custom_price = true;
+            this.updateCartUI();
+            return;
+        }
+
+        const product = this.posState.products.find(p => p.id == item.product_id);
+        if (product && product.prices) {
+            const priceLevel = product.prices.find(p => p.id == priceId);
+            if (priceLevel) {
+                // Check if another item already exists with this price level to merge
+                const otherIndex = this.posState.cart.findIndex((i, idx) =>
+                    idx !== index &&
+                    i.product_id == item.product_id &&
+                    i.is_free === item.is_free &&
+                    i.selected_price_id == priceLevel.id
+                );
+
+                if (otherIndex !== -1) {
+                    const otherItem = this.posState.cart[otherIndex];
+                    otherItem.quantity += item.quantity;
+                    this.recalculateLineTotal(otherItem);
+                    this.posState.cart.splice(index, 1);
+                    this.showNotification('Items merged under same price level', 'info');
+                } else {
+                    item.msrp = priceLevel.price;
+                    item.batch_number = priceLevel.batch_number;
+                    item.allowed_discount = priceLevel.supplier_discount || 0;
+                    item.selected_price_id = priceLevel.id;
+                    item.is_custom_price = false;
+
+                    if (item.discount_percentage > item.allowed_discount) {
+                        this.showNotification(`Discount capped at ${item.allowed_discount}% for this price level`, 'info');
+                        item.discount_percentage = item.allowed_discount;
+                    }
+                    this.recalculateLineTotal(item);
+                }
+
+                this.updateCartUI();
+            }
+        }
+    }
+
     updateCartDiscount(index, newDisc) {
         const item = this.posState.cart[index];
         if (item) {
-            const disc = parseFloat(newDisc) || 0;
+            let disc = parseFloat(newDisc) || 0;
+            const allowed = item.allowed_discount || 0;
+
+            if (disc > allowed) {
+                this.showNotification(`Maximum allowed discount for this price level is ${allowed}%`, 'warning');
+                disc = allowed;
+            }
+
             item.discount_percentage = Math.min(Math.max(disc, 0), 100);
             this.recalculateLineTotal(item);
             this.updateCartUI();
@@ -6103,9 +6787,13 @@ class AgroDistributionApp {
             }
             item.is_free = isFree;
 
-            // Check if there is another item of the same product with the same status to merge
-            // e.g. if we toggle an item to free, and there's already a free item of the same product, merge them.
-            const otherIndex = this.posState.cart.findIndex((i, idx) => idx !== index && i.product_id === item.product_id && i.is_free === isFree);
+            // Check if there is another item of the same product with the same status AND price ID to merge
+            const otherIndex = this.posState.cart.findIndex((i, idx) =>
+                idx !== index &&
+                i.product_id == item.product_id &&
+                i.is_free === isFree &&
+                i.selected_price_id == item.selected_price_id
+            );
 
             if (otherIndex !== -1) {
                 const otherItem = this.posState.cart[otherIndex];
@@ -6123,8 +6811,12 @@ class AgroDistributionApp {
     recalculateLineTotal(item) {
         if (item.is_free) {
             item.line_total = 0;
+            item.discount_percentage = 0;
+            item.discount_amount = 0;
         } else {
-            item.line_total = item.quantity * item.msrp * (1 - (item.discount_percentage / 100));
+            const discPerUnit = item.msrp * (item.discount_percentage / 100);
+            item.discount_amount = discPerUnit * item.quantity;
+            item.line_total = item.quantity * (item.msrp - discPerUnit);
         }
     }
 
@@ -6145,7 +6837,7 @@ class AgroDistributionApp {
         tbody.innerHTML = this.posState.cart.map((item, index) => {
             // Determine step based on weighted property
             // We need to check the product from posState.products to be sure
-            const prod = this.posState.products.find(p => p.id === item.product_id);
+            const prod = this.posState.products.find(p => p.id == item.product_id);
             const isWeighted = prod ? prod.weighted : false; // Safe fallback
             const step = isWeighted ? "0.01" : "1";
 
@@ -6153,9 +6845,12 @@ class AgroDistributionApp {
             <tr class="${item.is_free ? 'pos-row-free' : ''}">
                 <td style="color: #64748b; font-size: 0.8rem; vertical-align: middle;">${index + 1}</td>
                 <td>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="cart-item-name">${item.product_name}</span>
-                        ${item.is_free ? '<span class="badge" style="background: var(--primary-green); color: white; border: none; font-size: 0.65rem; padding: 2px 6px;">FREE ISSUE</span>' : ''}
+                    <div style="display: flex; flex-direction: column;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span class="cart-item-name">${item.product_name}</span>
+                            ${item.is_free ? '<span class="free-badge-premium"><i class="fas fa-gift"></i> FREE ISSUE</span>' : ''}
+                        </div>
+                        ${item.batch_number ? `<small style="color: var(--primary-green); font-weight: 600; font-size: 0.7rem;">Batch: ${item.batch_number}</small>` : ''}
                     </div>
                 </td>
                 <td>
@@ -6165,12 +6860,22 @@ class AgroDistributionApp {
                 <td class="text-center">
                     <input type="checkbox" class="free-issue-check" ${item.is_free ? 'checked' : ''} 
                         onchange="app.toggleFreeIssue(${index}, this.checked)" 
-                        ${item.allow_free_issue !== 1 && !item.is_free ? 'disabled title="Free issue not allowed for this product"' : ''}
-                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary-green);">
+                        ${item.allow_free_issue !== 1 && !item.is_free ? 'disabled title="Free issue not allowed for this product"' : ''}>
                 </td>
                 <td>
-                    <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.msrp.toFixed(2)}" 
-                        onchange="app.updateCartPrice(${index}, this.value)" step="0.01" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
+                    ${(prod?.prices?.length > 1 && !item.is_free) ? `
+                        <select class="cart-qty-input" style="width: 100%; font-size: 0.75rem; border-color: var(--primary-green);" onchange="app.updateCartPriceLevel(${index}, this.value)">
+                            ${prod.prices.map(p => `<option value="${p.id}" ${item.selected_price_id == p.id ? 'selected' : ''}>${p.label}: ${p.price.toFixed(2)}</option>`).join('')}
+                            <option value="custom" ${item.is_custom_price ? 'selected' : ''}>Custom Price...</option>
+                        </select>
+                        ${item.is_custom_price ? `
+                            <input type="number" class="cart-qty-input" style="width: 100%; margin-top: 4px;" value="${item.msrp.toFixed(2)}" 
+                                onchange="app.updateCartPrice(${index}, this.value)" step="0.01">
+                        ` : ''}
+                    ` : `
+                        <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.msrp.toFixed(2)}" 
+                            onchange="app.updateCartPrice(${index}, this.value)" step="0.01" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
+                    `}
                 </td>
                 <td>
                     <div style="display: flex; align-items: center; gap: 2px;">
@@ -6619,7 +7324,9 @@ class AgroDistributionApp {
                     discount_percentage: item.discount_percentage,
                     discount_amount: item.discount_amount,
                     is_free: item.is_free || false,
-                    line_total: item.line_total
+                    line_total: item.line_total,
+                    weighted: item.weighted || false,
+                    allow_free_issue: item.allow_free_issue || 0
                 }));
 
                 this.posState.currentInvoiceId = invoice.id;
@@ -6632,6 +7339,22 @@ class AgroDistributionApp {
 
                 if (invoice.load_id) {
                     await this.loadTruckStock(invoice.load_id);
+
+                    // Enrich cart items with current allowed discounts and metadata from truck stock
+                    this.posState.cart.forEach(item => {
+                        const product = this.posState.products.find(p => p.id === item.product_id);
+                        if (product) {
+                            // Try to find the price level that matches the MSRP, or use primary
+                            const priceLevel = (product.prices || []).find(p => p.price === item.msrp) ||
+                                (product.prices || []).find(p => p.is_primary) ||
+                                { supplier_discount: product.supplier_discount || 0 };
+
+                            item.allowed_discount = priceLevel.supplier_discount || 0;
+                            item.selected_price_id = priceLevel.id || null;
+                            item.allow_free_issue = product.allow_free_issue;
+                            item.weighted = product.weighted;
+                        }
+                    });
                 }
 
                 this.updateCartUI();
@@ -7104,23 +7827,40 @@ class AgroDistributionApp {
 
             // 3. Pre-fill POS Cart items
             this.posState.cart = order.items.map(item => {
+                const truckProd = this.posState.products.find(p => p.id == item.product_id);
+                // Fallback discount if we can't find specific ones yet 
+                // (though selecting customer later will refresh this)
                 const disc = (this.posState.customerDiscounts || {})[item.product_id] || { percentage: 0, amount: 0 };
+
+                // Find primary price or just use msrp from product if price list missing in truck context
+                let targetPrice = truckProd?.prices?.find(p => p.is_primary) || truckProd;
+                const msrp = item.price || truckProd?.msrp || 0;
+                const allowed = targetPrice?.supplier_discount || truckProd?.supplier_discount || 0;
+
                 return {
-                    id: item.product_id,
                     product_id: item.product_id,
                     product_name: item.product_name,
-                    name: item.product_name,
-                    msrp: item.price,
+                    msrp: msrp,
                     quantity: item.quantity,
+                    batch_number: targetPrice?.batch_number || null,
                     discount_percentage: disc.percentage,
-                    discount_amount: disc.amount,
-                    line_total: item.quantity * item.price * (1 - (disc.percentage / 100)),
-                    unit: item.unit
+                    discount_amount: msrp * (disc.percentage / 100) * item.quantity,
+                    is_free: false,
+                    line_total: item.quantity * msrp * (1 - (disc.percentage / 100)),
+                    weighted: truckProd?.weighted || false,
+                    allow_free_issue: truckProd?.allow_free_issue ?? 1,
+                    allowed_discount: allowed,
+                    selected_price_id: targetPrice?.id || null
                 };
             });
 
             // Select customer in POS
-            this.posState.selectedCustomerId = order.customer_id;
+            const cust = this.posState.customers.find(c => c.id == order.customer_id);
+            if (cust) {
+                await this.selectPOSCustomer(cust);
+            } else {
+                this.posState.selectedCustomerId = order.customer_id;
+            }
 
             // Refresh UI and Navigate
             await this.navigateTo('sales', true);

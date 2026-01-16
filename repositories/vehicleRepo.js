@@ -12,14 +12,14 @@ class VehicleRepository {
     async create(data) {
         const sql = `
             INSERT INTO trucks (
-                registration_number, vehicle_type, capacity, driver_name, 
-                fuel_type, vehicle_image, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                registration_number, vehicle_type, model, capacity, current_location,
+                driver_name, fuel_type, vehicle_image, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const params = [
-            data.registration_number, data.vehicle_type, data.capacity,
-            data.driver_name, data.fuel_type, data.vehicle_image,
-            data.status || 'active'
+            data.registration_number, data.vehicle_type, data.model, data.capacity,
+            data.current_location, data.driver_name, data.fuel_type,
+            data.vehicle_image, data.status || 'active'
         ];
         const result = await runQuery(sql, params);
         return result.lastID;
@@ -30,7 +30,9 @@ class VehicleRepository {
             UPDATE trucks SET 
                 registration_number = ?, 
                 vehicle_type = ?, 
+                model = ?,
                 capacity = ?, 
+                current_location = ?,
                 driver_name = ?, 
                 fuel_type = ?, 
                 vehicle_image = ?, 
@@ -38,9 +40,9 @@ class VehicleRepository {
             WHERE id = ?
         `;
         const params = [
-            data.registration_number, data.vehicle_type, data.capacity,
-            data.driver_name, data.fuel_type, data.vehicle_image,
-            data.status, id
+            data.registration_number, data.vehicle_type, data.model,
+            data.capacity, data.current_location, data.driver_name,
+            data.fuel_type, data.vehicle_image, data.status, id
         ];
         return await runQuery(sql, params);
     }

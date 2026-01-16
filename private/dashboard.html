@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="/user-management-styles.css">
     <link rel="stylesheet" href="/sidebar_modern.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -369,13 +371,13 @@
                 <ul class="nav-menu">
                     <li class="nav-item">
                         <a href="#dashboard" class="nav-link active" data-page="dashboard">
-                            <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                            <span class="nav-icon" data-icon="dashboard"></span>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="product-submenu">
-                            <span class="nav-icon"><i class="fas fa-box"></i></span>
+                            <span class="nav-icon" data-icon="products"></span>
                             <span>Products</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -387,11 +389,14 @@
                             <li><a href="#brands" class="nav-link submenu-link" data-page="brands">Brands</a></li>
                             <li><a href="#units" class="nav-link submenu-link" data-page="units">Measurement Units</a>
                             </li>
+                            <li><a href="#price-levels" class="nav-link submenu-link" data-page="price-levels">Price
+                                    Levels</a>
+                            </li>
                         </ul>
                     </li>
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="customers-submenu">
-                            <span class="nav-icon"><i class="fas fa-users"></i></span>
+                            <span class="nav-icon" data-icon="customers"></span>
                             <span>Customers</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -407,14 +412,14 @@
                     </li>
                     <li class="nav-item">
                         <a href="#suppliers" class="nav-link" data-page="suppliers">
-                            <span class="nav-icon"><i class="fas fa-truck-moving"></i></span>
+                            <span class="nav-icon" data-icon="suppliers"></span>
                             <span>Suppliers</span>
                         </a>
                     </li>
 
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="distribution-submenu">
-                            <span class="nav-icon"><i class="fas fa-truck"></i></span>
+                            <span class="nav-icon" data-icon="distribution"></span>
                             <span>Distribution</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -432,7 +437,7 @@
                     <li class="nav-item">
                         <a href="javascript:void(0)" class="nav-link has-submenu" id="sales-menu"
                             data-target="sales-submenu">
-                            <span class="nav-icon"><i class="fas fa-shopping-cart"></i></span>
+                            <span class="nav-icon" data-icon="sales"></span>
                             <span>Sales</span>
                             <i class="fas fa-chevron-down submenu-arrow"></i>
                         </a>
@@ -446,13 +451,13 @@
                     </li>
                     <li class="nav-item">
                         <a href="#payments" class="nav-link" data-page="payments">
-                            <span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span>
+                            <span class="nav-icon" data-icon="payments"></span>
                             <span>Payments</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="banking-submenu">
-                            <span class="nav-icon"><i class="fas fa-university"></i></span>
+                            <span class="nav-icon" data-icon="banking"></span>
                             <span>Banking</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -463,19 +468,19 @@
                     </li>
                     <li class="nav-item">
                         <a href="#expenses" class="nav-link" data-page="expenses">
-                            <span class="nav-icon"><i class="fas fa-receipt"></i></span>
+                            <span class="nav-icon" data-icon="expenses"></span>
                             <span>Expenses</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="#report-center" class="nav-link" data-page="report-center">
-                            <span class="nav-icon"><i class="fas fa-file-invoice"></i></span>
+                            <span class="nav-icon" data-icon="reports"></span>
                             <span>Report Center</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="analytics-submenu">
-                            <span class="nav-icon"><i class="fas fa-chart-pie"></i></span>
+                            <span class="nav-icon" data-icon="analytics"></span>
                             <span>Analytics</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -495,13 +500,13 @@
                     </li>
                     <li class="nav-item">
                         <a href="#logs" class="nav-link" data-page="logs">
-                            <span class="nav-icon"><i class="fas fa-terminal"></i></span>
+                            <span class="nav-icon" data-icon="logs"></span>
                             <span>System Logs</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <div class="nav-link has-submenu" data-target="settings-submenu">
-                            <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                            <span class="nav-icon" data-icon="settings"></span>
                             <span>Settings</span>
                             <span class="submenu-arrow"><i class="fas fa-chevron-down"></i></span>
                         </div>
@@ -1367,10 +1372,42 @@
                                             <div
                                                 style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px;">
 
+                                                <!-- Template: Premium -->
+                                                <div class="template-option-wrapper" style="position: relative;">
+                                                    <input type="radio" name="invoice_design" value="premium"
+                                                        id="tpl-premium" checked style="display: none;"
+                                                        onchange="app.selectInvoiceTemplate('premium')">
+                                                    <label for="tpl-premium" class="template-card"
+                                                        onclick="app.selectInvoiceTemplate('premium')"
+                                                        style="display: block; border: 2px solid #e2e8f0; border-radius: 12px; padding: 15px; cursor: pointer; transition: all 0.2s; background: white; height: 100%;">
+                                                        <div
+                                                            style="background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%); border-radius: 8px; height: 100px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 1px solid #1b5e20; box-shadow: 0 4px 12px rgba(27, 94, 32, 0.2);">
+                                                            <i class="fas fa-crown"
+                                                                style="font-size: 2rem; color: #ffd700;"></i>
+                                                        </div>
+                                                        <div
+                                                            style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                                            <span
+                                                                style="font-weight: 700; font-size: 1rem; color: var(--gray-800);">Premium</span>
+                                                            <i class="fas fa-check-circle check-icon"
+                                                                style="color: var(--primary-green); opacity: 0; transform: scale(0.5); transition: all 0.2s;"></i>
+                                                        </div>
+                                                        <p
+                                                            style="font-size: 0.85rem; color: var(--gray-500); margin-bottom: 15px; line-height: 1.4;">
+                                                            Elite design with rich gradients, modern typography, and a
+                                                            executive feel.</p>
+                                                        <button type="button" class="btn btn-sm btn-outline"
+                                                            onclick="event.stopPropagation(); app.previewInvoiceTemplate('premium')"
+                                                            style="width: 100%; font-size: 0.8rem;">
+                                                            <i class="fas fa-eye"></i> Preview
+                                                        </button>
+                                                    </label>
+                                                </div>
+
                                                 <!-- Template: Classic -->
                                                 <div class="template-option-wrapper" style="position: relative;">
                                                     <input type="radio" name="invoice_design" value="classic"
-                                                        id="tpl-classic" checked style="display: none;"
+                                                        id="tpl-classic" style="display: none;"
                                                         onchange="app.selectInvoiceTemplate('classic')">
                                                     <label for="tpl-classic" class="template-card"
                                                         onclick="app.selectInvoiceTemplate('classic')"
@@ -1528,6 +1565,7 @@
 
                                                 <!-- Hidden select for compatibility -->
                                                 <select id="comp-invoice-template" style="display: none;">
+                                                    <option value="premium">Premium Elite</option>
                                                     <option value="classic">Standard Classic</option>
                                                     <option value="modern">Modern Green</option>
                                                     <option value="minimal">Minimalist</option>
@@ -2577,46 +2615,18 @@
                     </div>
 
                     <div id="active-loads-container">
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Truck No.</th>
-                                        <th>Driver</th>
-                                        <th>Loaded By</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="active-loads-table-body">
-                                    <tr>
-                                        <td colspan="6" class="text-center">Loading active loads...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="truck-grid" id="active-loads-grid">
+                            <!-- Cards will be rendered here -->
+                            <div class="text-center" style="grid-column: 1/-1; padding: 3rem;">
+                                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-green);"></i>
+                                <p style="margin-top: 10px; color: var(--gray-500);">Loading active loads...</p>
+                            </div>
                         </div>
                     </div>
 
                     <div id="history-loads-container" style="display: none;">
-                        <div class="table-container">
-                            <table class="data-table">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Truck No.</th>
-                                        <th>Driver</th>
-                                        <th>Loaded By</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-loads-table-body">
-                                    <tr>
-                                        <td colspan="6" class="text-center">Loading history...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="truck-grid" id="history-loads-grid">
+                            <!-- Cards will be rendered here -->
                         </div>
                     </div>
 
@@ -2778,6 +2788,25 @@
                                 <div class="pos-empty-state">
                                     <i class="fas fa-truck-loading"></i>
                                     <p>Please select an active truck load to start selling.</p>
+                                </div>
+                            </div>
+                            <!-- Added Truck Stock Footer -->
+                            <div class="pos-truck-footer" id="pos-truck-footer" style="display: none;">
+                                <div id="pos-truck-info" style="font-weight: 700; color: var(--gray-700);">
+                                    <i class="fas fa-truck" style="margin-right: 8px; color: var(--primary-green);"></i>
+                                    <span id="pos-selected-truck-name">No Truck Loaded</span>
+                                </div>
+                                <div class="pos-truck-stats">
+                                    <div class="pos-stat-item">
+                                        <i class="fas fa-boxes"></i>
+                                        <span>Items: <span id="pos-total-items-count"
+                                                class="pos-stat-value">0</span></span>
+                                    </div>
+                                    <div class="pos-stat-item">
+                                        <i class="fas fa-layer-group"></i>
+                                        <span>Total Qty: <span id="pos-total-truck-qty"
+                                                class="pos-stat-value">0</span></span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -4150,6 +4179,18 @@
                                 <i class="fas fa-plus"></i> Add Item
                             </button>
                         </div>
+
+                        <!-- Product Search for Manual Entry -->
+                        <div class="form-group" style="position: relative; margin-bottom: 15px;">
+                            <div class="input-with-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="rma-product-search" class="form-control"
+                                    placeholder="Search product name or brand to add to return list..."
+                                    oninput="app.searchRmaProducts(this.value)"
+                                    onkeydown="if(event.key === 'Enter'){ event.preventDefault(); app.selectFirstRmaProduct(); }">
+                            </div>
+                            <div id="rma-search-results" class="search-results-dropdown" style="display: none;"></div>
+                        </div>
                         <div class="table-container">
                             <table class="data-table">
                                 <thead>
@@ -4231,6 +4272,36 @@
         </div>
     </div>
 
+    <!-- Supervisor Auth Modal -->
+    <div class="modal-overlay" id="supervisor-auth-modal" style="z-index: 2000;">
+        <div class="modal" style="max-width: 400px; border-top: 5px solid var(--primary-green);">
+            <div class="modal-header">
+                <h3 class="modal-title"><i class="fas fa-user-shield"></i> Supervisor Authorization</h3>
+                <button class="close-modal" onclick="app.closeSupervisorModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 0.9rem; color: var(--gray-600); margin-bottom: 20px;">
+                    Adding items manually to an RMA requires supervisor approval.
+                </p>
+                <form id="supervisor-auth-form" onsubmit="app.handleSupervisorAuth(event)">
+                    <div class="form-group">
+                        <label class="form-label">Supervisor Username</label>
+                        <input type="text" id="sup-username" class="form-control" required placeholder="Username">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <input type="password" id="sup-password" class="form-control" required placeholder="••••••••">
+                    </div>
+                    <div class="modal-footer" style="padding: 15px 0 0 0;">
+                        <button type="button" class="btn btn-secondary"
+                            onclick="app.closeSupervisorModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Authorize</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="modal-overlay" id="customer-modal">
         <div class="modal" style="max-width: 600px;">
             <div class="modal-header">
@@ -4265,17 +4336,25 @@
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Route *</label>
-                            <select id="c-route" class="form-control" required>
-                                <option value="">Select Route</option>
+                            <label class="form-label">Price Level</label>
+                            <select id="c-price-level" class="form-control">
+                                <option value="">Select Price Level (Default)</option>
                             </select>
                         </div>
                     </div>
                     <div class="grid-2">
                         <div class="form-group">
+                            <label class="form-label">Route *</label>
+                            <select id="c-route" class="form-control" required>
+                                <option value="">Select Route</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
                             <label class="form-label">Initial Balance (LKR)</label>
                             <input type="number" id="c-balance" class="form-control" step="0.01" value="0.00">
                         </div>
+                    </div>
+                    <div class="grid-2">
                         <div class="form-group">
                             <label class="form-label">Credit Limit (LKR)</label>
                             <input type="number" id="c-credit-limit" class="form-control" step="0.01" value="0.00">
@@ -4646,6 +4725,10 @@
                                 <option value="Other">Other</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label">Vehicle Model/Brand</label>
+                            <input type="text" id="v-model" class="form-control" placeholder="e.g. Kenworth T680">
+                        </div>
 
                         <div class="form-group">
                             <label class="form-label">Driver Name</label>
@@ -4663,6 +4746,11 @@
                                 <option value="Petrol">Petrol</option>
                                 <option value="Electric">Electric</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Current Location</label>
+                            <input type="text" id="v-location" class="form-control"
+                                placeholder="e.g. Warehouse / On Route">
                         </div>
                         <div class="form-group">
                             <label class="form-label">Status</label>
@@ -4770,9 +4858,10 @@
                         <table class="data-table" id="load-items-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%;">Product</th>
-                                    <th style="width: 15%;">Cartons</th>
-                                    <th style="width: 25%;">Quantity</th>
+                                    <th style="width: 40%;">Product</th>
+                                    <th style="width: 20%;">Batch</th>
+                                    <th style="width: 12%;">Cartons</th>
+                                    <th style="width: 20%;">Quantity</th>
                                     <th></th>
                                 </tr>
                             </thead>
@@ -5345,6 +5434,42 @@
             </form>
         </div>
     </div>
+    <!-- Batch Selection Modal -->
+    <div class="modal-overlay" id="pos-batch-modal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 class="modal-title" id="batch-modal-title">Select Batch/Price</h3>
+                <button class="close-modal"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 0;">
+                <div style="padding: 15px; background: #f8fafc; border-bottom: 1px solid #e2e8f0;">
+                    <strong id="batch-product-name"
+                        style="font-size: 1.1rem; color: var(--primary-green-dark);"></strong>
+                    <div id="batch-product-code" style="font-size: 0.85rem; color: var(--gray-500);"></div>
+                </div>
+                <div class="table-container" style="max-height: 400px; overflow-y: auto; margin-bottom: 0;">
+                    <table class="data-table">
+                        <thead style="position: sticky; top: 0; background: white; z-index: 10;">
+                            <tr>
+                                <th>Batch # / Label</th>
+                                <th>Price Level</th>
+                                <th class="text-right">Selling Price</th>
+                                <th class="text-right">Available Qty</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="batch-selection-body">
+                            <!-- Batches injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary close-modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Database Tools Modal -->
     <div class="modal-overlay" id="database-tools-modal">
         <div class="modal" style="max-width: 900px;">
@@ -5415,6 +5540,99 @@
     </div>
 
     <script>
+        /**
+         * MKC Animated Sidebar Icons
+         * Injects SVGs and applies GSAP animations
+         */
+        const SidebarIcons = {
+            icons: {
+                dashboard: `<svg viewBox="0 0 24 24"><path class="base" d="M3 12l3-3 4 4 4-8 7 7v9H3v-9z"/><path class="line" d="M3 13l3-3 4 4 4-8 7 7"/></svg>`,
+                products: `<svg viewBox="0 0 24 24"><path class="top" d="M2 7l10-4 10 4-10 4z"/><path class="bottom" d="M2 7v10l10 4 10-4V7l-10 4z"/><path class="lid" d="M2 7l10 4 10-4"/></svg>`,
+                customers: `<svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 014-4h6a4 4 0 014 4v2"/><circle cx="17" cy="11" r="3"/><path d="M13 21v-2a3 3 0 013-3h4a3 3 0 013 3v2"/></svg>`,
+                suppliers: `<svg viewBox="0 0 24 24"><path d="M1 14h15V4H1v10z"/><path d="M16 14h2l4-4V4h-6v10z"/><circle class="wheel" cx="6" cy="18" r="3"/><circle class="wheel" cx="17" cy="18" r="3"/></svg>`,
+                distribution: `<svg viewBox="0 0 24 24"><path class="pin" d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle class="dot" cx="12" cy="10" r="3"/><path class="path" d="M12 2v4m0 12v4M4.2 4.2l2.8 2.8m10 10l2.8 2.8M2 12h4m12 0h4M4.2 19.8l2.8-2.8m10-10l2.8-2.8"/></svg>`,
+                sales: `<svg viewBox="0 0 24 24"><circle class="wheel" cx="9" cy="21" r="1"/><circle class="wheel" cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 12.5a2 2 0 002 1.5h10a2 2 0 002-1.5L23 6H6"/></svg>`,
+                payments: `<svg viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle class="center" cx="12" cy="12" r="3"/><path d="M6 12h.01M18 12h.01"/></svg>`,
+                banking: `<svg viewBox="0 0 24 24"><path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 2L2 7h20L12 2z"/></svg>`,
+                expenses: `<svg viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2H4z"/><path class="line" d="M8 6h8M8 10h8M8 14h4"/></svg>`,
+                reports: `<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path class="corner" d="M14 2v6h6"/><path class="line" d="M8 13h8M8 17h4"/></svg>`,
+                analytics: `<svg viewBox="0 0 24 24"><path d="M21.21 15.89A10 10 0 118 2.83M22 12A10 10 0 0012 2v10z"/></svg>`,
+                logs: `<svg viewBox="0 0 24 24"><path d="M4 17l6-6-6-6"/><path class="cursor" d="M12 19h8"/></svg>`,
+                settings: `<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>`
+            },
+
+            init() {
+                document.querySelectorAll('.nav-icon[data-icon]').forEach(container => {
+                    const iconName = container.getAttribute('data-icon');
+                    if (this.icons[iconName]) {
+                        container.innerHTML = this.icons[iconName];
+                        this.setupListeners(container);
+                    }
+                });
+            },
+
+            setupListeners(container) {
+                const navLink = container.closest('.nav-link');
+                if (!navLink) return;
+
+                navLink.addEventListener('mouseenter', () => this.animate(container, true));
+                navLink.addEventListener('mouseleave', () => this.animate(container, false));
+            },
+
+            animate(container, isEnter) {
+                const iconName = container.getAttribute('data-icon');
+                const svg = container.querySelector('svg');
+                if (!svg) return;
+
+                if (isEnter) {
+                    container.classList.add('animating');
+                    this.playAnimation(iconName, svg);
+                } else {
+                    container.classList.remove('animating');
+                    gsap.killTweensOf(svg.querySelectorAll('*'));
+                    gsap.to(svg.querySelectorAll('*'), { x: 0, y: 0, rotation: 0, scale: 1, duration: 0.3 });
+                }
+            },
+
+            playAnimation(name, svg) {
+                switch (name) {
+                    case 'dashboard':
+                        const path = svg.querySelector('.line');
+                        const length = path.getTotalLength();
+                        gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+                        gsap.to(path, { strokeDashoffset: 0, duration: 0.8, ease: "power2.out" });
+                        break;
+                    case 'products':
+                        gsap.to(svg.querySelector('.lid'), { y: -3, duration: 0.4, yoyo: true, repeat: 1 });
+                        break;
+                    case 'customers':
+                        gsap.to(svg.querySelectorAll('circle'), { y: -2, stagger: 0.1, duration: 0.3, yoyo: true, repeat: 1 });
+                        break;
+                    case 'suppliers':
+                    case 'sales':
+                        gsap.to(svg.querySelectorAll('.wheel'), { rotation: 360, transformOrigin: "center", duration: 0.6, repeat: -1, ease: "none" });
+                        break;
+                    case 'settings':
+                        gsap.to(svg, { rotation: 180, duration: 1, ease: "power2.inOut" });
+                        break;
+                    case 'logs':
+                        gsap.to(svg.querySelector('.cursor'), { opacity: 0, duration: 0.5, repeat: -1, yoyo: true });
+                        break;
+                    case 'payments':
+                        gsap.to(svg.querySelector('.center'), { scale: 1.2, transformOrigin: "center", duration: 0.4, yoyo: true, repeat: 1 });
+                        break;
+                    case 'analytics':
+                        gsap.to(svg, { rotation: 360, duration: 10, repeat: -1, ease: "none" });
+                        break;
+                    default:
+                        gsap.to(svg, { scale: 1.1, duration: 0.3, yoyo: true, repeat: 1 });
+                }
+            }
+        };
+
+        // Run injection
+        SidebarIcons.init();
+
         // Initialize user management when admin view is shown
         document.addEventListener('DOMContentLoaded', function () {
             // Observe when admin-view becomes visible

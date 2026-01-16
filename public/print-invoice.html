@@ -6,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Corporate Invoice - M.K.C. TRADE CENTER</title>
     <!-- Corporate Typography -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             /* Defaults (Classic) */
@@ -29,6 +31,161 @@
             --border-thin: 1px solid #000000;
             --table-header-bg: #E0E0E0;
             --accent-color: #E0E0E0;
+        }
+
+        /* --- THEME: PREMIUM (Creative & Modern) --- */
+        .template-premium {
+            --primary-color: #0d47a1;
+            /* Deep Professional Blue */
+            --secondary-color: #2e7d32;
+            /* Rich Agro Green */
+            --accent-color: #f0f7f0;
+            --ink: #1a1a1a;
+            --border-thick: 2px solid #2e7d32;
+            --border-thin: 1px solid #e0e0e0;
+            --table-header-bg: #2e7d32;
+            --header-bg: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            --header-text: #ffffff;
+            --font-main: 'Plus Jakarta Sans', 'Inter', sans-serif;
+        }
+
+        .template-premium .invoice-wrapper {
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+        }
+
+        .template-premium .header-main {
+            background: var(--header-bg);
+            padding: 40px;
+            margin-bottom: 0;
+            border-bottom: none;
+            color: #ffffff;
+            position: relative;
+        }
+
+        .template-premium .header-main::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .template-premium .company-branding h1 {
+            color: #ffffff;
+            font-size: 36px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .template-premium .type-label {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 60px;
+            position: absolute;
+            right: 40px;
+            top: 20px;
+            font-weight: 900;
+        }
+
+        .template-premium .meta-row {
+            color: #ffffff;
+            font-weight: 500;
+        }
+
+        .template-premium .info-section {
+            padding: 40px;
+            background: #ffffff;
+            margin-bottom: 0;
+            gap: 40px;
+        }
+
+        .template-premium .address-card {
+            border: none;
+            background: transparent !important;
+            padding: 0;
+        }
+
+        .template-premium .address-card h2 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .template-premium .summary-mini-card {
+            border: none;
+            background: var(--accent-color) !important;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .template-premium .summary-mini-card h3 {
+            color: var(--secondary-color);
+            border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+        }
+
+        .template-premium .items-table {
+            width: calc(100% - 80px);
+            margin: 0 40px 30px 40px;
+            border: none;
+        }
+
+        .template-premium .items-table th {
+            background: #f8fafc !important;
+            color: var(--secondary-color);
+            border: none;
+            border-bottom: 2px solid var(--secondary-color);
+            padding: 15px 10px;
+        }
+
+        .template-premium .items-table td {
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 15px 10px;
+        }
+
+        .template-premium .footer-grid {
+            padding: 0 40px 40px 40px;
+        }
+
+        .template-premium .totals-block {
+            border: none;
+            background: var(--secondary-color);
+            color: #ffffff;
+            border-radius: 16px;
+            padding: 25px;
+        }
+
+        .template-premium .total-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 0;
+        }
+
+        .template-premium .total-row.net-total {
+            border-top: none;
+            border-bottom: none;
+            font-size: 32px;
+        }
+
+        .template-premium .signature-group {
+            padding: 0 40px 40px 40px;
+            margin-top: 20px;
+        }
+
+        .template-premium .sig-line {
+            border-bottom: 2px solid var(--secondary-color);
+        }
+
+        .template-premium .watermark-status {
+            font-size: 120px;
+            top: 50%;
+            opacity: 0.03;
+            border: none;
         }
 
         /* --- THEME: MODERN GREEN --- */
@@ -736,10 +893,10 @@
                     const wrapper = document.getElementById('invoice-main');
 
                     // Priority: URL param (preview) > Database Setting > Default
-                    const template = (isPreview && previewTemplate) ? previewTemplate : (compData ? (compData.invoice_template || 'classic') : 'classic');
+                    const template = (isPreview && previewTemplate) ? previewTemplate : (compData ? (compData.invoice_template || 'premium') : 'premium');
 
                     if (format !== 'pos') {
-                        wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom');
+                        wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom', 'template-premium');
                         wrapper.classList.add(`template-${template}`);
                     }
 

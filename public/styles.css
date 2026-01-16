@@ -3423,108 +3423,167 @@ body:not(.user-admin) .admin-only {
     align-content: start;
 }
 
-/* Product Cards Premium Look */
+/* Product Cards Premium Redesign */
 .product-card {
-    background: white;
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    border-radius: 16px;
-    padding: 15px;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0.75rem;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     position: relative;
     user-select: none;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.04);
     overflow: hidden;
 }
 
 .product-card::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 4px;
-    background: linear-gradient(90deg, var(--primary-green), var(--accent-green));
-    opacity: 0;
-    transition: opacity 0.3s;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(46, 125, 50, 0.05) 0%, transparent 100%);
+    opacity: 1;
+    z-index: 0;
+}
+
+.product-card>* {
+    position: relative;
+    z-index: 1;
 }
 
 .product-card:hover {
     transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-    border-color: rgba(46, 125, 50, 0.2);
+    background: white;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary-green-light);
 }
 
-.product-card:hover::before {
-    opacity: 1;
-}
-
-.product-card:active {
-    transform: scale(0.96);
-}
-
-.product-sku {
-    font-size: 0.75rem;
-    color: #8898aa;
-    font-weight: 500;
+.product-card .product-sku {
+    font-size: 0.65rem;
+    color: var(--gray-400);
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.product-name {
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #32325d;
-    line-height: 1.3;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    height: 40px;
-}
-
-.product-stock {
-    margin-top: auto;
-}
-
-.stock-tag {
-    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    background: var(--gray-100);
     padding: 2px 8px;
-    border-radius: 12px;
-    font-weight: 600;
-    display: inline-block;
+    border-radius: 50px;
+    width: fit-content;
+}
+
+.product-card .product-name {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--gray-800);
+    line-height: 1.4;
+    height: 3rem;
+    margin-bottom: 0.25rem;
+}
+
+.product-card .product-price {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--primary-green);
+    letter-spacing: -0.02em;
+}
+
+/* Stock Tags Premium */
+.stock-tag {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .stock-tag.in {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: #f0fdf4;
+    color: #166534;
 }
 
 .stock-tag.low {
-    background: #fff3e0;
-    color: #ef6c00;
+    background: #fffbeb;
+    color: #92400e;
 }
 
 .stock-tag.out {
-    background: #ffebee;
-    color: #c62828;
+    background: #fef2f2;
+    color: #991b1b;
 }
 
-.product-price {
-    font-weight: 700;
-    color: var(--primary-green);
-    font-size: 1.1rem;
-    margin-top: 5px;
-}
-
+/* Out of Stock Premium State */
 .product-card.no-stock {
-    opacity: 0.6;
+    filter: grayscale(0.8);
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: rgba(241, 245, 249, 0.5);
+    border: 1px dashed var(--gray-300);
+}
+
+.product-card.no-stock::after {
+    content: 'VAULTED / OUT OF STOCK';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(15, 23, 42, 0.05);
+    color: var(--gray-600);
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    transform: rotate(-15deg) scale(1.2);
     pointer-events: none;
-    background: #f8f9fa;
+    opacity: 0.4;
+}
+
+.product-card.no-stock:hover {
+    transform: none;
+    box-shadow: none;
+    border-color: var(--gray-300);
+}
+
+.product-card.no-stock .product-price {
+    color: var(--gray-400);
+}
+
+/* POS Truck Info Footer */
+.pos-truck-footer {
+    background: white;
+    border-top: 1px solid var(--gray-100);
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+}
+
+.pos-truck-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.pos-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--gray-600);
+    font-weight: 600;
+}
+
+.pos-stat-item i {
+    color: var(--primary-green);
+    font-size: 1rem;
+}
+
+.pos-stat-value {
+    color: var(--gray-800);
+    font-weight: 800;
 }
 
 /* Right Side: Cart Premium Look */
@@ -3580,7 +3639,50 @@ body:not(.user-admin) .admin-only {
     padding: 0;
 }
 
-.cart-item {
+/* Free Issue Row & Badge Redesign */
+.pos-row-free {
+    background: linear-gradient(90deg, rgba(46, 125, 50, 0.03) 0%, transparent 100%);
+}
+
+.free-badge-premium {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    white-space: nowrap;
+}
+
+.free-badge-premium i {
+    font-size: 0.75rem;
+}
+
+.pos-row-free .cart-item-name {
+    color: #065f46;
+    font-weight: 700;
+}
+
+.pos-table .free-issue-check {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-green);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pos-table .free-issue-check:hover:not(:disabled) {
+    transform: scale(1.15) rotate(5deg);
+}
+
+.cart-item-info {
     display: flex;
     justify-content: space-between;
     padding: 15px;
@@ -4051,34 +4153,336 @@ body:not(.user-admin) .admin-only {
     font-weight: 500;
     font-size: 0.9rem;
 }
- / *   = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = 
-       C U S T O M E R   M A P   S T Y L E S 
-       = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = = =   * / 
- . c u s t o m - m a r k e r   { 
-         d i s p l a y :   f l e x ; 
-         a l i g n - i t e m s :   c e n t e r ; 
-         j u s t i f y - c o n t e n t :   c e n t e r ; 
- } 
- 
- # c u s t o m e r - l e a f l e t - m a p   { 
-         z - i n d e x :   1 0 ; 
-         b o x - s h a d o w :   i n s e t   0   0   1 0 p x   r g b a ( 0 , 0 , 0 , 0 . 1 ) ; 
- } 
- 
- . l e a f l e t - p o p u p - c o n t e n t - w r a p p e r   { 
-         b o r d e r - r a d i u s :   1 2 p x ; 
-         p a d d i n g :   0 ; 
-         o v e r f l o w :   h i d d e n ; 
-         b o x - s h a d o w :   0   1 0 p x   3 0 p x   r g b a ( 0 , 0 , 0 , 0 . 2 ) ; 
- } 
- 
- . l e a f l e t - p o p u p - c o n t e n t   { 
-         m a r g i n :   0 ; 
-         w i d t h :   2 0 0 p x   ! i m p o r t a n t ; 
- } 
- 
- . l e a f l e t - c o n t a i n e r   { 
-         f o n t - f a m i l y :   i n h e r i t ; 
- } 
-  
- 
+
+/* ========================================
+   CUSTOMER MAP STYLES
+   ======================================== */
+.custom-marker {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#customer-leaflet-map {
+    z-index: 10;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.leaflet-popup-content-wrapper {
+    border-radius: 12px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 200px !important;
+}
+
+.leaflet-container {
+    font-family: inherit;
+}
+
+/* Truck Card Design - Premium Load Management */
+.truck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+}
+
+.truck-card-modern {
+    background: #f0f7ff;
+    border: 1px solid #e0f0ff;
+    border-radius: 24px;
+    padding: 24px;
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.truck-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+.truck-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.truck-card-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.truck-card-title h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #1a202c;
+    letter-spacing: -0.01em;
+}
+
+.truck-card-title span {
+    font-size: 0.85rem;
+    color: #718096;
+    font-weight: 500;
+}
+
+.truck-status-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 3px solid #3b82f6;
+    position: relative;
+}
+
+.truck-status-indicator.active::after {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    background: #3b82f6;
+    border-radius: 50%;
+}
+
+.truck-info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.truck-info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.truck-info-label {
+    font-size: 0.75rem;
+    color: #718096;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.truck-info-value {
+    font-size: 0.9rem;
+    color: #2d3748;
+    font-weight: 700;
+}
+
+.truck-info-value.status {
+    color: #10b981;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.truck-card-image {
+    width: 100%;
+    height: 120px;
+    object-fit: contain;
+    margin-top: 10px;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.05));
+}
+
+.truck-card-actions {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(15px);
+    padding: 15px;
+    border-radius: 20px;
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.truck-card-modern.actions-visible .truck-card-actions {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+/* Optional: Keep hover for desktop but focus on click */
+.truck-card-modern:hover:not(.actions-visible) .truck-card-actions {
+    opacity: 0.1;
+    /* Hint of overlay */
+}
+
+
+/* Dynamic Truck Visualization */
+.truck-visual-wrapper {
+    position: relative;
+    width: 100%;
+    height: 120px;
+    margin-top: 15px;
+    display: flex;
+    align-items: flex-end;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.05);
+    /* Ground Line */
+    padding-bottom: 0;
+}
+
+
+
+
+.truck-cabin-img {
+    height: 100px;
+    width: 130px;
+    z-index: 5;
+    filter: drop-shadow(4px 10px 15px rgba(0, 0, 0, 0.15));
+    margin-left: 5px;
+    margin-bottom: 0;
+}
+
+
+
+
+
+
+
+
+
+.truck-cargo-container {
+    flex: 1;
+    height: 80px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 25%, transparent 25%, transparent 50%, rgba(59, 130, 246, 0.08) 50%, rgba(59, 130, 246, 0.08) 75%, transparent 75%, transparent 100%);
+    background-size: 12px 12px;
+    background-color: rgba(240, 249, 255, 0.8);
+    border-radius: 6px 16px 16px 6px;
+    margin-left: -40px;
+    /* Overlap with tractor chassis */
+    margin-bottom: 28px;
+    /* sits on tractor chassis */
+    border: 2px solid #3b82f6;
+    box-shadow:
+        inset 0 0 25px rgba(59, 130, 246, 0.15),
+        0 8px 25px rgba(59, 130, 246, 0.2),
+        0 0 0 1px rgba(255, 255, 255, 0.5);
+    /* Glass edge */
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #1e3a8a;
+    backdrop-filter: blur(8px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 4;
+}
+
+
+.truck-cargo-container.unloaded {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 25%, transparent 25%, transparent 50%, rgba(239, 68, 68, 0.1) 50%, rgba(239, 68, 68, 0.1) 75%, transparent 75%, transparent 100%);
+    background-size: 12px 12px;
+    background-color: #fff1f2;
+    border: 2px dashed #ef4444;
+    color: #991b1b;
+    box-shadow:
+        inset 0 0 20px rgba(239, 68, 68, 0.1),
+        0 8px 25px rgba(239, 68, 68, 0.1);
+}
+
+
+.truck-cargo-container.unloaded::after {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.truck-cargo-container.unloaded .cargo-percent,
+.truck-cargo-container.unloaded .cargo-weight {
+    opacity: 0.5;
+}
+
+
+.truck-cargo-container::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+}
+
+
+.truck-cargo-container::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+    pointer-events: none;
+}
+
+.cargo-percent {
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+}
+
+.cargo-percent small {
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.cargo-weight {
+    font-size: 0.7rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.truck-wheels {
+    position: absolute;
+    bottom: 0px;
+    left: 10px;
+    right: 0;
+    display: flex;
+    align-items: center;
+    z-index: 3;
+    pointer-events: none;
+}
+
+
+
+
+.wheel {
+    width: 28px;
+    height: 28px;
+    background: #1e293b;
+    border-radius: 50%;
+    border: 4px solid #475569;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    position: relative;
+}
+
+
+
+.wheel::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: #94a3b8;
+    opacity: 0.3;
+}

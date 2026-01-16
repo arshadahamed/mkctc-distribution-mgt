@@ -9,8 +9,8 @@ class DistributionRepository {
             const loadId = result.lastID;
 
             for (const item of loadData.items) {
-                await runQuery('INSERT INTO load_items (load_id, product_id, quantity_loaded) VALUES (?, ?, ?)',
-                    [loadId, item.product_id, item.quantity_loaded]);
+                await runQuery('INSERT INTO load_items (load_id, product_id, price_id, batch_number, quantity_loaded) VALUES (?, ?, ?, ?, ?)',
+                    [loadId, item.product_id, item.price_id || null, item.batch_number || null, item.quantity_loaded]);
             }
 
             return loadId;
@@ -23,8 +23,8 @@ class DistributionRepository {
             await runQuery(sql, [loadData.load_date, loadData.truck_id, id]);
             await runQuery('DELETE FROM load_items WHERE load_id = ?', [id]);
             for (const item of loadData.items) {
-                await runQuery('INSERT INTO load_items (load_id, product_id, quantity_loaded) VALUES (?, ?, ?)',
-                    [id, item.product_id, item.quantity_loaded]);
+                await runQuery('INSERT INTO load_items (load_id, product_id, price_id, batch_number, quantity_loaded) VALUES (?, ?, ?, ?, ?)',
+                    [id, item.product_id, item.price_id || null, item.batch_number || null, item.quantity_loaded]);
             }
             return true;
         });
@@ -42,28 +42,33 @@ class DistributionRepository {
 
             // Track individual items and calculate variance
             for (const item of unloadData.items) {
-                // Get sold quantity for this product from this truck today
+                // Get sold quantity for this product/batch from this truck today
                 const soldQuery = `
                     SELECT COALESCE(SUM(ii.quantity), 0) as total_sold
                     FROM invoice_items ii
                     JOIN invoices i ON ii.invoice_id = i.id
                     WHERE i.invoice_date = ? AND ii.product_id = ?
+                    AND (ii.batch_number = ? OR (ii.batch_number IS NULL AND ? IS NULL))
                 `;
-                const soldResult = await getQuery(soldQuery, [unloadData.unload_date, item.product_id]);
+                const soldResult = await getQuery(soldQuery, [unloadData.unload_date, item.product_id, item.batch_number, item.batch_number]);
                 const quantitySold = soldResult.total_sold;
 
-                // Get loaded quantity
-                const loadedQuery = 'SELECT quantity_loaded FROM load_items WHERE load_id = ? AND product_id = ?';
-                const loadedResult = await getQuery(loadedQuery, [unloadData.load_id, item.product_id]);
+                // Get loaded quantity for this specific batch
+                const loadedQuery = `
+                    SELECT quantity_loaded FROM load_items 
+                    WHERE load_id = ? AND product_id = ?
+                    AND (batch_number = ? OR (batch_number IS NULL AND ? IS NULL))
+                `;
+                const loadedResult = await getQuery(loadedQuery, [unloadData.load_id, item.product_id, item.batch_number, item.batch_number]);
                 const quantityLoaded = loadedResult ? loadedResult.quantity_loaded : 0;
 
                 // Variance = (Loaded) - (Sold) - (Returned/Remaining)
                 const variance = quantityLoaded - quantitySold - item.quantity_remaining;
 
                 await runQuery(`
-                    INSERT INTO unload_items (unload_id, product_id, quantity_remaining, quantity_unloaded, variance, variance_reason)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                `, [unloadId, item.product_id, item.quantity_remaining, item.quantity_remaining, variance, item.variance_reason]);
+                    INSERT INTO unload_items (unload_id, product_id, price_id, batch_number, quantity_remaining, quantity_unloaded, variance, variance_reason)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                `, [unloadId, item.product_id, item.price_id || null, item.batch_number || null, item.quantity_remaining, item.quantity_remaining, variance, item.variance_reason]);
             }
 
             return unloadId;
@@ -112,7 +117,14 @@ class DistributionRepository {
 
     async getActiveLoads(filters = {}) {
         let sql = `
-            SELECT tl.*, t.registration_number, t.driver_name, u.name as loaded_by_name
+            SELECT tl.id as id, tl.load_date, tl.truck_id, tl.loaded_by, tl.status,
+            t.registration_number, t.vehicle_type, t.model, t.capacity, t.current_location, t.driver_name, t.fuel_type, t.vehicle_image,
+            u.name as loaded_by_name,
+            (SELECT COALESCE(SUM(li.quantity_loaded), 0) FROM load_items li WHERE li.load_id = tl.id) as total_quantity,
+            (SELECT COALESCE(SUM(CAST(li.quantity_loaded AS FLOAT) / COALESCE(NULLIF(p.units_per_carton, 0), 1)), 0) 
+             FROM load_items li 
+             JOIN products p ON li.product_id = p.id 
+             WHERE li.load_id = tl.id) as total_cartons
             FROM truck_loads tl
             JOIN trucks t ON tl.truck_id = t.id
             JOIN users u ON tl.loaded_by = u.id
@@ -141,7 +153,14 @@ class DistributionRepository {
 
     async getAllLoads(filters = {}) {
         let sql = `
-            SELECT tl.*, t.registration_number, t.driver_name, u.name as loaded_by_name
+            SELECT tl.id as id, tl.load_date, tl.truck_id, tl.loaded_by, tl.status,
+            t.registration_number, t.vehicle_type, t.model, t.capacity, t.current_location, t.driver_name, t.fuel_type, t.vehicle_image,
+            u.name as loaded_by_name,
+            (SELECT COALESCE(SUM(li.quantity_loaded), 0) FROM load_items li WHERE li.load_id = tl.id) as total_quantity,
+            (SELECT COALESCE(SUM(CAST(li.quantity_loaded AS FLOAT) / COALESCE(NULLIF(p.units_per_carton, 0), 1)), 0) 
+             FROM load_items li 
+             JOIN products p ON li.product_id = p.id 
+             WHERE li.load_id = tl.id) as total_cartons
             FROM truck_loads tl
             JOIN trucks t ON tl.truck_id = t.id
             JOIN users u ON tl.loaded_by = u.id
@@ -203,12 +222,14 @@ class DistributionRepository {
         return await allQuery(`
             SELECT 
                 p.name as product_name,
+                li.batch_number,
                 li.quantity_loaded as loaded,
                 COALESCE((
                     SELECT SUM(ii.quantity) 
                     FROM invoice_items ii 
                     JOIN invoices i ON ii.invoice_id = i.id 
                     WHERE i.invoice_date = tl.load_date AND ii.product_id = li.product_id
+                    AND (ii.batch_number = li.batch_number OR (ii.batch_number IS NULL AND li.batch_number IS NULL))
                 ), 0) as sold,
                 COALESCE(ui.quantity_remaining, 0) as returned,
                 COALESCE(ui.variance, 0) as variance,
@@ -218,6 +239,7 @@ class DistributionRepository {
             JOIN products p ON li.product_id = p.id
             LEFT JOIN truck_unloads tu ON tu.load_id = tl.id
             LEFT JOIN unload_items ui ON ui.unload_id = tu.id AND ui.product_id = li.product_id
+                AND (ui.batch_number = li.batch_number OR (ui.batch_number IS NULL AND li.batch_number IS NULL))
             WHERE tl.id = ?
         `, [loadId]);
     }

@@ -64,6 +64,14 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    db.run(`CREATE TABLE IF NOT EXISTS price_levels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        description TEXT,
+        is_default INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
     db.run(`CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -77,8 +85,10 @@ db.serialize(() => {
         latitude REAL,
         longitude REAL,
         is_deleted INTEGER DEFAULT 0,
+        price_level_id INTEGER,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (route_id) REFERENCES routes(id)
+        FOREIGN KEY (route_id) REFERENCES routes(id),
+        FOREIGN KEY (price_level_id) REFERENCES price_levels(id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS products (
@@ -115,15 +125,26 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         product_id INTEGER,
         label TEXT,
+        batch_number TEXT,
         price REAL,
+        cost REAL,
+        supplier_discount REAL,
+        price_level_id INTEGER,
         is_primary INTEGER DEFAULT 0,
-        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+        FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+        FOREIGN KEY (price_level_id) REFERENCES price_levels(id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS trucks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         registration_number TEXT NOT NULL UNIQUE,
+        vehicle_type TEXT,
+        model TEXT,
+        capacity TEXT,
+        current_location TEXT DEFAULT 'Warehouse',
         driver_name TEXT,
+        fuel_type TEXT,
+        vehicle_image TEXT,
         status TEXT DEFAULT 'active'
     )`);
 
@@ -143,9 +164,12 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         load_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
+        price_id INTEGER,
+        batch_number TEXT,
         quantity_loaded REAL NOT NULL,
         FOREIGN KEY (load_id) REFERENCES truck_loads(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES products(id)
+        FOREIGN KEY (product_id) REFERENCES products(id),
+        FOREIGN KEY (price_id) REFERENCES product_prices(id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS truck_unloads (
@@ -162,12 +186,15 @@ db.serialize(() => {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         unload_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
+        price_id INTEGER,
+        batch_number TEXT,
         quantity_remaining REAL NOT NULL,
         quantity_unloaded REAL NOT NULL,
         variance REAL DEFAULT 0,
         variance_reason TEXT,
         FOREIGN KEY (unload_id) REFERENCES truck_unloads(id) ON DELETE CASCADE,
-        FOREIGN KEY (product_id) REFERENCES products(id)
+        FOREIGN KEY (product_id) REFERENCES products(id),
+        FOREIGN KEY (price_id) REFERENCES product_prices(id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS invoices (
@@ -194,6 +221,7 @@ db.serialize(() => {
         invoice_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
         product_name TEXT NOT NULL,
+        batch_number TEXT,
         msrp REAL NOT NULL,
         discount_percentage REAL DEFAULT 0,
         discount_amount REAL DEFAULT 0,
@@ -236,6 +264,8 @@ db.serialize(() => {
         cheque_date DATE NOT NULL,
         bank_name TEXT NOT NULL,
         amount REAL NOT NULL,
+        status TEXT DEFAULT 'Pending',
+        remarks TEXT,
         cheque_image TEXT,
         FOREIGN KEY (invoice_id) REFERENCES invoices(id),
         FOREIGN KEY (receipt_id) REFERENCES receipts(id)
@@ -268,10 +298,11 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS customer_product_discounts (
         customer_id INTEGER NOT NULL,
         product_id INTEGER NOT NULL,
+        price_id INTEGER NOT NULL DEFAULT 0,
         discount_percentage REAL DEFAULT 0,
         discount_amount REAL DEFAULT 0,
         last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (customer_id, product_id),
+        PRIMARY KEY (customer_id, product_id, price_id),
         FOREIGN KEY (customer_id) REFERENCES customers(id),
         FOREIGN KEY (product_id) REFERENCES products(id)
     )`);
@@ -370,6 +401,11 @@ db.serialize(() => {
 
     const adminPass = bcrypt.hashSync('admin', 10);
     const empPass = bcrypt.hashSync('emp123', 10);
+
+    db.run(`INSERT OR IGNORE INTO price_levels (name, description, is_default) VALUES 
+        ('MSRP', 'Standard Selling Price', 1),
+        ('Wholesale', 'Bulk Purchase Price', 0),
+        ('Distributor', 'Distribution Partner Price', 0)`);
     db.run(`INSERT OR IGNORE INTO users (name, username, password, role) VALUES ('Admin User', 'admin', '${adminPass}', 'admin')`);
     db.run(`INSERT OR IGNORE INTO users (name, username, password, role) VALUES ('Sales Rep 1', 'salesrep1', '${empPass}', 'employee')`);
 

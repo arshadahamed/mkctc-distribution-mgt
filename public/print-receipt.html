@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Receipt</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
@@ -15,13 +17,137 @@
             --border: #000000;
         }
 
+        /* --- PREMIUM THEME --- */
+        body.theme-premium {
+            --primary: #1b5e20;
+            --secondary: #2e7d32;
+            --accent: #f0fdf4;
+            --text-main: #1e293b;
+            --font-premium: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        body.theme-premium .print-container {
+            border: none;
+            padding: 0;
+            overflow: hidden;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-premium .header {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            color: white;
+            padding: 40px;
+            margin-bottom: 0;
+            border-bottom: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        body.theme-premium .company-info h1 {
+            color: white !important;
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        body.theme-premium .company-info p {
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+        }
+
+        body.theme-premium .receipt-title {
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 48px;
+            border: none;
+            text-align: right;
+            line-height: 1;
+        }
+
+        body.theme-premium .details-grid {
+            margin: 40px;
+            border: none;
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 25px;
+            gap: 20px;
+        }
+
+        body.theme-premium .detail-item label {
+            text-decoration: none;
+            color: var(--secondary);
+            font-size: 11px;
+            letter-spacing: 0.1em;
+        }
+
+        body.theme-premium .detail-item div {
+            font-size: 18px;
+            color: #0f172a;
+        }
+
+        body.theme-premium .amount-box {
+            margin: 0 40px 30px 40px;
+            border: none;
+            background: var(--secondary);
+            color: white;
+            border-radius: 20px;
+            padding: 30px;
+        }
+
+        body.theme-premium .amount-box h2 {
+            color: rgba(255, 255, 255, 0.6) !important;
+            font-size: 14px;
+        }
+
+        body.theme-premium .amount-box .amount {
+            font-size: 56px;
+            color: white !important;
+        }
+
+        body.theme-premium #allocations-section {
+            margin: 0 40px;
+        }
+
+        body.theme-premium .allocations-table {
+            border: none;
+        }
+
+        body.theme-premium .allocations-table th {
+            background: #f1f5f9 !important;
+            border: none;
+            padding: 15px;
+            color: var(--secondary);
+        }
+
+        body.theme-premium .allocations-table td {
+            border: none;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 15px;
+        }
+
+        body.theme-premium .signature-section {
+            margin: 40px;
+            margin-top: 60px;
+        }
+
+        body.theme-premium .sig-box {
+            border-top: 2px solid var(--secondary);
+        }
+
+        body.theme-premium .footer {
+            margin-top: 20px;
+            padding: 30px;
+            border-top: 1px solid #f1f5f9;
+            color: #94a3b8;
+        }
+
+        /* Standard Defaults */
         * {
             box-sizing: border-box;
             background-color: transparent !important;
         }
 
         body {
-            font-family: 'Segoe UI', 'Helvetica', 'Arial', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: #fff;
             margin: 0;
             padding: 0;
@@ -346,6 +472,10 @@
             const id = params.get('id');
             const format = params.get('format') || 'a4';
             document.body.className = `format-${format}`;
+
+            if (format === 'a4') {
+                document.body.classList.add('theme-premium');
+            }
 
             if (!id) return alert('No receipt ID provided');
 
