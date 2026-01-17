@@ -3418,10 +3418,26 @@ body:not(.user-admin) .admin-only {
     overflow-y: auto;
     padding: 20px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
+    /* Exactly 3 columns */
     gap: 15px;
     align-content: start;
+    height: 620px;
+    /* Approximately fits 3 rows of cards */
+    max-height: 620px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-green) transparent;
 }
+
+.pos-grid-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.pos-grid-container::-webkit-scrollbar-thumb {
+    background: var(--primary-green);
+    border-radius: 10px;
+}
+
 
 /* Product Cards Premium Redesign */
 .product-card {

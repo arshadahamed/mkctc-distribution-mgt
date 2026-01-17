@@ -51,6 +51,9 @@ class AgroDistributionApp {
             cart: [],
             selectedLoadId: null,
             products: [],
+            renderedProducts: [], // Products currently visible
+            renderedCount: 0,
+            pageSize: 12, // Load in batches of 12
             customers: [],
             heldInvoices: [],
             currentInvoiceId: null, // used when recalling a held invoice
@@ -6444,22 +6447,61 @@ class AgroDistributionApp {
         const footer = document.getElementById('pos-truck-footer');
         if (!grid) return;
 
+        // Reset lazy loading state
+        this.posState.renderedCount = 0;
+        this.posState.renderedProducts = products || [];
+        grid.innerHTML = '';
+
         if (!products || products.length === 0) {
             grid.innerHTML = '<div class="pos-empty-state"><p>No products found in this truck load.</p></div>';
             if (footer) footer.style.display = 'none';
             return;
         }
 
-        // Calculate Truck Totals
-        let totalQty = 0;
-        let totalItems = products.length;
+        // Calculate Truck Totals (always based on full product list)
+        let totalQty = products.reduce((sum, p) => {
+            const cartQty = this.getCartQtyForProduct(p.id);
+            return sum + Math.max(0, (p.available_quantity || 0) - cartQty);
+        }, 0);
 
-        grid.innerHTML = products.map(p => {
-            // Subtract cart quantity from displayed stock
+        if (footer) {
+            footer.style.display = 'flex';
+            document.getElementById('pos-total-items-count').textContent = products.length;
+            document.getElementById('pos-total-truck-qty').textContent = totalQty.toLocaleString();
+            const selector = document.getElementById('pos-load-selector');
+            if (selector && selector.selectedIndex > 0) {
+                document.getElementById('pos-selected-truck-name').textContent = selector.options[selector.selectedIndex].text;
+            }
+        }
+
+        // Render first batch
+        this.renderNextPOSBatch();
+
+        // Add scroll listener if not already added
+        if (!grid.dataset.lazyBound) {
+            grid.addEventListener('scroll', () => {
+                const { scrollTop, scrollHeight, clientHeight } = grid;
+                if (scrollTop + clientHeight >= scrollHeight - 50) {
+                    this.renderNextPOSBatch();
+                }
+            });
+            grid.dataset.lazyBound = 'true';
+        }
+    }
+
+    renderNextPOSBatch() {
+        const grid = document.getElementById('pos-product-grid');
+        if (!grid) return;
+
+        const start = this.posState.renderedCount;
+        const end = start + (this.posState.pageSize || 12);
+        const batch = this.posState.renderedProducts.slice(start, end);
+
+        if (batch.length === 0) return;
+
+        const html = batch.map(p => {
             const cartQty = this.getCartQtyForProduct(p.id);
             const remainingQty = Math.max(0, p.available_quantity - cartQty);
-            totalQty += remainingQty;
-
             const stockStatus = remainingQty <= 0 ? 'out' : (remainingQty < 10 ? 'low' : 'in');
             const stockClass = remainingQty <= 0 ? 'no-stock' : (remainingQty < 10 ? 'low-stock' : '');
             const stockLabel = remainingQty <= 0 ? 'Out of Stock' : (remainingQty < 10 ? 'Low Stock' : 'In Stock');
@@ -6472,7 +6514,7 @@ class AgroDistributionApp {
             ` : '';
 
             return `
-                <div class="product-card ${stockClass}" onclick="${remainingQty > 0 ? `app.checkAndAddToCart(${p.id}, false)` : ''}">
+                <div class="product-card ${stockClass}" data-product-id="${p.id}" onclick="${remainingQty > 0 ? `app.checkAndAddToCart(${p.id}, false)` : ''}">
                     <div class="product-sku">${p.reference_code || 'N/A'}</div>
                     ${p.allow_free_issue === 1 && remainingQty > 0 ? `
                         <button class="btn-free-add" title="Add as FREE Issue" onclick="event.stopPropagation(); app.checkAndAddToCart(${p.id}, true)" style="position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 50%; background: var(--primary-green); color: white; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; z-index: 10;">
@@ -6483,7 +6525,7 @@ class AgroDistributionApp {
                     <div class="product-stock">
                         <span class="stock-tag ${stockStatus}">
                             <i class="fas ${stockStatus === 'out' ? 'fa-times-circle' : (stockStatus === 'low' ? 'fa-exclamation-triangle' : 'fa-check-circle')}"></i>
-                            ${stockLabel}: ${remainingQty}
+                            <span class="stock-label-text">${stockLabel}: ${remainingQty}</span>
                         </span>
                     </div>
                     <div class="product-price">${remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
@@ -6492,19 +6534,72 @@ class AgroDistributionApp {
             `;
         }).join('');
 
-        // Update Footer Stats
-        if (footer) {
-            footer.style.display = 'flex';
-            document.getElementById('pos-total-items-count').textContent = totalItems;
-            document.getElementById('pos-total-truck-qty').textContent = totalQty.toLocaleString();
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = html;
+        while (wrapper.firstChild) {
+            grid.appendChild(wrapper.firstChild);
+        }
 
-            // Try to find the truck name from selector
-            const selector = document.getElementById('pos-load-selector');
-            if (selector && selector.selectedIndex > 0) {
-                document.getElementById('pos-selected-truck-name').textContent = selector.options[selector.selectedIndex].text;
+        this.posState.renderedCount = end;
+    }
+
+    updateProductGridQuantities() {
+        const grid = document.getElementById('pos-product-grid');
+        if (!grid) return;
+
+        // Iterate through all rendered product cards
+        const cards = grid.querySelectorAll('.product-card[data-product-id]');
+        cards.forEach(card => {
+            const productId = card.dataset.productId;
+            const p = this.posState.products.find(prod => prod.id == productId);
+            if (!p) return;
+
+            const cartQty = this.getCartQtyForProduct(p.id);
+            const remainingQty = Math.max(0, p.available_quantity - cartQty);
+            const stockStatus = remainingQty <= 0 ? 'out' : (remainingQty < 10 ? 'low' : 'in');
+            const stockClass = remainingQty <= 0 ? 'no-stock' : (remainingQty < 10 ? 'low-stock' : '');
+            const stockLabel = remainingQty <= 0 ? 'Out of Stock' : (remainingQty < 10 ? 'Low Stock' : 'In Stock');
+
+            // Update Classes
+            card.classList.remove('no-stock', 'low-stock');
+            if (stockClass) card.classList.add(stockClass);
+
+            // Update Click Handler (toggle based on stock)
+            card.onclick = remainingQty > 0 ? () => this.checkAndAddToCart(p.id, false) : null;
+
+            // Update Stock Tag
+            const tag = card.querySelector('.stock-tag');
+            if (tag) {
+                tag.className = `stock-tag ${stockStatus}`;
+                const icon = tag.querySelector('i');
+                if (icon) {
+                    icon.className = `fas ${stockStatus === 'out' ? 'fa-times-circle' : (stockStatus === 'low' ? 'fa-exclamation-triangle' : 'fa-check-circle')}`;
+                }
+                const labelText = tag.querySelector('.stock-label-text');
+                if (labelText) {
+                    labelText.textContent = `${stockLabel}: ${remainingQty}`;
+                }
             }
+
+            // Update Price display (in case it marks --- for out of stock)
+            const priceEl = card.querySelector('.product-price');
+            if (priceEl) {
+                priceEl.textContent = remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+        });
+
+        // Also update footer stats
+        const footer = document.getElementById('pos-truck-footer');
+        if (footer && this.posState.products.length > 0) {
+            let totalQty = this.posState.products.reduce((sum, p) => {
+                const cartQty = this.getCartQtyForProduct(p.id);
+                return sum + Math.max(0, (p.available_quantity || 0) - cartQty);
+            }, 0);
+            const qtyEl = document.getElementById('pos-total-truck-qty');
+            if (qtyEl) qtyEl.textContent = totalQty.toLocaleString();
         }
     }
+
 
     filterPOSProducts(query) {
         if (!query) return this.posState.products;
@@ -6662,14 +6757,6 @@ class AgroDistributionApp {
         this.updateCartUI();
     }
 
-    clearCart() {
-        if (this.posState.cart.length === 0) return;
-        if (confirm('Are you sure you want to clear all items from the cart?')) {
-            this.posState.cart = [];
-            this.updateCartUI();
-            this.showNotification('Cart cleared', 'info');
-        }
-    }
 
     updateCartQty(index, newQty) {
         const item = this.posState.cart[index];
@@ -6824,6 +6911,12 @@ class AgroDistributionApp {
         const tbody = document.getElementById('pos-cart-body');
         if (!tbody) return;
 
+        // NEW: Real-time update of product tile quantities
+        // Move to top so it runs even if cart matches 0 (e.g. after removing last item)
+        if (this.posState.products.length > 0) {
+            this.updateProductGridQuantities();
+        }
+
         const countEl = document.getElementById('pos-cart-count');
 
         if (this.posState.cart.length === 0) {
@@ -6855,7 +6948,7 @@ class AgroDistributionApp {
                 </td>
                 <td>
                     <input type="number" class="cart-qty-input" value="${item.quantity}" 
-                        onchange="app.updateCartQty(${index}, this.value)" min="${isWeighted ? '0.01' : '1'}" step="${step}">
+                        oninput="app.updateCartQty(${index}, this.value)" min="${isWeighted ? '0.01' : '1'}" step="${step}">
                 </td>
                 <td class="text-center">
                     <input type="checkbox" class="free-issue-check" ${item.is_free ? 'checked' : ''} 
@@ -6901,11 +6994,6 @@ class AgroDistributionApp {
 
         if (countEl) {
             countEl.textContent = `${this.posState.cart.length} Items / ${totalQty} Qty`;
-        }
-
-        // NEW: Refresh product tiles to update available quantities based on cart
-        if (this.posState.products.length > 0) {
-            this.renderProductTiles(this.posState.products);
         }
     }
 
