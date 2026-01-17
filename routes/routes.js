@@ -6,7 +6,8 @@ const { checkPermission } = require('../middleware/auth');
 
 router.get('/', checkPermission('routes', 'view'), async (req, res) => {
     try {
-        const routes = await routeRepo.getAll();
+        const { search } = req.query;
+        const routes = await routeRepo.getAll(search);
         res.json({ success: true, data: routes });
     } catch (error) {
         await logError(req.user?.id || 0, 'GET_ROUTES', error);

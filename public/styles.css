@@ -4502,3 +4502,227 @@ body:not(.user-admin) .admin-only {
     background: #94a3b8;
     opacity: 0.3;
 }
+
+/* Shop Visit Logs Redesign */
+.visit-mini-card {
+    background: var(--white);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.visit-mini-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.08);
+}
+
+.visit-mini-card .v-icon {
+    width: 54px;
+    height: 54px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.v-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.v-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--gray-800);
+}
+
+.visit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.log-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 250px;
+}
+
+.log-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+    border-color: var(--primary-green-light);
+}
+
+.status-strip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 5px;
+}
+
+.status-strip.open {
+    background: var(--success);
+}
+
+.status-strip.closed {
+    background: var(--error);
+}
+
+.log-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.25rem;
+}
+
+.log-customer-name {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--gray-900);
+    margin-bottom: 0.25rem;
+}
+
+.log-date {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.badge-today {
+    background: #eef2ff;
+    color: #4f46e5;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+.log-status-badge {
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.log-status-badge.open {
+    background: rgba(46, 125, 50, 0.08);
+    color: var(--primary-green);
+}
+
+.log-status-badge.closed {
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--error);
+}
+
+.log-route {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f8fafc;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--gray-600);
+    margin-bottom: 1rem;
+}
+
+.log-remarks {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: var(--gray-700);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+    flex-grow: 1;
+    border: 1px dashed #e5e7eb;
+}
+
+.log-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+.log-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.log-user-avatar {
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+    color: white;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.log-user span {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
+.log-user strong {
+    color: var(--gray-800);
+}
+
+.form-control-minimal:focus {
+    outline: none;
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1rem;
+}
+
+@media (max-width: 1200px) {
+    .visit-stats-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .visit-stats-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    .visit-grid {
+        grid-template-columns: 1fr !important;
+    }
+}

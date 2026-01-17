@@ -109,6 +109,21 @@ class PaymentRepository {
             params.push(filters.date_to);
         }
 
+        if (filters.search) {
+            query += ' AND (r.receipt_number LIKE ? OR c.name LIKE ?)';
+            params.push(`%${filters.search}%`, `%${filters.search}%`);
+        }
+
+        if (filters.payment_method) {
+            query += ' AND r.payment_type = ?';
+            params.push(filters.payment_method);
+        }
+
+        if (filters.receipt_category) {
+            query += ' AND r.receipt_category = ?';
+            params.push(filters.receipt_category);
+        }
+
         query += ' ORDER BY r.id DESC';
         return await allQuery(query, params);
     }

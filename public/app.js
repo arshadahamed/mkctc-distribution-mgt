@@ -1354,7 +1354,7 @@ class AgroDistributionApp {
             categories: () => this.loadMasterData('categories'),
             brands: () => this.loadMasterData('brands'),
             units: () => this.loadMasterData('units'),
-            routes: () => this.loadMasterData('routes'),
+            routes: () => this.loadRoutes(),
             'price-levels': () => this.loadMasterData('price-levels'),
             payments: () => this.loadPayments(),
             visits: () => { this.loadVisits(); this.loadVisitFilters(); },
@@ -2266,6 +2266,135 @@ class AgroDistributionApp {
             }
         } catch (e) {
             this.showNotification('Error: ' + e.message, 'error');
+        }
+    }
+
+    async loadRoutes() {
+        const search = document.getElementById('route-search')?.value || '';
+        let url = `/api/master/routes?1=1`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+
+        try {
+            const res = await this.apiCall(url);
+            if (!res) return;
+            const data = await res.json();
+            if (data.success) {
+                const container = document.getElementById('route-grid-container');
+                if (container) {
+                    if (data.data.length === 0) {
+                        container.innerHTML = `
+                            <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                                <i class="fas fa-map-marked" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                                <p>No delivery routes found. Add a new route to get started.</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = data.data.map(r => `
+                            <div class="log-card" style="min-height: 200px;">
+                                <div class="status-strip" style="background: var(--primary-green);"></div>
+                                <div class="log-card-header">
+                                    <div class="log-customer-info">
+                                        <div class="log-customer-name">${r.name}</div>
+                                        <div class="log-date" style="color: var(--primary-green); font-weight: 700;">
+                                            <i class="fas fa-users"></i> ${r.customer_count} Customers
+                                        </div>
+                                    </div>
+                                    <div class="log-status-badge" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);">
+                                        <i class="fas fa-route"></i> ROUTE
+                                    </div>
+                                </div>
+                                <div class="log-remarks" style="background: #fff; border: none; padding: 0; font-size: 0.85rem; color: var(--gray-600);">
+                                    ${r.description || '<span style="opacity: 0.5;">No description provided.</span>'}
+                                </div>
+                                <div class="log-footer" style="border-top: 1px solid #f8fafc; padding-top: 1rem; margin-top: 1rem;">
+                                    <div class="log-user">
+                                        <i class="fas fa-barcode" style="color: var(--gray-300);"></i>
+                                        <span style="font-size: 0.7rem; color: var(--gray-400); font-family: monospace;">RID-${r.id.toString().padStart(4, '0')}</span>
+                                    </div>
+                                    <div class="action-btns">
+                                        ${this.hasPermission('routes', 'edit') ? `<button class="btn-icon btn-edit" title="Edit Route" onclick="app.openRouteModal(${JSON.stringify(r).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>` : ''}
+                                        ${this.hasPermission('routes', 'delete') ? `<button class="btn-icon btn-delete" title="Delete Route" onclick="app.handleDelete('routes', ${r.id}, '${r.name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+
+                        // GSAP Animation
+                        if (window.gsap) {
+                            gsap.from("#route-grid-container .log-card", {
+                                duration: 0.5,
+                                opacity: 0,
+                                y: 20,
+                                stagger: 0.05,
+                                ease: "power2.out"
+                            });
+                        }
+                    }
+                }
+
+                // Update Stats
+                this.updateRouteStats(data.data);
+            }
+        } catch (err) {
+            console.error('LoadRoutes Error:', err);
+        }
+    }
+
+    updateRouteStats(routes) {
+        const totalCustomers = routes.reduce((sum, r) => sum + (r.customer_count || 0), 0);
+        const topRoute = routes.length > 0 ? routes.reduce((prev, current) => (prev.customer_count > current.customer_count) ? prev : current) : null;
+
+        const totalEl = document.getElementById('route-stat-total');
+        const custEl = document.getElementById('route-stat-customers');
+        const topEl = document.getElementById('route-stat-top');
+
+        if (totalEl) totalEl.textContent = routes.length;
+        if (custEl) custEl.textContent = totalCustomers;
+        if (topEl) topEl.textContent = topRoute ? `${topRoute.name} (${topRoute.customer_count})` : 'N/A';
+    }
+
+    openRouteModal(r = null) {
+        const form = document.getElementById('route-form');
+        form.reset();
+
+        document.getElementById('route-id').value = r?.id || '';
+        document.getElementById('route-modal-title').textContent = r ? 'Edit Route Path' : 'Create New Route';
+        document.getElementById('route-name').value = r?.name || '';
+        document.getElementById('route-description').value = r?.description || '';
+
+        const modal = document.getElementById('route-modal');
+        modal.classList.add('active');
+        if (modal.style.display === 'none' || !modal.style.display) modal.style.display = 'flex';
+    }
+
+    async handleRouteSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('route-id').value;
+        const d = {
+            name: document.getElementById('route-name').value,
+            description: document.getElementById('route-description').value
+        };
+
+        const method = id ? 'PUT' : 'POST';
+        const url = id ? `/api/master/routes/${id}` : '/api/master/routes';
+
+        try {
+            const res = await this.apiCall(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(d)
+            });
+            if (!res) return;
+            const resData = await res.json();
+            if (resData.success) {
+                this.showNotification(id ? 'Route Updated' : 'Route Created');
+                document.getElementById('route-modal').classList.remove('active');
+                this.loadRoutes();
+            } else {
+                this.showNotification(resData.error || 'Operation failed', 'error');
+            }
+        } catch (err) {
+            this.showNotification('Error saving route', 'error');
         }
     }
 
@@ -3550,33 +3679,135 @@ class AgroDistributionApp {
 
     // --- PAYMENT LOGIC ---
     async loadPayments() {
-        const res = await this.apiCall('/api/payments');
-        if (!res) return;
-        const data = await res.json();
-        if (data.success) {
-            document.getElementById('payment-table-body').innerHTML = data.data.map(p => `
-                <tr>
-                    <td><strong>${p.receipt_number}</strong></td>
-                    <td>${this.parseDBDate(p.receipt_date).toLocaleDateString()}</td>
-                    <td>${p.customer_name}</td>
-                    <td>
-                        <span class="badge ${p.receipt_category === 'return' ? 'badge-error' : 'badge-success'}" style="${p.receipt_category === 'return' ? 'background:rgba(239, 68, 68, 0.1); color:#ef4444; border:1px solid rgba(239, 68, 68, 0.2);' : ''}">
-                            ${(p.receipt_category || 'collection').toUpperCase()}
-                        </span>
-                    </td>
-                    <td><span class="badge ${p.payment_type === 'cash' ? 'badge-success' : 'badge-primary'}">${p.payment_type.toUpperCase()}</span></td>
-                    <td style="font-weight:700; color: ${p.receipt_category === 'return' ? '#ef4444' : 'inherit'}">
-                        ${p.receipt_category === 'return' ? '-' : ''}LKR ${p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                    </td>
-                    <td>${p.receiver_name || 'System'}</td>
-                    <td><div class="action-btns">
-                        ${this.hasPermission('payments', 'view') ? `<button class="btn-icon" onclick="app.printReceipt(${p.id})"><i class="fas fa-print"></i></button>` : ''}
-                        ${this.hasPermission('payments', 'edit') ? `<button class="btn-icon text-warning" onclick='app.openPaymentModal(null, ${JSON.stringify(p)})'><i class="fas fa-edit"></i></button>` : ''}
-                        ${this.hasPermission('payments', 'delete') ? `<button class="btn-icon text-danger" onclick="app.handleDeletePayment(${p.id})"><i class="fas fa-trash"></i></button>` : ''}
-                    </div></td>
-                </tr>
-            `).join('') || '<tr><td colspan="7">No payments recorded</td></tr>';
+        const search = document.getElementById('payment-search')?.value || '';
+        const method = document.getElementById('payment-method-filter')?.value || '';
+        const cat = document.getElementById('payment-cat-filter')?.value || '';
+
+        let url = `/api/payments?1=1`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (method) url += `&payment_method=${method}`;
+        if (cat) url += `&receipt_category=${cat}`;
+
+        try {
+            const res = await this.apiCall(url);
+            if (!res) return;
+            const data = await res.json();
+            if (data.success) {
+                const container = document.getElementById('payment-grid-container');
+                if (container) {
+                    if (data.data.length === 0) {
+                        container.innerHTML = `
+                            <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                                <i class="fas fa-receipt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                                <p>No financial records found matching your selection.</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = data.data.map(p => {
+                            const isReturn = p.receipt_category === 'return';
+                            const methodClass = p.payment_type === 'cash' ? 'cash-tag' : 'chq-tag';
+                            const displayDate = this.parseDBDate(p.receipt_date).toLocaleDateString();
+
+                            return `
+                                <div class="log-card payment-premium-card" data-id="${p.id}">
+                                    <div class="status-strip ${isReturn ? 'closed' : 'open'}"></div>
+                                    <div class="log-card-header" style="margin-bottom: 0.8rem;">
+                                        <div>
+                                            <div class="log-customer-name" style="font-size: 1.05rem;">${p.customer_name}</div>
+                                            <div class="log-date"><i class="far fa-calendar-alt"></i> ${displayDate}</div>
+                                        </div>
+                                        <div class="payment-amount-badge ${isReturn ? 'neg' : 'pos'}" style="text-align: right;">
+                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Amount</div>
+                                            <div style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px;">
+                                                ${isReturn ? '-' : ''}LKR ${p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #f1f5f9;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                                <i class="fas ${p.payment_type === 'cash' ? 'fa-wallet' : 'fa-money-check-alt'}" style="color: ${p.payment_type === 'cash' ? '#2ecc71' : '#3498db'}"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Method</div>
+                                                <div style="font-size: 0.85rem; font-weight: 700; color: #475569;">${p.payment_type.toUpperCase()}</div>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Receipt #</div>
+                                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-green-dark); font-family: monospace;">${p.receipt_number}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="log-footer" style="padding-top: 0.8rem; border-top: 1px dashed #e2e8f0;">
+                                        <div class="log-user" style="font-size: 0.75rem;">
+                                            <div class="log-user-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">${(p.receiver_name || 'S')[0].toUpperCase()}</div>
+                                            <span>Staff: <strong>${p.receiver_name || 'System'}</strong></span>
+                                        </div>
+                                        <div class="action-btns">
+                                            ${this.hasPermission('payments', 'view') ? `<button class="btn-icon" title="Print Receipt" onclick="app.printReceipt(${p.id})"><i class="fas fa-print"></i></button>` : ''}
+                                            ${this.hasPermission('payments', 'edit') ? `<button class="btn-icon" title="Edit Record" onclick='app.openPaymentModal(null, ${JSON.stringify(p).replace(/"/g, '&quot;')})'><i class="fas fa-edit"></i></button>` : ''}
+                                            ${this.hasPermission('payments', 'delete') ? `<button class="btn-icon text-danger" title="Void Payment" onclick="app.handleDeletePayment(${p.id})"><i class="fas fa-trash"></i></button>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        // GSAP Animation
+                        if (window.gsap) {
+                            gsap.from("#payment-grid-container .log-card", {
+                                duration: 0.6,
+                                opacity: 0,
+                                y: 30,
+                                stagger: 0.05,
+                                ease: "power3.out"
+                            });
+                        }
+                    }
+                }
+
+                // Update Stats
+                this.updatePaymentStats(data.data);
+            }
+        } catch (err) {
+            console.error('LoadPayments Error:', err);
         }
+    }
+
+    updatePaymentStats(payments) {
+        const stats = {
+            total: 0,
+            returns: 0,
+            cash: 0,
+            cheque: 0
+        };
+
+        payments.forEach(p => {
+            const amt = parseFloat(p.amount) || 0;
+            const isReturn = p.receipt_category === 'return';
+
+            if (isReturn) {
+                stats.returns += amt;
+                if (p.payment_type === 'cash') stats.cash -= amt;
+                else stats.cheque -= amt;
+            } else {
+                stats.total += amt;
+                if (p.payment_type === 'cash') stats.cash += amt;
+                else stats.cheque += amt;
+            }
+        });
+
+        const totalEl = document.getElementById('pay-stat-total');
+        const returnEl = document.getElementById('pay-stat-returns');
+        const cashEl = document.getElementById('pay-stat-cash');
+        const chqEl = document.getElementById('pay-stat-cheque');
+
+        if (totalEl) totalEl.textContent = stats.total.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        if (returnEl) returnEl.textContent = stats.returns.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        if (cashEl) cashEl.textContent = stats.cash.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        if (chqEl) chqEl.textContent = stats.cheque.toLocaleString(undefined, { minimumFractionDigits: 2 });
     }
 
     async printReceipt(receiptId) {
@@ -3772,23 +4003,98 @@ class AgroDistributionApp {
         if (!res) return;
         const data = await res.json();
         if (data.success) {
-            document.getElementById('visit-table-body').innerHTML = data.data.map(v => `
-                <tr>
-                    <td>${this.parseDBDate(v.visit_date).toLocaleDateString()}</td>
-                    <td><strong>${v.customer_name}</strong></td>
-                    <td>${v.route_name}</td>
-                    <td><span class="badge ${v.shop_status === 'open' ? 'badge-success' : 'badge-error'}">${v.shop_status.toUpperCase()}</span></td>
-                    <td style="font-size:0.85rem">${v.remarks || '-'}</td>
-                    <td>${v.user_name}</td>
-                    <td>
-                        <div class="action-btns">
-                            ${this.hasPermission('visits', 'edit') ? `<button class="btn-icon btn-edit" title="Edit Visit" onclick="app.openVisitModal(${JSON.stringify(v).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>` : ''}
-                            ${this.hasPermission('visits', 'delete') ? `<button class="btn-icon btn-delete" title="Delete Visit" onclick="app.handleDelete('visits', ${v.id}, 'Visit on ${v.visit_date}')"><i class="fas fa-trash"></i></button>` : ''}
+            const container = document.getElementById('visit-grid-container');
+            if (container) {
+                if (data.data.length === 0) {
+                    container.innerHTML = `
+                        <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                            <i class="fas fa-ghost" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                            <p>No visit logs found matching your filters.</p>
                         </div>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="7">No visit logs found</td></tr>';
+                    `;
+                } else {
+                    container.innerHTML = data.data.map(v => {
+                        const visitDate = this.parseDBDate(v.visit_date);
+                        const isToday = visitDate.toDateString() === new Date().toDateString();
+                        const statusClass = v.shop_status === 'open' ? 'open' : 'closed';
+                        const statusLabel = v.shop_status === 'open' ? 'Shop Open' : 'Shop Closed';
+
+                        return `
+                            <div class="log-card" data-id="${v.id}">
+                                <div class="status-strip ${statusClass}"></div>
+                                <div class="log-card-header">
+                                    <div class="log-customer-info">
+                                        <div class="log-customer-name">${v.customer_name}</div>
+                                        <div class="log-date">
+                                            <i class="far fa-calendar-alt"></i> ${visitDate.toLocaleDateString()}
+                                            ${isToday ? '<span class="badge-today">Today</span>' : ''}
+                                        </div>
+                                    </div>
+                                    <div class="log-status-badge ${statusClass}">
+                                        <i class="fas ${v.shop_status === 'open' ? 'fa-door-open' : 'fa-door-closed'}"></i> ${statusLabel}
+                                    </div>
+                                </div>
+                                <div class="log-route">
+                                    <i class="fas fa-truck-loading"></i> ${v.route_name || 'No Route'}
+                                </div>
+                                <div class="log-remarks">
+                                    ${v.remarks || '<span style="opacity: 0.5; font-style: italic;">No remarks provided for this visit.</span>'}
+                                </div>
+                                <div class="log-footer">
+                                    <div class="log-user">
+                                        <div class="log-user-avatar">${(v.user_name || 'U')[0].toUpperCase()}</div>
+                                        <span>Logged by <strong>${v.user_name}</strong></span>
+                                    </div>
+                                    <div class="action-btns">
+                                        ${this.hasPermission('visits', 'edit') ? `<button class="btn-icon btn-edit" title="Edit Visit" onclick="app.openVisitModal(${JSON.stringify(v).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>` : ''}
+                                        ${this.hasPermission('visits', 'delete') ? `<button class="btn-icon btn-delete" title="Delete Visit" onclick="app.handleDelete('visits', ${v.id}, 'Visit on ${v.visit_date}')"><i class="fas fa-trash"></i></button>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Update Table body for fallback/other uses
+                    const tableBody = document.getElementById('visit-table-body');
+                    if (tableBody) tableBody.innerHTML = '';
+                }
+            }
+
+            // GSAP Animation for premium feel
+            if (window.gsap && data.data.length > 0) {
+                gsap.from(".log-card", {
+                    duration: 0.6,
+                    opacity: 0,
+                    y: 30,
+                    stagger: 0.08,
+                    ease: "power3.out",
+                    clearProps: "all"
+                });
+            }
+
+            // Update Stats
+            this.updateVisitStats(data.data);
         }
+    }
+
+    updateVisitStats(visits) {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const stats = {
+            today: visits.filter(v => v.visit_date === todayStr).length,
+            open: visits.filter(v => v.shop_status === 'open').length,
+            closed: visits.filter(v => v.shop_status === 'closed').length,
+            routes: new Set(visits.map(v => v.route_id)).size
+        };
+
+        const todayEl = document.getElementById('visit-stat-today');
+        const openEl = document.getElementById('visit-stat-open');
+        const closedEl = document.getElementById('visit-stat-closed');
+        const routesEl = document.getElementById('visit-stat-routes');
+
+        if (todayEl) todayEl.textContent = stats.today;
+        if (openEl) openEl.textContent = stats.open;
+        if (closedEl) closedEl.textContent = stats.closed;
+        if (routesEl) routesEl.textContent = stats.routes;
     }
 
     async openVisitModal(v = null) {
@@ -4390,41 +4696,114 @@ class AgroDistributionApp {
             if (!res) return;
             const data = await res.json();
             if (data.success) {
-                const body = document.getElementById('vehicle-table-body');
-                const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f0f0f0'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='14' fill='%23999'>No Image</text></svg>`;
+                const container = document.getElementById('vehicle-grid-container');
+                const placeholder = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f8fafc'/><text x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='10' font-weight='600' fill='%23cbd5e1'>NO IMAGE</text></svg>`;
 
-                body.innerHTML = data.data.map(v => `
-                    <tr>
-                        <td><img src="${v.vehicle_image || placeholder}" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover;" onerror="this.src='${placeholder}'"></td>
-                        <td>
-                            <div style="font-weight:700; color:var(--primary-green-dark);">${v.registration_number}</div>
-                            <div style="font-size: 0.8rem; color:#666;">${v.model || 'Standard Truck'}</div>
-                        </td>
-                        <td>
-                            <div>${v.vehicle_type || 'N/A'}</div>
-                            <small style="color:#666;">Cap: ${v.capacity || 'Not set'}</small>
-                        </td>
-                        <td>
-                            <div style="font-weight: 500;">${v.driver_name || 'No Driver'}</div>
-                        </td>
-                        <td>
-                            <span class="badge" style="background: #e2e8f0; color: #475569;">${v.fuel_type || 'N/A'}</span>
-                        </td>
-                        <td>
-                            <span class="status-badge status-${v.status || 'active'}">${v.status || 'active'}</span>
-                        </td>
-                        <td>
-                            <div class="action-btns">
-                                <button class="btn-icon btn-edit" title="Edit Vehicle" onclick="app.openVehicleModal(${JSON.stringify(v).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon btn-delete" title="Delete Vehicle" onclick="app.handleDelete('vehicles', ${v.id}, '${v.registration_number}')"><i class="fas fa-trash"></i></button>
+                if (container) {
+                    if (data.data.length === 0) {
+                        container.innerHTML = `
+                            <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                                <i class="fas fa-truck-fade" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                                <p>No vehicles registered in your fleet yet.</p>
                             </div>
-                        </td>
-                    </tr>
-                `).join('') || '<tr><td colspan="7" class="text-center">No vehicles found</td></tr>';
+                        `;
+                    } else {
+                        container.innerHTML = data.data.map(v => {
+                            const statusClass = (v.status || 'active').toLowerCase();
+                            const statusIcon = statusClass === 'active' ? 'fa-check-circle' : (statusClass === 'maintenance' ? 'fa-tools' : 'fa-times-circle');
+
+                            return `
+                                <div class="log-card vehicle-premium-card" data-id="${v.id}">
+                                    <div class="status-strip ${statusClass === 'active' ? 'open' : 'closed'}" style="${statusClass === 'maintenance' ? 'background: #f1c40f;' : ''}"></div>
+                                    <div class="log-card-header" style="margin-bottom: 1rem;">
+                                        <div style="display: flex; gap: 15px; align-items: center;">
+                                            <div class="vehicle-img-wrapper" style="width: 60px; height: 60px; border-radius: 14px; overflow: hidden; border: 2px solid #f1f5f9; flex-shrink: 0;">
+                                                <img src="${v.vehicle_image || placeholder}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='${placeholder}'">
+                                            </div>
+                                            <div>
+                                                <div class="log-customer-name" style="font-size: 1.1rem; letter-spacing: -0.2px;">${v.registration_number}</div>
+                                                <div class="log-date" style="font-size: 0.75rem;">${v.model || 'Standard Unit'}</div>
+                                            </div>
+                                        </div>
+                                        <div class="log-status-badge ${statusClass === 'active' ? 'open' : 'closed'}" style="${statusClass === 'maintenance' ? 'background: rgba(241, 196, 15, 0.1); color: #d4ac0d;' : ''}">
+                                            <i class="fas ${statusIcon}"></i> ${v.status?.toUpperCase() || 'ACTIVE'}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="vehicle-specs-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem;">
+                                        <div class="spec-item" style="background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center;">
+                                            <span style="display: block; font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Type</span>
+                                            <span style="font-size: 0.85rem; font-weight: 700; color: #475569;">${v.vehicle_type || 'Truck'}</span>
+                                        </div>
+                                        <div class="spec-item" style="background: #f8fafc; padding: 10px; border-radius: 10px; text-align: center;">
+                                            <span style="display: block; font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Capacity</span>
+                                            <span style="font-size: 0.85rem; font-weight: 700; color: #475569;">${v.capacity || 'N/A'}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="log-route" style="width: 100%; display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: #475569;">
+                                                <i class="fas fa-user-tie"></i>
+                                            </div>
+                                            <span style="font-size: 0.85rem; font-weight: 600; color: #64748b;">${v.driver_name || 'No Pilot Assigned'}</span>
+                                        </div>
+                                        <div style="font-size: 0.75rem; font-weight: 700; color: #94a3b8;">
+                                            <i class="fas fa-gas-pump"></i> ${v.fuel_type || 'Diesel'}
+                                        </div>
+                                    </div>
+
+                                    <div class="log-footer" style="padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                                        <div class="log-user" style="font-size: 0.75rem;">
+                                            <i class="fas fa-map-marker-alt" style="color: var(--primary-green);"></i> ${v.current_location || 'Warehouse'}
+                                        </div>
+                                        <div class="action-btns">
+                                            ${this.hasPermission('vehicles', 'edit') ? `<button class="btn-icon btn-edit" title="Edit Vehicle" onclick="app.openVehicleModal(${JSON.stringify(v).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>` : ''}
+                                            ${this.hasPermission('vehicles', 'delete') ? `<button class="btn-icon btn-delete" title="Delete Vehicle" onclick="app.handleDelete('vehicles', ${v.id}, '${v.registration_number}')"><i class="fas fa-trash"></i></button>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        // GSAP Stagger
+                        if (window.gsap) {
+                            gsap.from("#vehicle-grid-container .log-card", {
+                                duration: 0.6,
+                                opacity: 0,
+                                y: 30,
+                                stagger: 0.08,
+                                ease: "power3.out"
+                            });
+                        }
+                    }
+                }
+
+                // Update Stats
+                this.updateVehicleStats(data.data);
             }
         } catch (err) {
             console.error('Error loading vehicles:', err);
         }
+    }
+
+    updateVehicleStats(vehicles) {
+        const stats = {
+            total: vehicles.length,
+            active: vehicles.filter(v => (v.status || 'active').toLowerCase() === 'active').length,
+            maintenance: vehicles.filter(v => (v.status || 'active').toLowerCase() === 'maintenance').length,
+            capacity: vehicles.reduce((sum, v) => sum + (parseFloat(v.capacity) || 0), 0)
+        };
+
+        const totalEl = document.getElementById('vehicle-stat-total');
+        const activeEl = document.getElementById('vehicle-stat-active');
+        const maintEl = document.getElementById('vehicle-stat-maintenance');
+        const capEl = document.getElementById('vehicle-stat-capacity');
+
+        if (totalEl) totalEl.textContent = stats.total;
+        if (activeEl) activeEl.textContent = stats.active;
+        if (maintEl) maintEl.textContent = stats.maintenance;
+        if (capEl) capEl.textContent = `${stats.capacity.toLocaleString()} KG`;
     }
 
     openVehicleModal(v = null) {
@@ -4860,7 +5239,7 @@ class AgroDistributionApp {
         }
 
         // Initial coordinates (Colombo, Sri Lanka center)
-        const center = [6.9271, 79.8612];
+        const center = [7.99125, 80.26873];
         this.distMap = L.map('distribution-map', {
             zoomControl: false,
             attributionControl: false
@@ -5230,13 +5609,18 @@ class AgroDistributionApp {
         const notes = itemData ? (itemData.notes || '') : '';
         const maxQty = itemData ? (itemData.max_qty || '') : '';
 
+        const batchNumber = itemData ? (itemData.batch_number || '') : '';
+        const priceId = itemData ? (itemData.price_id || '') : '';
+
         row.innerHTML = `
             <td>
+                <input type="hidden" class="rma-batch" value="${batchNumber}">
+                <input type="hidden" class="rma-price-id" value="${priceId}">
                 <select class="form-control rma-product-select" style="margin:0;" required onchange="app.updateRmaItemPrice(this)">
                     <option value="">Search Product...</option>
                     ${this.allProducts?.map(p => `<option value="${p.id}" data-price="${p.msrp}" ${p.id == productId ? 'selected' : ''}>${p.name}</option>`).join('')}
                 </select>
-                ${maxQty ? `<small style="color:var(--gray-500); display:block; font-size:0.7rem;">Invoice Qty: ${maxQty}</small>` : ''}
+                ${maxQty ? `<small style="color:var(--gray-500); display:block; font-size:0.7rem;">Invoice Qty: ${maxQty} | Batch: ${batchNumber || 'N/A'}</small>` : ''}
             </td>
             <td><input type="number" step="0.01" class="form-control rma-qty" value="${qty}" style="margin:0;" required oninput="app.updateRmaTotal()" ${maxQty ? `max="${maxQty}"` : ''}></td>
             <td><input type="number" step="0.01" class="form-control rma-price" value="${price}" style="margin:0;" required oninput="app.updateRmaTotal()"></td>
@@ -5416,11 +5800,11 @@ class AgroDistributionApp {
         if (val === 'truck') {
             container.style.display = 'block';
             select.innerHTML = '<option value="">Loading Loads...</option>';
-            const res = await this.apiCall('/api/distribution/loads?status=loaded,on_route');
+            const res = await this.apiCall('/api/distribution/active-loads');
             if (res && res.ok) {
                 const data = await res.json();
                 select.innerHTML = '<option value="">Select Active Load</option>' +
-                    data.data.map(l => `<option value="${l.id}">${l.truck_number} - ${l.route_name} (${this.parseDBDate(l.load_date).toLocaleDateString()})</option>`).join('');
+                    data.data.map(l => `<option value="${l.id}">${l.registration_number} - ${l.driver_name || 'No Driver'} (${this.parseDBDate(l.load_date).toLocaleDateString()})</option>`).join('');
             } else {
                 select.innerHTML = '<option value="">Failed to load</option>';
             }
@@ -5481,6 +5865,8 @@ class AgroDistributionApp {
                         quantity: 0, // Default to 0, user will enter how many they want to return
                         msrp: soldPrice,
                         max_qty: item.quantity,
+                        batch_number: item.batch_number,
+                        price_id: item.price_id || null,
                         notes: `From Invoice ${invoice.invoice_number}`
                     });
                 }
@@ -5520,7 +5906,9 @@ class AgroDistributionApp {
                     quantity: qty,
                     unit_price: parseFloat(row.querySelector('.rma-price').value),
                     reason: row.querySelector('.rma-reason').value,
-                    condition: row.querySelector('.rma-condition').value
+                    condition: row.querySelector('.rma-condition').value,
+                    batch_number: row.querySelector('.rma-batch')?.value || null,
+                    price_id: row.querySelector('.rma-price-id')?.value || null
                 });
             }
         });

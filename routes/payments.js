@@ -28,7 +28,10 @@ router.get('/', async (req, res) => {
         const filters = {
             customer_id: req.query.customer_id,
             date_from: req.query.date_from,
-            date_to: req.query.date_to
+            date_to: req.query.date_to,
+            search: req.query.search,
+            payment_method: req.query.payment_method,
+            receipt_category: req.query.receipt_category
         };
         const receipts = await paymentRepo.getAll(filters);
         res.json({ success: true, data: receipts });

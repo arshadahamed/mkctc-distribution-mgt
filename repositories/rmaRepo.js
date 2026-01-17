@@ -75,11 +75,12 @@ class RmaRepository {
             // Insert Items
             for (const item of data.items) {
                 const itemSql = `
-                    INSERT INTO rma_items (rma_id, product_id, quantity, unit_price, reason, condition)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    INSERT INTO rma_items (rma_id, product_id, quantity, unit_price, reason, condition, batch_number, price_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 await runQuery(itemSql, [
-                    rmaId, item.product_id, item.quantity, item.unit_price, item.reason, item.condition || 'damaged'
+                    rmaId, item.product_id, item.quantity, item.unit_price, item.reason, item.condition || 'damaged',
+                    item.batch_number || null, item.price_id || null
                 ]);
             }
 
@@ -92,22 +93,42 @@ class RmaRepository {
             const rma = await this.getById(id);
             if (!rma) throw new Error('RMA not found');
 
+            // Prevent double-processing if already completed
+            if (rma.status === 'completed' && status === 'completed') return true;
+
             // Update Header
             await runQuery('UPDATE rma_requests SET status = ? WHERE id = ?', [status, id]);
 
-            // If completed, update stock or ledger based on actionTaken
+            // If completed, update stock and customer financial state
             if (status === 'completed' && rma.items) {
                 for (const item of rma.items) {
                     await runQuery('UPDATE rma_items SET action_taken = ? WHERE id = ?', [actionTaken || 'scrapped', item.id]);
 
                     if (actionTaken === 'restocked') {
                         if (rma.load_id) {
-                            // If it was collected to a truck, add back to truck load items
-                            const existing = await getQuery('SELECT id FROM load_items WHERE load_id = ? AND product_id = ?', [rma.load_id, item.product_id]);
+                            // --- SELLABLE RETURN TO ACTIVE TRUCK ---
+                            // 1. Resolve price_id if missing (essential for POS visibility)
+                            let priceId = item.price_id;
+                            if (!priceId) {
+                                let priceRow;
+                                if (item.batch_number) {
+                                    priceRow = await getQuery('SELECT id FROM product_prices WHERE product_id = ? AND batch_number = ?', [item.product_id, item.batch_number]);
+                                }
+                                if (!priceRow) {
+                                    priceRow = await getQuery('SELECT id FROM product_prices WHERE product_id = ? AND is_primary = 1', [item.product_id]);
+                                }
+                                priceId = priceRow?.id;
+                            }
+
+                            // 2. Add to load_items (Active Truck Stock)
+                            const existing = await getQuery('SELECT id FROM load_items WHERE load_id = ? AND product_id = ? AND (price_id = ? OR (price_id IS NULL AND ? IS NULL))',
+                                [rma.load_id, item.product_id, priceId, priceId]);
+
                             if (existing) {
                                 await runQuery('UPDATE load_items SET quantity_loaded = quantity_loaded + ? WHERE id = ?', [item.quantity, existing.id]);
                             } else {
-                                await runQuery('INSERT INTO load_items (load_id, product_id, quantity_loaded) VALUES (?, ?, ?)', [rma.load_id, item.product_id, item.quantity]);
+                                await runQuery('INSERT INTO load_items (load_id, product_id, price_id, batch_number, quantity_loaded) VALUES (?, ?, ?, ?, ?)',
+                                    [rma.load_id, item.product_id, priceId, item.batch_number, item.quantity]);
                             }
                         } else {
                             // Standard restock to warehouse
@@ -121,6 +142,18 @@ class RmaRepository {
                         `, [item.product_id, item.id, item.quantity, 'damage', `RMA ${rma.rma_number}: ${actionTaken}`]);
                     }
                 }
+
+                // --- FINANCIAL ADJUSTMENT ---
+                // 1. Update Customer Balance (Subtraction because RMA reduces debt)
+                const customerRepo = require('./customerRepo');
+                await customerRepo.updateBalance(rma.customer_id, -rma.total_value);
+
+                // 2. Create Receipt Entry (Category 'collection' decreases balance in payment logic)
+                const creditNoteRef = `CRN-${rma.rma_number.split('-').pop()}`;
+                await runQuery(`
+                    INSERT INTO receipts (receipt_number, receipt_date, customer_id, amount, payment_type, receiver_name, collected_by, receipt_category)
+                    VALUES (?, ?, ?, ?, 'account', 'RMA Settlement', ?, 'collection')
+                `, [creditNoteRef, new Date().toISOString().split('T')[0], rma.customer_id, rma.total_value, adminId]);
             }
             return true;
         });

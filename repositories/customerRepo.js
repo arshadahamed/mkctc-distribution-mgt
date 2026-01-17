@@ -137,9 +137,22 @@ class CustomerRepository {
             FROM receipts 
             WHERE customer_id = ?
 
+            UNION ALL
+
+            SELECT 
+                cd.cheque_date as date, 
+                cd.cheque_number as reference, 
+                'Returned Cheque' as type, 
+                cd.amount as debit, 
+                0 as credit
+            FROM cheque_details cd
+            LEFT JOIN receipts r ON cd.receipt_id = r.id
+            LEFT JOIN invoices i ON cd.invoice_id = i.id
+            WHERE COALESCE(r.customer_id, i.customer_id) = ? AND cd.status = 'Returned'
+
             ORDER BY date ASC
         `;
-        return await allQuery(sql, [customerId, customerId]);
+        return await allQuery(sql, [customerId, customerId, customerId]);
     }
 }
 

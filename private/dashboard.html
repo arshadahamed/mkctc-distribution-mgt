@@ -1869,7 +1869,79 @@
                 </div>
             </div>
 
-            <!-- Generic Master Data View (Categories, Brands, Units) -->
+            <!-- Delivery Routes View -->
+            <div id="routes-view" class="view-content" style="display: none;">
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Delivery Network</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-route"></i> Define and optimize your
+                                distribution reach.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openRouteModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Create New Route
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routes KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-road"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Routes</span>
+                            <h4 class="v-value" id="route-stat-total">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-users"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Mapped Customers</span>
+                            <h4 class="v-value" id="route-stat-customers">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;"><i
+                                class="fas fa-star"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Most Populated</span>
+                            <h4 class="v-value" id="route-stat-top" style="font-size: 1rem;">N/A</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="route-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search routes by name or description..." onkeyup="app.loadRoutes()">
+                        </div>
+                        <button class="btn btn-secondary" onclick="app.loadRoutes()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Routes Grid -->
+                <div id="route-grid-container" class="visit-grid">
+                    <!-- Cards injected via JS -->
+                </div>
+            </div>
+
             <div id="master-view" class="view-content" style="display: none;">
                 <div class="card">
                     <div class="card-header"
@@ -2206,30 +2278,111 @@
             </div>
 
             <!-- Payments View -->
+            <!-- Collections & Payments View -->
             <div id="payments-view" class="view-content" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Collections & Payments</h3>
-                        <button class="btn btn-primary" id="add-payment-btn"><i class="fas fa-plus"></i> Record
-                            Payment</button>
+                <!-- Premium Payments Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Financial Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-wallet"></i> Tracking all inbound
+                                collections and credit adjustments.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openPaymentModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Record Payment
+                            </button>
+                        </div>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Ref #</th>
-                                    <th>Date</th>
-                                    <th>Customer</th>
-                                    <th>Category</th>
-                                    <th>Method</th>
-                                    <th>Amount</th>
-                                    <th>Collected By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="payment-table-body"></tbody>
-                        </table>
+                </div>
+
+                <!-- Payment KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-hand-holding-usd"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Collected</span>
+                            <h4 class="v-value" id="pay-stat-total" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
                     </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i
+                                class="fas fa-undo"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Returns</span>
+                            <h4 class="v-value" id="pay-stat-returns" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-money-bill-wave"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Cash Flow</span>
+                            <h4 class="v-value" id="pay-stat-cash" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(243, 156, 18, 0.1); color: #f39c12;"><i
+                                class="fas fa-money-check"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Cheque Deposits</span>
+                            <h4 class="v-value" id="pay-stat-cheque" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modern Filter Bar -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-input-wrapper" style="flex: 1; min-width: 250px; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="payment-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by Receipt # or Customer..." onkeyup="app.loadPayments()">
+                        </div>
+                        <select id="payment-method-filter" class="form-control"
+                            style="width: 150px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadPayments()">
+                            <option value="">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+                        <select id="payment-cat-filter" class="form-control"
+                            style="width: 150px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadPayments()">
+                            <option value="">All Categories</option>
+                            <option value="collection">Collection</option>
+                            <option value="return">Return</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="app.loadPayments()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Grid -->
+                <div id="payment-grid-container" class="visit-grid">
+                    <!-- Cards will be injected via JS -->
+                    <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Synchronizing financial records...</p>
+                    </div>
+                </div>
+
+                <!-- Fallback Table (Hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="payment-table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -2278,53 +2431,117 @@
 
             <!-- Shop Visits View -->
             <div id="visits-view" class="view-content" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
-                            <h3 class="card-title" style="margin:0;">Shop Visit Logs</h3>
-                            <input type="text" id="visit-search" class="form-control" style="width: 200px; margin:0;"
-                                placeholder="Search customer..." onkeyup="app.loadVisits()">
-                            <input type="date" id="visit-date-from" class="form-control" style="width: 140px; margin:0;"
-                                onchange="app.loadVisits()">
-                            <span style="color:var(--gray-500)">to</span>
-                            <input type="date" id="visit-date-to" class="form-control" style="width: 140px; margin:0;"
-                                onchange="app.loadVisits()">
-                            <select id="visit-route-filter" class="form-control" style="width: 150px; margin:0;"
-                                onchange="app.loadVisits()">
-                                <option value="">All Routes</option>
-                            </select>
-                            <select id="visit-status-filter" class="form-control" style="width: 130px; margin:0;"
-                                onchange="app.loadVisits()">
-                                <option value="">All Status</option>
-                                <option value="open">Open</option>
-                                <option value="closed">Closed</option>
-                            </select>
+                <!-- Premium Visit Logs Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Shop Visit Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-map-marker-alt"></i> Tracking field team
+                                activity and shop availability.</p>
                         </div>
-                        <div style="display:flex; gap: 10px;">
-                            <button class="btn btn-secondary" onclick="app.resetVisitFilters()">
-                                <i class="fas fa-sync"></i> Refresh
-                            </button>
-                            <button class="btn btn-primary" id="add-visit-btn" onclick="app.openVisitModal()">
-                                <i class="fas fa-plus"></i> Log Visit
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openVisitModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> New Visit Log
                             </button>
                         </div>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Customer</th>
-                                    <th>Route</th>
-                                    <th>Status</th>
-                                    <th>Remarks</th>
-                                    <th>Visited By</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="visit-table-body"></tbody>
-                        </table>
+                </div>
+
+                <!-- Visit KPIs Row -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;"
+                    id="visit-kpi-row">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-calendar-check"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Visits Today</span>
+                            <h4 class="v-value" id="visit-stat-today">0</h4>
+                        </div>
                     </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;"><i
+                                class="fas fa-store"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Open Shops</span>
+                            <h4 class="v-value" id="visit-stat-open">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c;"><i
+                                class="fas fa-store-slash"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Closed Shops</span>
+                            <h4 class="v-value" id="visit-stat-closed">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-route"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Routes Covered</span>
+                            <h4 class="v-value" id="visit-stat-routes">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modern Filter Bar -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-input-wrapper" style="flex: 1; min-width: 250px; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="visit-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by customer or remarks..." onkeyup="app.loadVisits()">
+                        </div>
+                        <div
+                            style="display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 5px; border-radius: 14px; border: 1px solid #edf2f7;">
+                            <input type="date" id="visit-date-from" class="form-control-minimal"
+                                style="width: 130px; border: none; background: transparent; font-weight: 600;"
+                                onchange="app.loadVisits()">
+                            <span style="color:var(--gray-400); font-weight: 700; font-size: 0.8rem;">TO</span>
+                            <input type="date" id="visit-date-to" class="form-control-minimal"
+                                style="width: 130px; border: none; background: transparent; font-weight: 600;"
+                                onchange="app.loadVisits()">
+                        </div>
+                        <select id="visit-route-filter" class="form-control"
+                            style="width: 180px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadVisits()">
+                            <option value="">All Routes</option>
+                        </select>
+                        <select id="visit-status-filter" class="form-control"
+                            style="width: 140px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadVisits()">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="app.resetVisitFilters()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Visit Logs Grid -->
+                <div id="visit-grid-container" class="visit-grid">
+                    <!-- Cards will be injected here -->
+                    <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Loading your visit logs...</p>
+                    </div>
+                </div>
+
+                <!-- Fallback Table (initially hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="visit-table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -2541,33 +2758,91 @@
 
             <!-- Vehicle Management View -->
             <div id="vehicles-view" class="view-content" style="display: none;">
-                <div class="card">
-                    <div class="card-header">
-                        <div style="display: flex; gap: var(--spacing-md); align-items: center;">
-                            <h3 class="card-title">Vehicle & Fleet Management</h3>
-                            <input type="text" id="vehicle-search" placeholder="Search by plate number or driver..."
-                                class="form-control" style="width: 300px; margin-bottom: 0;"
-                                onkeyup="app.loadVehicles()">
+                <!-- Premium Fleet Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Fleet Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-truck"></i> Manage and track your
+                                logistics assets in real-time.</p>
                         </div>
-                        <button class="btn btn-primary" id="add-vehicle-btn" onclick="app.openVehicleModal()"><i
-                                class="fas fa-plus"></i> Add Vehicle</button>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openVehicleModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Register Vehicle
+                            </button>
+                        </div>
                     </div>
-                    <div class="table-container">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Image</th>
-                                    <th>Vehicle Details</th>
-                                    <th>Type & Capacity</th>
-                                    <th>Driver</th>
-                                    <th>Fuel Info</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vehicle-table-body"></tbody>
-                        </table>
+                </div>
+
+                <!-- Fleet KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-truck-moving"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Fleet</span>
+                            <h4 class="v-value" id="vehicle-stat-total">0</h4>
+                        </div>
                     </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-check-circle"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Active Units</span>
+                            <h4 class="v-value" id="vehicle-stat-active">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;"><i
+                                class="fas fa-tools"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Maintenance</span>
+                            <h4 class="v-value" id="vehicle-stat-maintenance">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;"><i
+                                class="fas fa-weight-hanging"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Capacity</span>
+                            <h4 class="v-value" id="vehicle-stat-capacity" style="font-size: 1.2rem;">0 KG</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="vehicle-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by registration number, driver, or model..."
+                                onkeyup="app.loadVehicles(this.value)">
+                        </div>
+                        <button class="btn btn-secondary" onclick="app.loadVehicles()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vehicle Grid -->
+                <div id="vehicle-grid-container" class="visit-grid">
+                    <!-- Dynamic cards will be injected here -->
+                </div>
+
+                <!-- Fallback Table (Hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="vehicle-table-body"></tbody>
+                    </table>
                 </div>
             </div>
 
@@ -5046,7 +5321,48 @@
         </div>
     </div>
 
-    <!-- User Modal -->
+    <!-- Route Modal -->
+    <div class="modal-overlay" id="route-modal">
+        <div class="modal" style="max-width: 450px; border-radius: 24px; overflow: hidden;">
+            <div class="modal-header"
+                style="background: linear-gradient(135deg, var(--primary-green-dark) 0%, var(--primary-green) 100%); color: white; padding: 1.5rem 2rem;">
+                <h3 class="modal-title" id="route-modal-title"
+                    style="color: white; font-weight: 800; letter-spacing: -0.5px;">Add New Route</h3>
+                <button class="close-modal"
+                    style="color: white; opacity: 0.8; background: rgba(255,255,255,0.1); border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="route-form" onsubmit="app.handleRouteSubmit(event)">
+                <div class="modal-body" style="padding: 2rem;">
+                    <input type="hidden" id="route-id">
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label class="form-label"
+                            style="font-weight: 700; color: var(--gray-700); margin-bottom: 0.5rem; display: block;">Route
+                            Name</label>
+                        <input type="text" id="route-name" class="form-control"
+                            placeholder="e.g., North Western Cluster A" required
+                            style="height: 48px; border-radius: 12px; border: 1px solid var(--gray-200); padding: 0 1rem; font-weight: 600;">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"
+                            style="font-weight: 700; color: var(--gray-700); margin-bottom: 0.5rem; display: block;">Description</label>
+                        <textarea id="route-description" class="form-control" rows="3"
+                            placeholder="Optional details about this route..."
+                            style="border-radius: 12px; border: 1px solid var(--gray-200); padding: 1rem; font-weight: 500;"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer"
+                    style="padding: 1.5rem 2rem; background: #f8fafc; border-top: 1px solid #edf2f7; display: flex; gap: 1rem;">
+                    <button type="button" class="btn btn-secondary close-modal"
+                        style="flex: 1; height: 48px; border-radius: 12px; font-weight: 700;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="route-save-btn"
+                        style="flex: 2; height: 48px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 10px rgba(46, 125, 50, 0.2);">Save
+                        Route</button>
+                </div>
+            </form>
+        </div>
+    </div>
     <div class="modal-overlay" id="admin-user-modal-overlay">
         <div class="modal" id="admin-user-modal" style="max-width: 800px;">
             <div class="modal-header">

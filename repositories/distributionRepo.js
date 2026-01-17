@@ -184,8 +184,15 @@ class DistributionRepository {
         }
 
         if (filters.status) {
-            sql += ` AND tl.status = ?`;
-            params.push(filters.status);
+            if (filters.status.includes(',')) {
+                const statuses = filters.status.split(',');
+                const placeholders = statuses.map(() => '?').join(',');
+                sql += ` AND tl.status IN (${placeholders})`;
+                params.push(...statuses);
+            } else {
+                sql += ` AND tl.status = ?`;
+                params.push(filters.status);
+            }
         }
 
         sql += ` ORDER BY tl.load_date DESC`;
