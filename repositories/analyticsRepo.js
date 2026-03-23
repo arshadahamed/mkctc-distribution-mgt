@@ -174,13 +174,13 @@ class AnalyticsRepository {
         // 1. Customer Metrics (LTV, Credit Usage, Activity)
         const metrics = await allQuery(`
             SELECT 
-                c.id, c.name, c.balance, c.credit_limit,
+                c.id, c.name, c.account_balance as balance, c.credit_limit,
                 COUNT(i.id) as period_orders,
                 SUM(i.net_total) as period_spend,
                 (SELECT SUM(net_total) FROM invoices WHERE customer_id = c.id AND status = 'completed') as lifetime_value,
                 MAX(i.invoice_date) as last_purchase,
                 MIN(i.invoice_date) as first_purchase,
-                (c.balance / NULLIF(c.credit_limit, 0)) * 100 as credit_usage_percent
+                (c.account_balance / NULLIF(c.credit_limit, 0)) * 100 as credit_usage_percent
             FROM customers c
             LEFT JOIN invoices i ON c.id = i.customer_id AND i.status = 'completed' AND i.invoice_date BETWEEN ? AND ?
             WHERE c.status != 'deleted'
@@ -208,11 +208,11 @@ class AnalyticsRepository {
         // 3. Outstanding Summary
         const outstanding = await getQuery(`
             SELECT 
-                SUM(balance) as total_outstanding,
-                COUNT(CASE WHEN balance > credit_limit THEN 1 END) as over_limit_count,
-                SUM(CASE WHEN balance > credit_limit THEN balance - credit_limit ELSE 0 END) as over_limit_amount
+                SUM(account_balance) as total_outstanding,
+                COUNT(CASE WHEN account_balance > credit_limit THEN 1 END) as over_limit_count,
+                SUM(CASE WHEN account_balance > credit_limit THEN account_balance - credit_limit ELSE 0 END) as over_limit_amount
             FROM customers
-            WHERE balance > 0 AND status != 'deleted'
+            WHERE account_balance > 0 AND status != 'deleted'
         `);
 
         return {
@@ -446,3 +446,5 @@ class AnalyticsRepository {
 }
 
 module.exports = new AnalyticsRepository();
+
+// Trigger restart for schema update

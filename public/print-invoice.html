@@ -9,6 +9,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
     <style>
         :root {
             /* Defaults (Classic) */
@@ -261,17 +262,21 @@
         body.format-pos {
             background: #fff;
             padding: 0;
-            margin: 0;
-            width: 80mm;
+            margin: 0 auto;
+            width: 70mm;
+            /* 7cm as requested */
             font-family: Arial, Helvetica, sans-serif !important;
         }
 
         body.format-pos .invoice-wrapper {
-            width: 80mm;
-            padding: 4mm;
+            width: 70mm;
+            /* 7cm */
+            padding: 4mm 6mm;
+            /* Adjusted for 7cm print area */
             min-height: auto;
             border: none;
-            margin: 0;
+            margin: 0 auto;
+            box-sizing: border-box;
         }
 
         body.format-pos .header-main {
@@ -288,7 +293,8 @@
         }
 
         body.format-pos .company-branding h1 {
-            font-size: 20px;
+            font-size: 24px;
+            /* Scaled up */
             letter-spacing: 0;
             margin-bottom: 5px;
             font-weight: 900;
@@ -314,7 +320,8 @@
 
         body.format-pos .meta-row {
             justify-content: center;
-            font-size: 13px;
+            font-size: 14px;
+            /* Scaled up */
             gap: 12px;
             font-weight: 800;
         }
@@ -379,13 +386,8 @@
         }
 
         body.format-pos .terms-conditions {
-            width: 100%;
-            margin-top: 15px;
-            order: 2;
-            text-align: center;
-            font-size: 11px;
-            line-height: 1.4;
-            font-weight: 700;
+            display: none;
+            /* Removed from POS bill as requested */
         }
 
         body.format-pos .terms-conditions h4 {
@@ -439,14 +441,15 @@
         }
 
         body.format-pos .duplicate-tag {
-            right: 5mm;
+            right: 2mm;
             font-size: 10px;
             padding: 2px 8px;
         }
 
         @media print {
             body.format-pos {
-                width: 80mm;
+                width: 70mm;
+                /* 7cm */
             }
         }
 
@@ -830,7 +833,16 @@
             </div>
         </div>
 
-        <div
+        <div id="pos-thank-you"
+            style="display: none; text-align: center; margin-top: 20px; border-top: 2px dashed #000; padding-top: 15px;">
+            <div id="pos-barcode-container" style="margin-bottom: 10px;">
+                <svg id="barcode-pos-inv"></svg>
+            </div>
+            <p style="font-size: 14px; font-weight: 900; margin: 0; text-transform: uppercase;">*** Thank You! ***</p>
+            <p style="font-size: 12px; font-weight: 700; margin-top: 5px;">We Appreciate Your Business</p>
+        </div>
+
+        <div id="a4-thank-you"
             style="text-align: center; margin-top: 50px; font-size: 11px; font-weight: 700; border-top: 1px dotted #000; padding-top: 10px;">
             *** Thank You for Your Valued Business! ***
         </div>
@@ -895,9 +907,13 @@
                     // Priority: URL param (preview) > Database Setting > Default
                     const template = (isPreview && previewTemplate) ? previewTemplate : (compData ? (compData.invoice_template || 'premium') : 'premium');
 
-                    if (format !== 'pos') {
+                    if (format === 'pos') {
+                        document.getElementById('a4-thank-you').style.display = 'none';
+                        document.getElementById('pos-thank-you').style.display = 'block';
+                    } else {
                         wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom', 'template-premium');
                         wrapper.classList.add(`template-${template}`);
+                        document.getElementById('pos-thank-you').style.display = 'none';
                     }
 
                     // Data
@@ -1004,20 +1020,19 @@
                 if (format === 'pos') {
                     tbody.innerHTML = inv.items.map((it, idx) => `
                         <tr>
-                            <td colspan="6" style="padding: 10px 0;">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px;">
-                                    <div style="font-weight: 800; font-size: 14px; color: var(--ink); flex: 1; padding-right: 15px;">
-                                        ${it.product_name} ${it.is_free ? '<span style="color:red; font-size:10px;">(FREE ISSUE)</span>' : ''}
+                            <td colspan="6" style="padding: 12px 0; border-bottom: 1px dotted #000;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+                                    <div style="font-weight: 800; font-size: 16px; color: var(--ink); flex: 1; padding-right: 15px; line-height: 1.2;">
+                                        ${it.product_name} ${it.is_free ? '<span style="color:red; font-size:11px;">(FREE ISSUE)</span>' : ''}
                                     </div>
-                                    <div style="font-weight: 900; font-size: 14px; white-space: nowrap;">
+                                    <div style="font-weight: 900; font-size: 16px; white-space: nowrap;">
                                         ${it.is_free ? '0.00' : it.line_total.toFixed(2)}
                                     </div>
                                 </div>
-                                <div style="display: flex; gap: 10px; font-size: 12px; font-weight: 800; color: #000;">
+                                <div style="display: flex; gap: 12px; font-size: 13px; font-weight: 800; color: #000;">
                                     <span>${it.quantity} ${it.unit || 'unit'}</span>
                                     <span>@ ${it.msrp.toFixed(2)}</span>
                                     ${it.discount_percentage > 0 ? `<span>(DISC: ${it.discount_percentage}%)</span>` : ''}
-                                    ${it.is_free ? '<b style="color:var(--primary-color)">[ FREE ]</b>' : ''}
                                 </div>
                             </td>
                         </tr>
@@ -1045,6 +1060,23 @@
                 document.getElementById('txt-subtotal').textContent = subTotalCalculated.toLocaleString(undefined, { minimumFractionDigits: 2 });
                 document.getElementById('txt-discount').textContent = savings > 0 ? '-' + savings.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
                 document.getElementById('txt-total').textContent = inv.net_total.toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+                // 7. Generate Barcode for POS
+                if (format === 'pos') {
+                    try {
+                        JsBarcode("#barcode-pos-inv", inv.invoice_number, {
+                            format: "CODE128",
+                            width: 1.5,
+                            height: 40,
+                            displayValue: true,
+                            fontSize: 12,
+                            fontOptions: "bold",
+                            margin: 10
+                        });
+                    } catch (e) {
+                        console.warn("Barcode generation failed:", e);
+                    }
+                }
 
                 // Auto-trigger print
                 setTimeout(() => window.print(), 1000);

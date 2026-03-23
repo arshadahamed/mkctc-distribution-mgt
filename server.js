@@ -85,6 +85,17 @@ app.get('/dashboard', isAuthenticated, (req, res) => {
     res.sendFile(path.join(__dirname, 'private', 'dashboard.html'));
 });
 
+// Serve view templates lazily
+app.get('/api/views/:viewName', isAuthenticated, (req, res) => {
+    const viewName = req.params.viewName;
+    const viewPath = path.join(__dirname, 'private', 'views', `${viewName}.html`);
+    if (fs.existsSync(viewPath)) {
+        res.sendFile(viewPath);
+    } else {
+        res.status(404).send('View not found');
+    }
+});
+
 // Support SPA clean URLs (e.g. /admin/products)
 app.get(['/admin/*', '/employee/*'], isAuthenticated, (req, res) => {
     // Prevent caching to avoid back-button access after logout
@@ -117,3 +128,5 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+// Force server restart for repository updates

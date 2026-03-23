@@ -1025,24 +1025,7 @@ class AgroDistributionApp {
         let touchStartX = 0;
         let touchEndX = 0;
 
-        // POS Event Listeners (Restored)
-        document.getElementById('pos-product-search')?.addEventListener('input', (e) => {
-            if (this.posState.products) {
-                this.renderProductTiles(this.filterPOSProducts(e.target.value));
-            }
-        });
-
-        document.getElementById('pos-load-selector')?.addEventListener('change', async (e) => {
-            const loadId = e.target.value;
-            if (loadId) {
-                this.posState.selectedLoadId = loadId;
-                await this.loadTruckStock(loadId);
-            } else {
-                this.posState.selectedLoadId = null;
-                this.posState.products = [];
-                this.renderProductTiles([]);
-            }
-        });
+        // POS Event Listeners - Moved to loadSalesPOS to handle lazy loading
 
         // Customer Intelligence Search
         document.getElementById('ci-table-search')?.addEventListener('input', (e) => {
@@ -1278,6 +1261,47 @@ class AgroDistributionApp {
         if (!targetView && ['categories', 'brands', 'units', 'sizes', 'routes', 'price-levels'].includes(page)) targetView = document.getElementById('master-view');
 
         if (targetView) {
+            // Lazy load HTML template if empty or only contains a placeholder comment
+            const isLoaded = targetView.children.length > 0 || (targetView.innerHTML.trim() !== '' && !targetView.innerHTML.includes('<!--'));
+            if (!isLoaded) {
+                // Show a subtle loading indicator
+                targetView.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 300px; color: var(--gray-400);">
+                        <div class="loading-spinner"></div>
+                        <p style="margin-top: 15px; font-weight: 500;">Loading content...</p>
+                    </div>
+                `;
+                targetView.style.display = 'block';
+
+                try {
+                    const viewToFetch = ['categories', 'brands', 'units', 'sizes', 'routes', 'price-levels'].includes(page) ? 'master' : page;
+                    console.log(`Lazy loading view: ${viewToFetch}`);
+                    const response = await fetch(`/api/views/${viewToFetch}`);
+                    if (!response.ok) throw new Error(`Failed to load view: ${viewToFetch}`);
+                    const html = await response.text();
+
+                    // If the fetched content is a full <div id="...-view">...</div>, extract the innerHTML
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const innerView = tempDiv.querySelector('.view-content');
+                    if (innerView) {
+                        targetView.innerHTML = innerView.innerHTML;
+                    } else {
+                        targetView.innerHTML = html;
+                    }
+
+                    // Execute any scripts found in the template
+                    this.executeScripts(targetView);
+                } catch (err) {
+                    console.error('Lazy Loading Error:', err);
+                    targetView.innerHTML = `
+                        <div class="alert alert-error" style="margin: 20px; border-radius: 12px;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>Error:</strong> Could not load view content. Please try refreshing the page.
+                        </div>
+                    `;
+                }
+            }
             targetView.style.display = 'block';
             await this.loadView(page);
 
@@ -1345,10 +1369,50 @@ class AgroDistributionApp {
         }
     }
 
+    async loadScript(src) {
+        if (document.querySelector(`script[src="${src}"]`)) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    async loadStyle(href) {
+        if (document.querySelector(`link[href="${href}"]`)) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = resolve;
+            link.onerror = reject;
+            document.head.appendChild(link);
+        });
+    }
+
+    executeScripts(container) {
+        const scripts = container.querySelectorAll('script');
+        scripts.forEach(oldScript => {
+            const newScript = document.createElement('script');
+            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+            newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+            oldScript.parentNode.replaceChild(newScript, oldScript);
+        });
+    }
+
     async loadView(view) {
         const loaders = {
-            dashboard: () => this.loadDashboardData().then(() => this.initializeCharts()),
-            products: () => this.loadProducts(),
+            dashboard: async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+                await this.loadDashboardData();
+                this.initializeCharts();
+            },
+            products: async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js');
+                await this.loadProducts();
+            },
             customers: () => this.loadCustomers(),
             suppliers: () => this.loadSuppliers(),
             categories: () => this.loadMasterData('categories'),
@@ -1356,6 +1420,7 @@ class AgroDistributionApp {
             units: () => this.loadMasterData('units'),
             routes: () => this.loadRoutes(),
             'price-levels': () => this.loadMasterData('price-levels'),
+            'grn': () => this.loadGrnData(),
             payments: () => this.loadPayments(),
             visits: () => { this.loadVisits(); this.loadVisitFilters(); },
             settings: () => this.loadSettings(),
@@ -1365,17 +1430,45 @@ class AgroDistributionApp {
             vehicles: () => this.loadVehicles(),
             expenses: () => this.loadExpenses(),
             distribution: () => this.loadDistributionData(),
-            sales: () => this.loadSalesPOS(),
+            sales: async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js');
+                await this.loadSalesPOS();
+            },
             'sales-history': () => this.loadSalesHistory(),
             'pre-orders': () => this.loadPreOrders(),
             'banking-cheques': () => this.loadBankingCheques(),
-            reports: () => this.initReportsView(),
-            'customer-intelligence': () => this.initCustomerIntelligenceView(),
-            'inventory-intelligence': () => this.initInventoryIntelligenceView(),
-            'demand-forecast': () => this.initDemandForecastingView(),
-            'report-center': () => this.initReportCenterView(),
+            reports: async () => {
+                await Promise.all([
+                    this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'),
+                    this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+                    this.loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js')
+                ]);
+                this.initReportsView();
+            },
+            'customer-intelligence': async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+                this.initCustomerIntelligenceView();
+            },
+            'inventory-intelligence': async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+                this.initInventoryIntelligenceView();
+            },
+            'demand-forecast': async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+                this.initDemandForecastingView();
+            },
+            'report-center': async () => {
+                await this.loadScript('https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js');
+                this.initReportCenterView();
+            },
             rma: () => this.loadRmaData(),
-            'customer-map': () => this.loadCustomerMap()
+            'customer-map': async () => {
+                await Promise.all([
+                    this.loadStyle('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'),
+                    this.loadScript('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js')
+                ]);
+                this.loadCustomerMap();
+            }
         };
         if (loaders[view]) await loaders[view]();
     }
@@ -1462,7 +1555,7 @@ class AgroDistributionApp {
             const rowDiscountInput = row.querySelector('.price-discount');
             let discount = rowDiscountInput ? parseFloat(rowDiscountInput.value) : globalDiscount;
 
-            // If row discount is 0 and global is not, maybe use global? 
+            // If row discount is 0 and global is not, maybe use global?
             // Better to just use what's in the row, defaulting to 0 if not provided.
             if (rowDiscountInput && rowDiscountInput.value === "" && globalDiscount > 0) {
                 discount = globalDiscount;
@@ -2027,6 +2120,144 @@ class AgroDistributionApp {
         }
     }
 
+    // --- GRN LOGIC ---
+    async loadGrnData() {
+        // Implement logic to fetch and display GRN list
+        // For MVP, just show placeholder or fetch empty list
+        const searchVal = document.getElementById('grn-search')?.value || '';
+        const limit = document.getElementById('grn-limit')?.value || 20;
+        const page = this.grnPage || 1;
+
+        // Construct URL with query params
+        // let url = `/api/grn?page=${page}&limit=${limit}`; 
+        // if (searchVal) url += `&search=${searchVal}`;
+
+        // const res = await this.apiCall(url);
+        // const data = await res.json();
+        // ... Render table rows ...
+        console.log('Loading GRN Data... (Not fully implemented)');
+
+        // --- Temporary Placeholder ---
+        const tbody = document.getElementById('grn-table-body');
+        if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="text-center">No GRN records found (Endpoint pending)</td></tr>`;
+    }
+
+    changeGrnPage(delta) {
+        this.grnPage = (this.grnPage || 1) + delta;
+        if (this.grnPage < 1) this.grnPage = 1;
+        this.loadGrnData();
+    }
+
+    async openGrnModal() {
+        const modal = document.getElementById('grn-modal');
+        const form = document.getElementById('grn-form');
+        if (!modal || !form) return;
+
+        form.reset();
+        document.getElementById('grn-items-body').innerHTML = '';
+        document.getElementById('grn-total-amount').textContent = 'LKR 0.00';
+
+        // Set today's date
+        document.getElementById('grn-date').valueAsDate = new Date();
+
+        // Load Suppliers
+        const supSelect = document.getElementById('grn-supplier');
+        if (supSelect) {
+            supSelect.innerHTML = '<option value="">Loading...</option>';
+            const res = await this.apiCall('/api/suppliers'); // Assuming this endpoint returns all for dropdown
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.success) {
+                    supSelect.innerHTML = '<option value="">Select Supplier</option>' +
+                        data.data.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                }
+            }
+        }
+
+        modal.classList.add('active');
+    }
+
+    async searchGrnProducts(query) {
+        const resultsDiv = document.getElementById('grn-search-results');
+        if (!query || query.length < 2) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        // Reuse product search API
+        const res = await this.apiCall(`/api/products?search=${encodeURIComponent(query)}&limit=10`);
+        if (!res) return;
+        const data = await res.json();
+
+        if (data.success && data.data.length > 0) {
+            resultsDiv.innerHTML = data.data.map(p => `
+                <div class="search-result-item" onclick='app.addGrnItem(${JSON.stringify(p).replace(/'/g, "&apos;")})'>
+                    <div style="font-weight:600;">${p.name}</div>
+                    <div style="font-size:0.8rem; color:#666;">Code: ${p.reference_code || '-'} | Stock: ${p.stock_quantity || 0}</div>
+                </div>
+            `).join('');
+            resultsDiv.style.display = 'block';
+        } else {
+            resultsDiv.style.display = 'none';
+        }
+    }
+
+    addGrnItem(product) {
+        const tbody = document.getElementById('grn-items-body');
+        const rowId = 'grn-row-' + Date.now();
+
+        const tr = document.createElement('tr');
+        tr.id = rowId;
+        tr.innerHTML = `
+            <td>
+                <div style="font-weight:600;">${product.name}</div>
+                <input type="hidden" class="grn-item-id" value="${product.id}">
+            </td>
+            <td>
+                <input type="number" class="form-control grn-cost" style="margin-bottom:0; width:100px;" 
+                    value="${product.cost || 0}" step="0.01" oninput="app.calcGrnRowTotal('${rowId}')">
+            </td>
+            <td>
+                <input type="number" class="form-control grn-qty" style="margin-bottom:0; width:100px;" 
+                    value="1" min="1" oninput="app.calcGrnRowTotal('${rowId}')">
+            </td>
+            <td>
+                <div class="grn-row-total" style="font-weight:600;">${(product.cost || 0).toFixed(2)}</div>
+            </td>
+            <td>
+                <input type="date" class="form-control grn-expiry" style="margin-bottom:0; width:130px;">
+            </td>
+            <td>
+                <button type="button" class="btn-icon btn-delete" onclick="this.closest('tr').remove(); app.calcGrnTotal();">
+                    <i class="fas fa-times"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+        document.getElementById('grn-search-results').style.display = 'none';
+        document.getElementById('grn-product-search').value = '';
+        this.calcGrnTotal();
+    }
+
+    calcGrnRowTotal(rowId) {
+        const row = document.getElementById(rowId);
+        const cost = parseFloat(row.querySelector('.grn-cost').value) || 0;
+        const qty = parseFloat(row.querySelector('.grn-qty').value) || 0;
+        row.querySelector('.grn-row-total').textContent = (cost * qty).toFixed(2);
+        this.calcGrnTotal();
+    }
+
+    calcGrnTotal() {
+        let total = 0;
+        document.querySelectorAll('#grn-items-body tr').forEach(row => {
+            const cost = parseFloat(row.querySelector('.grn-cost').value) || 0;
+            const qty = parseFloat(row.querySelector('.grn-qty').value) || 0;
+            total += (cost * qty);
+        });
+        document.getElementById('grn-total-amount').textContent = 'LKR ' + total.toLocaleString(undefined, { minimumFractionDigits: 2 });
+    }
+
+
     // --- CUSTOMER LOGIC ---
     async loadCustomers(search = '') {
         const searchInput = document.getElementById('customer-search');
@@ -2158,6 +2389,7 @@ class AgroDistributionApp {
                     'c-name': c.name,
                     'c-address': c.address || '',
                     'c-contact': c.contact || '',
+                    'c-email': c.email || '',
                     'c-category': c.category || 'Retailer',
                     'c-route': c.route_id || '',
                     'c-price-level': c.price_level_id || '',
@@ -2214,6 +2446,7 @@ class AgroDistributionApp {
             name: document.getElementById('c-name').value,
             address: document.getElementById('c-address').value,
             contact: document.getElementById('c-contact').value,
+            email: document.getElementById('c-email').value,
             category: document.getElementById('c-category').value,
             route_id: document.getElementById('c-route').value,
             price_level_id: document.getElementById('c-price-level').value || null,
@@ -2517,16 +2750,52 @@ class AgroDistributionApp {
     }
 
     showResetConfirmation() {
-        // Generate a random code
-        const code = 'RESET-' + Math.floor(1000 + Math.random() * 9000);
+        // Generate a random code: 3 groups of 3 digits or just RESET-XXXX
+        // Let's stick to the new UI style: A simple 4-digit or 6-digit pin? 
+        // The HTML indicates "RESET-0000" style. Let's make it random alphanumeric 
+        // or just keep it simple "RESET-" + 4 digits.
+        const suffix = Math.floor(1000 + Math.random() * 9000);
+        const code = 'RESET-' + suffix;
         this.resetCode = code;
 
         document.getElementById('reset-code-display').textContent = code;
-        document.getElementById('reset-confirmation-input').value = '';
+        const input = document.getElementById('reset-confirmation-input');
+        input.value = '';
+        input.focus();
+
         document.getElementById('final-reset-btn').disabled = true;
 
-        document.getElementById('initial-reset-action').style.display = 'none';
-        document.getElementById('danger-confirmation-step').style.display = 'block';
+        // Hide initial button with fade
+        const initialAction = document.getElementById('initial-reset-action');
+        initialAction.style.opacity = '0';
+        initialAction.style.transform = 'translateY(-20px)';
+        setTimeout(() => {
+            initialAction.style.display = 'none';
+
+            // Show confirmation with animation
+            const confirmStep = document.getElementById('danger-confirmation-step');
+            confirmStep.style.display = 'block';
+            // Force reflow
+            void confirmStep.offsetWidth;
+            confirmStep.style.opacity = '1';
+            confirmStep.style.transform = 'translateY(0)';
+        }, 300);
+    }
+
+    cancelReset() {
+        const confirmStep = document.getElementById('danger-confirmation-step');
+        confirmStep.style.opacity = '0';
+        confirmStep.style.transform = 'translateY(20px)';
+
+        setTimeout(() => {
+            confirmStep.style.display = 'none';
+
+            const initialAction = document.getElementById('initial-reset-action');
+            initialAction.style.display = 'block';
+            void initialAction.offsetWidth;
+            initialAction.style.opacity = '1';
+            initialAction.style.transform = 'translateY(0)';
+        }, 300);
     }
 
     validateResetCode(val) {
@@ -2541,32 +2810,6 @@ class AgroDistributionApp {
     cancelReset() {
         document.getElementById('initial-reset-action').style.display = 'block';
         document.getElementById('danger-confirmation-step').style.display = 'none';
-    }
-
-    async handleDataReset() {
-        try {
-            this.showNotification('Executing system wipe...', 'info');
-
-            const btn = document.getElementById('final-reset-btn');
-            if (btn) btn.disabled = true;
-            if (btn) btn.textContent = 'Wiping Data...';
-
-            const res = await this.apiCall('/api/reset-data', { method: 'POST' });
-
-            if (res && res.ok) {
-                this.showNotification('System successfully wiped. Logging out...', 'success');
-                setTimeout(() => {
-                    localStorage.removeItem('user');
-                    window.location.replace('/');
-                }, 3000);
-            } else {
-                throw new Error('Server returned an error');
-            }
-        } catch (e) {
-            console.error('Reset failed:', e);
-            this.showNotification('System wipe failed: ' + e.message, 'error');
-            this.cancelReset();
-        }
     }
 
     async loadBackupSettings() {
@@ -2889,7 +3132,7 @@ class AgroDistributionApp {
     }
 
     // --- SETTINGS LOGIC ---
-    async loadSettings() {
+    async loadSettings(skipTabSwitch = false) {
         const timeoutInput = document.getElementById('setting-timeout');
         const enabledInput = document.getElementById('setting-timer-enabled');
 
@@ -2897,48 +3140,218 @@ class AgroDistributionApp {
         const userRole = this.currentUser?.role?.toLowerCase();
         const isAdmin = userRole === 'admin' || userRole === 'administrator';
 
-        if (isAdmin) {
-            // For admins, disable timer settings and show notice
-            if (timeoutInput) {
-                timeoutInput.value = '';
-                timeoutInput.placeholder = '∞ (Unlimited)';
-                timeoutInput.disabled = true;
-            }
-            if (enabledInput) {
-                enabledInput.checked = false;
-                enabledInput.disabled = true;
-            }
+        // Load local user settings
+        const timeout = localStorage.getItem('session_timeout') || '10';
+        const enabled = localStorage.getItem('timer_enabled') !== 'false';
+        const fontSize = localStorage.getItem('system_font_size') || '100';
 
-            // Add admin notice if not already present
+        if (timeoutInput) timeoutInput.value = timeout;
+        if (enabledInput) enabledInput.checked = enabled;
+        if (timeoutInput) timeoutInput.disabled = !enabled;
+
+        const fsInput = document.getElementById('setting-font-size');
+        const fsLabel = document.getElementById('font-size-label');
+        if (fsInput) fsInput.value = fontSize;
+        if (fsLabel) fsLabel.textContent = `${fontSize}%`;
+
+        if (isAdmin) {
+            // Add admin notice for timer if not present
             const settingsContainer = document.getElementById('settings-view');
             if (settingsContainer && !document.getElementById('admin-timer-notice')) {
                 const notice = document.createElement('div');
                 notice.id = 'admin-timer-notice';
                 notice.className = 'admin-notice';
-                notice.innerHTML = '<i class="fas fa-crown"></i><span><strong>Administrator Privilege:</strong> Session timeout is automatically disabled for your account. You have unlimited session duration.</span>';
-
-                const firstCard = settingsContainer.querySelector('.card');
-                if (firstCard) {
-                    firstCard.parentNode.insertBefore(notice, firstCard);
-                }
+                notice.style = "background: #fdf2f8; border: 1px solid #fce7f3; color: #db2777; padding: 1rem; border-radius: 16px; margin-bottom: 2rem; display: flex; align-items: center; gap: 12px; font-weight: 500;";
+                notice.innerHTML = '<i class="fas fa-crown" style="font-size: 1.2rem;"></i><span><strong>Administrator Privilege:</strong> Session timeout is automatically disabled for your account. You have unlimited session duration.</span>';
+                const mainContent = settingsContainer.querySelector('.settings-main');
+                if (mainContent) mainContent.prepend(notice);
             }
-        } else {
-            // For non-admin users, show regular settings
-            if (timeoutInput) timeoutInput.value = localStorage.getItem('session_timeout') || '10';
 
-            if (enabledInput) {
-                enabledInput.checked = localStorage.getItem('timer_enabled') !== 'false';
-                if (timeoutInput) timeoutInput.disabled = !enabledInput.checked;
-            }
+            // Show Admin Sidebar Links
+            const companyLink = document.getElementById('nav-link-company');
+            const dataLink = document.getElementById('nav-link-data');
+            if (companyLink) companyLink.style.display = 'flex';
+            if (dataLink) dataLink.style.display = 'flex';
+
+            // Load Company Details
+            await this.loadCompanyDetails();
         }
 
-        // Company Details for Admin
-        if (isAdmin) {
-            const adminCard = document.getElementById('admin-company-card');
-            if (adminCard) {
-                adminCard.style.display = 'block';
-                await this.loadCompanyDetails();
+        // Load Notification Settings
+        try {
+            const res = await this.apiCall('/api/settings');
+            const data = await res.json();
+            if (data.success) {
+                const settings = data.settings;
+
+                // Email
+                this.setCheckboxValue('setting-email-enabled', settings.email_enabled);
+                this.setInputValue('setting-email-host', settings.email_host);
+                this.setInputValue('setting-email-port', settings.email_port);
+                this.setInputValue('setting-email-user', settings.email_user);
+                this.setInputValue('setting-email-pass', settings.email_pass);
+                this.setInputValue('setting-email-from', settings.email_from);
+
+                // SMS
+                this.setCheckboxValue('setting-sms-enabled', settings.sms_enabled);
+                this.setInputValue('setting-sms-provider', settings.sms_provider);
+                this.setInputValue('setting-sms-api-key', settings.sms_api_key);
+                this.setInputValue('setting-sms-twilio-sid', settings.sms_twilio_sid);
+                this.setInputValue('setting-sms-twilio-token', settings.sms_twilio_token);
+                this.setInputValue('setting-sms-twilio-from', settings.sms_twilio_from);
+
+                // Trigger dynamic field toggle
+                this.toggleSmsProviderFields();
+
+                // Triggers
+                this.setCheckboxValue('setting-notify-invoice', settings.notify_invoice);
+                this.setCheckboxValue('setting-notify-receipt', settings.notify_receipt);
+                this.setCheckboxValue('setting-notify-rma', settings.notify_rma);
+
+                // Load extra company details if they were in the main settings
+                if (isAdmin && settings.invoice_template) {
+                    this.selectInvoiceTemplate(settings.invoice_template);
+                }
             }
+        } catch (err) {
+            console.error('Error loading notification settings:', err);
+        }
+
+        // Default to General Tab only if not skipping
+        if (!skipTabSwitch) {
+            this.switchSettingsTab('general');
+        }
+    }
+    setCheckboxValue(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.checked = val === 'true' || val === true;
+    }
+
+    setInputValue(id, val) {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+    }
+
+    async saveNotificationSettings() {
+        try {
+            const settings = {
+                email_enabled: document.getElementById('setting-email-enabled')?.checked.toString(),
+                email_host: document.getElementById('setting-email-host')?.value,
+                email_port: document.getElementById('setting-email-port')?.value,
+                email_user: document.getElementById('setting-email-user')?.value,
+                email_pass: document.getElementById('setting-email-pass')?.value,
+                email_from: document.getElementById('setting-email-from')?.value,
+                sms_enabled: document.getElementById('setting-sms-enabled')?.checked.toString(),
+                sms_provider: document.getElementById('setting-sms-provider')?.value,
+                sms_api_key: document.getElementById('setting-sms-api-key')?.value,
+                sms_twilio_sid: document.getElementById('setting-sms-twilio-sid')?.value,
+                sms_twilio_token: document.getElementById('setting-sms-twilio-token')?.value,
+                sms_twilio_from: document.getElementById('setting-sms-twilio-from')?.value,
+                notify_invoice: document.getElementById('setting-notify-invoice')?.checked.toString(),
+                notify_receipt: document.getElementById('setting-notify-receipt')?.checked.toString(),
+                notify_rma: document.getElementById('setting-notify-rma')?.checked.toString()
+            };
+
+            const res = await this.apiCall('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ settings })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                this.showNotification('Notification preferences saved', 'success');
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (err) {
+            this.showNotification('Error saving: ' + err.message, 'error');
+        }
+    }
+
+    async testEmailConfig() {
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Testing...';
+
+        try {
+            const config = {
+                host: document.getElementById('setting-email-host').value,
+                port: document.getElementById('setting-email-port').value,
+                user: document.getElementById('setting-email-user').value,
+                pass: document.getElementById('setting-email-pass').value
+            };
+
+            const res = await this.apiCall('/api/settings/test-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                this.showNotification('Email test successful!', 'success');
+            } else {
+                this.showNotification('Email test failed: ' + data.message, 'error');
+            }
+        } catch (err) {
+            this.showNotification('Error: ' + err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+
+    toggleSmsProviderFields() {
+        const provider = document.getElementById('setting-sms-provider')?.value;
+        const twilioFields = document.getElementById('sms-twilio-fields');
+        const genericFields = document.getElementById('sms-generic-fields');
+        const keyLabel = document.getElementById('sms-key-label');
+
+        if (!twilioFields || !genericFields) return;
+
+        if (provider === 'twilio') {
+            twilioFields.style.display = 'grid';
+            genericFields.style.display = 'none';
+        } else {
+            twilioFields.style.display = 'none';
+            genericFields.style.display = 'grid';
+            if (keyLabel) {
+                keyLabel.textContent = (provider === 'textbelt') ? 'Textbelt API Key' : 'Full Webhook Endpoint URL';
+            }
+        }
+    }
+
+    async testSmsConfig() {
+        const phone = prompt('Enter recipient phone number for test (with +country code):');
+        if (!phone) return;
+
+        const btn = event.target;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Transmitting...';
+
+        // Auto-save settings first
+        await this.saveNotificationSettings();
+
+        try {
+            const res = await this.apiCall('/api/settings/test-sms', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone })
+            });
+            const data = await res.json();
+            if (data.success) {
+                this.showNotification('SMS dispatched successfully!', 'success');
+            } else {
+                throw new Error(data.message || 'Check connection or tokens');
+            }
+        } catch (err) {
+            this.showNotification('SMS Test Failed: ' + err.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
         }
     }
 
@@ -3008,33 +3421,6 @@ class AgroDistributionApp {
             }
         } catch (err) {
             this.showNotification('Error: ' + err.message, 'error');
-        }
-    }
-
-    async handleCompanyFileUpload(e, type) {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        const formData = new FormData();
-        formData.append('image', file);
-
-        try {
-            this.showNotification(`Uploading ${type}...`, 'info');
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'user-role': this.currentUser.role },
-                body: formData
-            });
-            const data = await res.json();
-            if (data.success) {
-                document.getElementById(`comp-${type}-url`).value = data.imageUrl;
-                this.updateCompanyPreview(type, data.imageUrl);
-                this.showNotification(`${type} uploaded successfully`);
-            } else {
-                this.showNotification('Upload failed', 'error');
-            }
-        } catch (err) {
-            this.showNotification('Upload error: ' + err.message, 'error');
         }
     }
 
@@ -3326,18 +3712,6 @@ class AgroDistributionApp {
     }
 
     // --- FULL SCREEN LOGIC ---
-    toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-            });
-        } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
-        }
-    }
-
     updateFullScreenIcon() {
         const icon = document.getElementById('fullscreen-icon');
         if (!icon) return;
@@ -3389,120 +3763,20 @@ class AgroDistributionApp {
     }
 
 
-    async loadSettings() {
-        // Load local user settings
-        const timeout = localStorage.getItem('session_timeout') || '10';
-        const enabled = localStorage.getItem('timer_enabled') !== 'false';
-
-        const tInput = document.getElementById('setting-timeout');
-        const eInput = document.getElementById('setting-timer-enabled');
-
-        if (tInput) tInput.value = timeout;
-        if (eInput) eInput.checked = enabled;
-        if (tInput) tInput.disabled = !enabled;
-
-        // Font size
-        const fontSize = localStorage.getItem('system_font_size') || '100';
-        const fsInput = document.getElementById('setting-font-size');
-        const fsLabel = document.getElementById('font-size-label');
-        if (fsInput) fsInput.value = fontSize;
-        if (fsLabel) fsLabel.textContent = `${fontSize}%`;
-
-        // Manage Tab Visibility based on Role
-        const isAdm = (this.currentUser && this.currentUser.role === 'admin');
-
-        // Show/Hide Admin Sidebar Links
-        const companyLink = document.getElementById('nav-link-company');
-        const dataLink = document.getElementById('nav-link-data');
-
-        if (companyLink) companyLink.style.display = isAdm ? 'flex' : 'none';
-        if (dataLink) dataLink.style.display = isAdm ? 'flex' : 'none';
-
-        // Default to General Tab
-        this.switchSettingsTab('general');
-
-        if (isAdm) {
-            // Fetch current company settings
-            try {
-                const res = await this.apiCall('/api/settings/company');
-                if (res) {
-                    const data = await res.json();
-                    if (data.success && data.data) {
-                        const c = data.data;
-                        const elName = document.getElementById('comp-name');
-                        if (elName) elName.value = c.company_name || '';
-
-                        const elAddr = document.getElementById('comp-address');
-                        if (elAddr) elAddr.value = c.address || '';
-
-                        const elCont = document.getElementById('comp-contacts');
-                        if (elCont) elCont.value = c.contact_numbers || '';
-
-                        // Images
-                        if (c.logo_url) {
-                            const lu = document.getElementById('comp-logo-url');
-                            if (lu) lu.value = c.logo_url;
-                            const lp = document.getElementById('comp-logo-preview');
-                            const lph = document.getElementById('comp-logo-placeholder');
-                            if (lp) { lp.src = c.logo_url; lp.style.display = 'block'; }
-                            if (lph) lph.style.display = 'none';
-                        }
-                        if (c.favicon_url) {
-                            const fu = document.getElementById('comp-favicon-url');
-                            if (fu) fu.value = c.favicon_url;
-                            const fp = document.getElementById('comp-favicon-preview');
-                            const fph = document.getElementById('comp-favicon-placeholder');
-                            if (fp) { fp.src = c.favicon_url; fp.style.display = 'block'; }
-                            if (fph) fph.style.display = 'none';
-                        }
-
-                        // Invoice Template
-                        // Invoice Template
-                        const currentTemplate = c.invoice_template || 'classic';
-                        this.selectInvoiceTemplate(currentTemplate);
-
-                        // Load Custom Config
-                        if (c.invoice_custom_config) {
-                            try {
-                                const config = JSON.parse(c.invoice_custom_config);
-                                if (document.getElementById('cfg-color')) document.getElementById('cfg-color').value = config.color || '#2E7D32';
-                                if (document.getElementById('cfg-font')) document.getElementById('cfg-font').value = config.font || 'Inter, sans-serif';
-                                if (document.getElementById('cfg-header')) document.getElementById('cfg-header').value = config.header || 'left';
-                                if (document.getElementById('cfg-show-logo')) document.getElementById('cfg-show-logo').checked = config.showLogo !== false;
-                                if (document.getElementById('cfg-show-footer')) document.getElementById('cfg-show-footer').checked = config.showFooter !== false;
-
-                                this.updateCustomConfig(); // Update hidden input and labels
-                            } catch (e) {
-                                console.warn('Error parsing custom config', e);
-                            }
-                        }
-                        const sel = document.getElementById('comp-invoice-template');
-                        if (sel) sel.value = currentTemplate;
-                    }
-                }
-            } catch (err) {
-                console.error('Error loading company settings', err);
-            }
-        }
-    }
 
     selectInvoiceTemplate(template) {
-        // Update hidden select
+        // Update hidden field if it exists
         const sel = document.getElementById('comp-invoice-template');
         if (sel) sel.value = template;
 
-        // Update radio (if not triggered by radio itself)
-        const radio = document.getElementById('tpl-' + template);
-        if (radio) radio.checked = true;
-
         // Update visuals
-        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-        const activeCardLabel = document.querySelector(`label[for="tpl-${template}"]`);
-        if (activeCardLabel) activeCardLabel.classList.add('selected');
-
-        // Update text
-        const disp = document.getElementById('current-template-display');
-        if (disp) disp.textContent = template.charAt(0).toUpperCase() + template.slice(1);
+        document.querySelectorAll('.invoice-card').forEach(card => {
+            if (card.getAttribute('onclick').includes(`'${template}'`) || card.dataset.template === template) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
 
         // Toggle Custom Config Panel
         const configPanel = document.getElementById('custom-template-config');
@@ -3510,14 +3784,16 @@ class AgroDistributionApp {
             configPanel.style.display = (template === 'custom') ? 'block' : 'none';
         }
     }
-
     updateCustomConfig() {
+        const getColorVal = () => document.getElementById('cfg-color')?.value || '#000000';
+        const getFontVal = () => document.getElementById('cfg-font')?.value || 'Inter, sans-serif';
+
         const config = {
-            color: document.getElementById('cfg-color').value,
-            font: document.getElementById('cfg-font').value,
-            header: document.getElementById('cfg-header').value,
-            showLogo: document.getElementById('cfg-show-logo').checked,
-            showFooter: document.getElementById('cfg-show-footer').checked
+            color: getColorVal(),
+            font: getFontVal(),
+            header: getHeaderVal(),
+            showLogo: getLogoChecked(),
+            showFooter: getFooterChecked()
         };
 
         // Update Color Label
@@ -3535,11 +3811,11 @@ class AgroDistributionApp {
         if (template === 'custom') {
             // Get current config from form to allow previewing without saving
             const config = {
-                color: document.getElementById('cfg-color').value,
-                font: document.getElementById('cfg-font').value,
-                header: document.getElementById('cfg-header').value,
-                showLogo: document.getElementById('cfg-show-logo').checked,
-                showFooter: document.getElementById('cfg-show-footer').checked
+                color: document.getElementById('cfg-color')?.value || '#2E7D32',
+                font: document.getElementById('cfg-font')?.value || 'Inter, sans-serif',
+                header: document.getElementById('cfg-header')?.value || 'left',
+                showLogo: document.getElementById('cfg-show-logo')?.checked !== false,
+                showFooter: document.getElementById('cfg-show-footer')?.checked !== false
             };
             const encoded = encodeURIComponent(JSON.stringify(config));
             url += `&customConfig=${encoded}`;
@@ -3552,53 +3828,47 @@ class AgroDistributionApp {
         if (event) event.preventDefault();
 
         // Hide all tabs
-        document.querySelectorAll('.settings-tab-pane').forEach(el => el.style.display = 'none');
+        document.querySelectorAll('.settings-section-card').forEach(el => el.classList.remove('active'));
         // Deselect all links
-        document.querySelectorAll('.settings-link').forEach(el => {
-            el.classList.remove('active');
-            el.style.background = 'transparent';
-            el.style.color = el.id === 'nav-link-data' ? 'var(--error)' : 'var(--gray-600)';
-            el.style.boxShadow = 'none';
-        });
+        document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
 
         // Show selected tab
         const target = document.getElementById('tab-settings-' + tabName);
         if (target) {
-            target.style.display = 'block';
+            target.classList.add('active');
         }
 
         // Activate link
-        // Try precise match first, then broader
-        let link = document.querySelector(`.settings-link[href="#settings-${tabName}"]`);
-
-        if (link) {
-            link.classList.add('active');
-            link.style.background = 'white';
-            link.style.color = tabName === 'data' ? 'var(--error)' : 'var(--primary-green)';
-            if (tabName !== 'data') link.style.boxShadow = '0 2px 5px rgba(0,0,0,0.05)';
-        }
+        const links = document.querySelectorAll('.settings-nav-item');
+        links.forEach(link => {
+            if (link.getAttribute('onclick')?.includes(`'${tabName}'`)) {
+                link.classList.add('active');
+            }
+        });
 
         if (tabName === 'backup') {
             this.loadBackupSettings();
             this.loadBackups();
         }
+        if (tabName === 'notifications') {
+            this.loadSettings(true); // Skip switching back to general
+        }
     }
-
     async handleDataReset() {
-        if (!confirm('CRITICAL WARNING: This will permanently DELETE all sales, payments, expenses, logs, etc. This action CANNOT be undone.\n\nAre you absolutely sure you want to reset all transaction data?')) {
-            return;
-        }
-
-        // Double confirmation
-        const code = Math.floor(1000 + Math.random() * 9000);
-        const input = prompt(`Please enter the confirmation code "${code}" to confirm reset:`);
-        if (input !== code.toString()) {
-            alert('Incorrect confirmation code. Reset cancelled.');
-            return;
-        }
+        // UI has already handled confirmation code
+        if (document.getElementById('final-reset-btn').disabled) return;
 
         try {
-            this.showNotification('Resetting data...', 'info');
+            const btn = document.getElementById('final-reset-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> INCINERATING DATA...';
+            btn.disabled = true;
+
+            this.showNotification('Initiating System Destruction Sequence...', 'info');
+
+            // Artificial delay for dramatic effect (and to let users see the state)
+            await new Promise(r => setTimeout(r, 1500));
+
             const res = await this.apiCall('/api/settings/reset-data', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
@@ -3607,15 +3877,23 @@ class AgroDistributionApp {
             if (res) {
                 const data = await res.json();
                 if (data.success) {
-                    alert('Data reset successfully. The system will now reload.');
-                    window.location.reload();
+                    this.showNotification('SYSTEM WIPE COMPLETE. TERMINATING SESSION.', 'success');
+                    btn.innerHTML = '<i class="fas fa-check"></i> DESTRUCTION COMPLETE';
+                    btn.style.background = '#10b981'; // Green
+
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 } else {
                     this.showNotification(data.error || 'Reset failed', 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
                 }
             }
         } catch (e) {
             console.error(e);
-            this.showNotification('Error during reset', 'error');
+            this.showNotification('Error during reset protocol', 'error');
+            document.getElementById('final-reset-btn').disabled = false;
         }
     }
 
@@ -6538,6 +6816,43 @@ class AgroDistributionApp {
             this.loadPOSPriceLevels()
         ]);
 
+        // Attach POS Event Listeners after view is loaded
+        const searchInput = document.getElementById('pos-product-search');
+        if (searchInput) {
+            // Remove existing listener if any (to avoid duplicates)
+            const newSearchInput = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+            newSearchInput.addEventListener('input', (e) => {
+                if (this.posState.products) {
+                    this.renderProductTiles(this.filterPOSProducts(e.target.value));
+                }
+            });
+        }
+
+        const loadSelector = document.getElementById('pos-load-selector');
+        if (loadSelector) {
+            // Remove existing listener if any
+            const newLoadSelector = loadSelector.cloneNode(true);
+            loadSelector.parentNode.replaceChild(newLoadSelector, loadSelector);
+            newLoadSelector.addEventListener('change', async (e) => {
+                const loadId = e.target.value;
+                if (loadId) {
+                    this.posState.selectedLoadId = loadId;
+                    await this.loadTruckStock(loadId);
+                } else {
+                    this.posState.selectedLoadId = null;
+                    this.posState.products = [];
+                    this.renderProductTiles([]);
+                }
+            });
+
+            // If a load is already selected (e.g. from state), trigger loading its stock
+            if (this.posState.selectedLoadId) {
+                loadSelector.value = this.posState.selectedLoadId;
+                await this.loadTruckStock(this.posState.selectedLoadId);
+            }
+        }
+
         this.updateCartUI();
     }
 
@@ -6680,8 +6995,16 @@ class AgroDistributionApp {
         const balanceEl = document.getElementById('pos-cust-balance');
         if (balanceEl) {
             const bal = customer.account_balance || customer.outstanding_balance || 0;
-            balanceEl.textContent = parseFloat(bal).toLocaleString(undefined, { minimumFractionDigits: 2 });
-            balanceEl.style.color = bal > 0 ? '#ef4444' : '#166534';
+            const limit = customer.credit_limit || 0;
+
+            balanceEl.innerHTML = `${parseFloat(bal).toLocaleString(undefined, { minimumFractionDigits: 2 })} <br>
+                           <span style="font-size:0.6rem; color: rgba(255,255,255,0.7);">Limit: ${parseFloat(limit).toLocaleString()}</span>`;
+
+            // Colors for Dark Green Background:
+            // Over Limit: Light Red / Pink
+            // Debt (>0): Pale Yellow
+            // Credit/Zero: White
+            balanceEl.style.color = bal > limit ? '#fca5a5' : (bal > 0 ? '#fef08a' : '#ffffff');
         }
 
         this.posState.selectedCustomer = customer;
@@ -6916,7 +7239,7 @@ class AgroDistributionApp {
                             <span class="stock-label-text">${stockLabel}: ${remainingQty}</span>
                         </span>
                     </div>
-                    <div class="product-price">${remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                    <div class="product-price">${remainingQty <= 0 ? '---' : p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                     ${discHtml}
                 </div>
             `;
@@ -6972,7 +7295,7 @@ class AgroDistributionApp {
             // Update Price display (in case it marks --- for out of stock)
             const priceEl = card.querySelector('.product-price');
             if (priceEl) {
-                priceEl.textContent = remainingQty <= 0 ? '---' : 'LKR ' + p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                priceEl.textContent = remainingQty <= 0 ? '---' : p.msrp.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             }
         });
 
@@ -7308,9 +7631,12 @@ class AgroDistributionApp {
         const countEl = document.getElementById('pos-cart-count');
 
         if (this.posState.cart.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 2rem; color: #999;">Cart is empty</td></tr>';
-            document.getElementById('pos-subtotal').textContent = '0.00';
-            document.getElementById('pos-grand-total').textContent = '0.00';
+            tbody.innerHTML = '<div class="text-center" style="padding: 4rem 2rem; color: #94a3b8; display: flex; flex-direction: column; align-items: center; gap: 15px;"><i class="fas fa-shopping-basket" style="font-size: 3rem; opacity: 0.3;"></i><span style="font-weight: 600; font-size: 1.1rem;">Cart is empty</span></div>';
+
+            if (document.getElementById('pos-subtotal')) document.getElementById('pos-subtotal').textContent = '0.00';
+            if (document.getElementById('pos-total-discount')) document.getElementById('pos-total-discount').textContent = '0.00';
+            if (document.getElementById('pos-net-total')) document.getElementById('pos-net-total').textContent = '0.00';
+
             if (countEl) countEl.textContent = '0 Items / 0 Qty';
             return;
         }
@@ -7322,68 +7648,96 @@ class AgroDistributionApp {
             const isWeighted = prod ? prod.weighted : false; // Safe fallback
             const step = isWeighted ? "0.01" : "1";
 
+            const priceInput = (prod?.prices?.length > 1 && !item.is_free) ? `
+                <select class="cart-qty-input premium-input" style="width: 100%; height: 32px; padding: 4px 8px; font-size: 0.8rem; border-color: rgba(0,0,0,0.05); background: white;" onchange="app.updateCartPriceLevel(${index}, this.value)">
+                    ${prod.prices.map(p => `<option value="${p.id}" ${item.selected_price_id == p.id ? 'selected' : ''}>${p.label}: ${p.price.toFixed(2)}</option>`).join('')}
+                    <option value="custom" ${item.is_custom_price ? 'selected' : ''}>Custom...</option>
+                </select>
+                ${item.is_custom_price ? `
+                    <input type="number" class="cart-qty-input premium-input" style="width: 100%; height: 32px; margin-top: 4px; padding: 4px 8px; text-align: center; background: white; font-size: 0.9rem;" value="${item.msrp.toFixed(2)}" 
+                        onchange="app.updateCartPrice(${index}, this.value)" step="0.01">
+                ` : ''}
+            ` : `
+                <input type="number" class="cart-qty-input premium-input" style="width: 100%; height: 32px; padding: 4px 8px; text-align:center; background: white; font-size: 0.9rem;" value="${item.msrp.toFixed(2)}" 
+                    onchange="app.updateCartPrice(${index}, this.value)" step="0.01" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
+            `;
+
             return `
-            <tr class="${item.is_free ? 'pos-row-free' : ''}">
-                <td style="color: #64748b; font-size: 0.8rem; vertical-align: middle;">${index + 1}</td>
-                <td>
-                    <div style="display: flex; flex-direction: column;">
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="cart-item-name">${item.product_name}</span>
-                            ${item.is_free ? '<span class="free-badge-premium"><i class="fas fa-gift"></i> FREE ISSUE</span>' : ''}
+            <div class="cart-item-card ${item.is_free ? 'is-free-issue' : ''}" style="background: white; border-radius: 12px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 6px rgba(0,0,0,0.02); display: flex; flex-direction: column; gap: 8px; position: relative;">
+                
+                <button class="btn btn-sm" onclick="app.removeFromCart(${index})" title="Remove Item" style="position: absolute; top: 12px; right: 12px; color: #ef4444; background: rgba(239, 68, 68, 0.1); border: none; width: 26px; height: 26px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                    <i class="fas fa-times" style="font-size: 0.8rem;"></i>
+                </button>
+
+                <div style="display: flex; flex-direction: column; padding-right: 35px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="background: #f1f5f9; color: #64748b; font-size: 0.65rem; font-weight: 800; padding: 3px 6px; border-radius: 4px;">#${index + 1}</span>
+                        <span style="font-weight: 800; color: #1e293b; font-size: 0.95rem; line-height: 1.1;">${item.product_name}</span>
+                        ${item.is_free ? '<span class="free-badge-premium" style="zoom: 0.75; margin-left: auto;"><i class="fas fa-gift"></i> FREE</span>' : ''}
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr auto 1.5fr 1fr 1.2fr; gap: 10px; align-items: end; background: #f8fafc; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.03);">
+                    
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.6rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Qty</label>
+                        <input type="number" class="cart-qty-input premium-input" value="${item.quantity}" 
+                            oninput="app.updateCartQty(${index}, this.value)" min="${isWeighted ? '0.01' : '1'}" step="${step}"
+                            style="width: 100%; height: 32px; padding: 4px 8px; text-align: center; background: white; border: 1px solid rgba(0,0,0,0.08); font-size: 0.95rem;">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; height: 100%;">
+                        <label style="font-size: 0.6rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Free</label>
+                        <input type="checkbox" class="free-issue-check" ${item.is_free ? 'checked' : ''} 
+                            onchange="app.toggleFreeIssue(${index}, this.checked)" 
+                            ${item.allow_free_issue !== 1 && !item.is_free ? 'disabled title="Free issue not allowed"' : ''}
+                            style="width: 18px; height: 18px; margin-bottom: 6px; cursor: pointer; accent-color: var(--primary-green);">
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.6rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Price (RS)</label>
+                        ${priceInput}
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 4px;">
+                        <label style="font-size: 0.6rem; color: #64748b; font-weight: 800; text-transform: uppercase;">Disc %</label>
+                        <div style="position: relative; display: flex; align-items: center;">
+                            <input type="number" class="cart-qty-input premium-input" style="width: 100%; height: 32px; padding: 4px 20px 4px 8px; text-align: center; font-size: 0.95rem; background: white; border: 1px solid rgba(0,0,0,0.08);" value="${item.discount_percentage}" 
+                                onchange="app.updateCartDiscount(${index}, this.value)" min="0" max="100" ${item.is_free ? 'disabled' : ''}>
+                            <span style="position: absolute; right: 8px; font-size: 0.75rem; color: #94a3b8; font-weight: 700; pointer-events: none;">%</span>
                         </div>
-                        ${item.batch_number ? `<small style="color: var(--primary-green); font-weight: 600; font-size: 0.7rem;">Batch: ${item.batch_number}</small>` : ''}
                     </div>
-                </td>
-                <td>
-                    <input type="number" class="cart-qty-input" value="${item.quantity}" 
-                        oninput="app.updateCartQty(${index}, this.value)" min="${isWeighted ? '0.01' : '1'}" step="${step}">
-                </td>
-                <td class="text-center">
-                    <input type="checkbox" class="free-issue-check" ${item.is_free ? 'checked' : ''} 
-                        onchange="app.toggleFreeIssue(${index}, this.checked)" 
-                        ${item.allow_free_issue !== 1 && !item.is_free ? 'disabled title="Free issue not allowed for this product"' : ''}>
-                </td>
-                <td>
-                    ${(prod?.prices?.length > 1 && !item.is_free) ? `
-                        <select class="cart-qty-input" style="width: 100%; font-size: 0.75rem; border-color: var(--primary-green);" onchange="app.updateCartPriceLevel(${index}, this.value)">
-                            ${prod.prices.map(p => `<option value="${p.id}" ${item.selected_price_id == p.id ? 'selected' : ''}>${p.label}: ${p.price.toFixed(2)}</option>`).join('')}
-                            <option value="custom" ${item.is_custom_price ? 'selected' : ''}>Custom Price...</option>
-                        </select>
-                        ${item.is_custom_price ? `
-                            <input type="number" class="cart-qty-input" style="width: 100%; margin-top: 4px;" value="${item.msrp.toFixed(2)}" 
-                                onchange="app.updateCartPrice(${index}, this.value)" step="0.01">
-                        ` : ''}
-                    ` : `
-                        <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.msrp.toFixed(2)}" 
-                            onchange="app.updateCartPrice(${index}, this.value)" step="0.01" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
-                    `}
-                </td>
-                <td>
-                    <div style="display: flex; align-items: center; gap: 2px;">
-                        <input type="number" class="cart-qty-input" style="width: 100%;" value="${item.discount_percentage}" 
-                            onchange="app.updateCartDiscount(${index}, this.value)" min="0" max="100" ${item.is_free ? 'disabled style="background: #f1f5f9; color: #94a3b8;"' : ''}>
-                        <span>%</span>
+
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; justify-content: center; padding-bottom: 6px;">
+                        <label style="font-size: 0.6rem; color: #64748b; font-weight: 800; text-transform: uppercase; margin-bottom: 2px;">Line Total</label>
+                        <strong style="font-size: 1.1rem; letter-spacing: -0.5px; color: ${item.is_free ? 'var(--primary-green)' : '#0f172a'};">${item.is_free ? '0.00' : item.line_total.toFixed(2)}</strong>
                     </div>
-                </td>
-                <td class="text-right"><strong style="${item.is_free ? 'color: var(--primary-green); font-style: italic;' : ''}">${item.is_free ? 'FREE' : item.line_total.toFixed(2)}</strong></td>
-                <td>
-                    <button class="btn btn-sm" onclick="app.removeFromCart(${index})" style="color: var(--error);">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </td>
-            </tr>
+
+                </div>
+            </div>
         `}).join('');
 
-        const subtotal = this.posState.cart.reduce((sum, item) => sum + item.line_total, 0);
+        let realSubtotal = 0;
+        let realNetTotal = 0;
+
+        this.posState.cart.forEach(item => {
+            realSubtotal += item.quantity * item.msrp;
+            realNetTotal += item.line_total;
+        });
+
+        const totalDiscount = realSubtotal - realNetTotal;
         const totalQty = this.posState.cart.reduce((sum, item) => sum + parseFloat(item.quantity || 0), 0);
 
-        document.getElementById('pos-subtotal').textContent = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
-        document.getElementById('pos-grand-total').textContent = subtotal.toLocaleString(undefined, { minimumFractionDigits: 2 });
+        if (document.getElementById('pos-subtotal')) document.getElementById('pos-subtotal').textContent = this.formatCurrency(realSubtotal);
+        if (document.getElementById('pos-total-discount')) document.getElementById('pos-total-discount').textContent = '-' + this.formatCurrency(totalDiscount);
+        if (document.getElementById('pos-net-total')) document.getElementById('pos-net-total').textContent = this.formatCurrency(realNetTotal);
 
         if (countEl) {
             countEl.textContent = `${this.posState.cart.length} Items / ${totalQty} Qty`;
         }
     }
+
+
 
     clearCart() {
         if (this.posState.cart.length > 0 && confirm('Clear all items from cart?')) {
@@ -7426,6 +7780,7 @@ class AgroDistributionApp {
                 this.posState.currentInvoiceId = null;
                 this.updateCartUI();
                 this.loadSalesHistory(); // Refresh history
+                this.resetPOSCustomer(); // Ensure we don't accidentally bill the next transaction to this customer
             }
         } catch (e) {
             this.showNotification('Failed to hold invoice', 'error');
@@ -7607,9 +7962,17 @@ class AgroDistributionApp {
             }
         } catch (err) {
             console.error('POS Cheque Upload Error:', err);
-            this.showNotification('Failed to upload cheque image', 'error');
-            previewDiv.innerHTML = '<i class="fas fa-image" style="color: #999;"></i>';
         }
+    }
+
+    showCreditWarningModal(limit, currentDebt, available) {
+        document.getElementById('cw-limit').textContent = this.formatCurrency(limit);
+        document.getElementById('cw-balance').textContent = this.formatCurrency(currentDebt);
+        document.getElementById('cw-available').textContent = this.formatCurrency(available);
+
+        const modal = document.getElementById('credit-warning-modal');
+        modal.classList.add('active');
+        modal.style.display = 'flex';
     }
 
     async submitPayment(shouldPrint) {
@@ -7624,10 +7987,26 @@ class AgroDistributionApp {
         const chequeAmountTotal = this.posState.tempCheques.reduce((s, c) => s + c.amount, 0);
         const credit = parseFloat(document.getElementById('pay-credit-amount').value) || 0;
 
-        // Validation: If there is a cheque amount but no cheques added
-        if (chequeAmountTotal === 0 && document.getElementById('pos-cheques-list').querySelector('.text-muted') === null) {
-            // This case shouldn't happen with the new logic but good to have
+        // --- CLIENT-SIDE CREDIT LIMIT CHECK ---
+        const customerBalance = parseFloat(document.getElementById('pos-cust-balance')?.textContent.replace(/,/g, '')) || 0;
+        // In POS UI, positive balance usually means 'Amount customer owes us'.
+        // However, we need to verify how "Credit Limit" is stored vs "Balance".
+        // Assuming customer object is stored in this.posState.selectedCustomer
+        const customer = this.posState.selectedCustomer;
+
+        if (credit > 0 && customer) {
+            const limit = parseFloat(customer.credit_limit || 0);
+            // If balance is debt, then (currentDebt + newCredit) must be <= Limit
+            // If balance is credit (negative debt), logic handles accordingly.
+            const currentDebt = customer.account_balance || 0;
+
+            if (currentDebt + credit > limit) {
+                // this.showNotification(`Credit Limit Exceeded! Available: ${(limit - currentDebt).toLocaleString()}. Limit: ${limit.toLocaleString()}`, 'error');
+                this.showCreditWarningModal(limit, currentDebt, limit - currentDebt);
+                return;
+            }
         }
+        // -------------------------------------
 
         const paymentData = {
             method: (cash > 0 && chequeAmountTotal === 0 && credit === 0) ? 'cash' :
@@ -7737,8 +8116,43 @@ class AgroDistributionApp {
         return data;
     }
 
+    filterRecallList() {
+        const input = document.getElementById('recall-search-input');
+        const filter = input.value.toUpperCase();
+        const list = document.getElementById('recall-list');
+        const items = list.getElementsByClassName('invoice-list-item');
+
+        for (let i = 0; i < items.length; i++) {
+            const h4 = items[i].getElementsByTagName("h4")[0];
+            if (h4) {
+                const txtValue = h4.textContent || h4.innerText;
+                if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                    items[i].style.display = "flex";
+                } else {
+                    items[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    async deleteHeldInvoice(id) {
+        if (!confirm('Are you sure you want to permanently delete this held invoice?')) return;
+
+        try {
+            const res = await this.apiCall(`/api/sales/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                this.showNotification('Held invoice deleted', 'success');
+                this.recallInvoiceModal(); // Refresh list
+            } else {
+                this.showNotification('Failed to delete', 'error');
+            }
+        } catch (e) {
+            console.error(e);
+            this.showNotification('Error deleting invoice', 'error');
+        }
+    }
+
     async recallInvoiceModal() {
-        // We'll use a dynamic list in a notification/simple modal for now
         try {
             const res = await this.apiCall('/api/sales');
             const data = await res.json();
@@ -7746,37 +8160,43 @@ class AgroDistributionApp {
 
             if (heldInvoices.length === 0) {
                 this.showNotification('No held invoices found', 'info');
+                const modal = document.getElementById('recall-modal');
+                if (modal) {
+                    modal.classList.remove('active');
+                    modal.style.display = 'none';
+                }
                 return;
             }
 
-            // Create a simple modal for recall
-            let modalHtml = `
-                <div id="recall-modal" class="modal active" style="display:flex">
-                    <div class="modal-content" style="max-width: 600px;">
-                        <div class="modal-header">
-                            <h3><i class="fas fa-history"></i> Recall Held Invoices</h3>
-                            <button class="close-btn" onclick="document.getElementById('recall-modal').remove()">&times;</button>
+            const listContainer = document.getElementById('recall-list');
+            if (listContainer) {
+                listContainer.innerHTML = heldInvoices.map(inv => `
+                    <div class="invoice-list-item" style="display:flex; justify-content:space-between; align-items:center; padding: 10px; border-bottom: 1px solid #eee;">
+                        <div class="invoice-item-info">
+                            <h4 style="margin:0;">${inv.invoice_number} <span style="font-weight:normal;">- ${inv.customer_name}</span></h4>
+                            <span style="font-size:0.85rem; color:#64748b;">Date: ${new Date(inv.invoice_date).toLocaleDateString()} | Total: ${this.formatCurrency(inv.net_total)}</span>
                         </div>
-                        <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
-                            <div class="held-list">
-                                ${heldInvoices.map(inv => `
-                                    <div class="invoice-list-item">
-                                        <div class="invoice-item-info">
-                                            <h4>${inv.invoice_number} - ${inv.customer_name}</h4>
-                                            <span>Date: ${new Date(inv.invoice_date).toLocaleDateString()} | Total: ${inv.net_total.toFixed(2)}</span>
-                                        </div>
-                                        <button class="btn btn-sm btn-primary" onclick="app.recallInvoice(${inv.id})">
-                                            Recall
-                                        </button>
-                                    </div>
-                                `).join('')}
-                            </div>
+                        <div style="display:flex; gap:5px;">
+                            <button class="btn btn-sm btn-primary" onclick="app.recallInvoice(${inv.id})">
+                                Recall
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="app.deleteHeldInvoice(${inv.id})" title="Delete Permanently" style="background: #ef4444; color: white; border: none;">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
                     </div>
-                </div>
-            `;
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
+                `).join('');
+
+                // Clear search input
+                const searchInput = document.getElementById('recall-search-input');
+                if (searchInput) searchInput.value = '';
+
+                const modal = document.getElementById('recall-modal');
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            }
         } catch (e) {
+            console.error(e);
             this.showNotification('Failed to fetch held invoices', 'error');
         }
     }
@@ -7788,58 +8208,84 @@ class AgroDistributionApp {
 
         try {
             const res = await this.apiCall(`/api/sales/${id}`);
+            if (!res || !res.ok) throw new Error('Failed to fetch invoice data');
+
             const result = await res.json();
             const invoice = result.data;
 
             if (invoice) {
-                this.posState.cart = invoice.items.map(item => ({
-                    product_id: item.product_id,
-                    product_name: item.product_name,
-                    msrp: item.msrp,
-                    quantity: item.quantity,
-                    discount_percentage: item.discount_percentage,
-                    discount_amount: item.discount_amount,
-                    is_free: item.is_free || false,
-                    line_total: item.line_total,
-                    weighted: item.weighted || false,
-                    allow_free_issue: item.allow_free_issue || 0
-                }));
-
+                // Set Invoice Metadata
                 this.posState.currentInvoiceId = invoice.id;
                 this.posState.selectedLoadId = invoice.load_id;
-
-                document.getElementById('pos-date').value = invoice.invoice_date;
-                document.getElementById('pos-customer-selector').value = invoice.customer_id;
-                document.getElementById('pos-payment-method').value = invoice.payment_method;
-                document.getElementById('pos-load-selector').value = invoice.load_id || '';
-
-                if (invoice.load_id) {
-                    await this.loadTruckStock(invoice.load_id);
-
-                    // Enrich cart items with current allowed discounts and metadata from truck stock
-                    this.posState.cart.forEach(item => {
-                        const product = this.posState.products.find(p => p.id === item.product_id);
-                        if (product) {
-                            // Try to find the price level that matches the MSRP, or use primary
-                            const priceLevel = (product.prices || []).find(p => p.price === item.msrp) ||
-                                (product.prices || []).find(p => p.is_primary) ||
-                                { supplier_discount: product.supplier_discount || 0 };
-
-                            item.allowed_discount = priceLevel.supplier_discount || 0;
-                            item.selected_price_id = priceLevel.id || null;
-                            item.allow_free_issue = product.allow_free_issue;
-                            item.weighted = product.weighted;
-                        }
-                    });
+                if (invoice.invoice_date) {
+                    document.getElementById('pos-date').value = invoice.invoice_date.split('T')[0];
                 }
 
+                // Load Truck Stock if applicable
+                if (invoice.load_id) {
+                    const loadSelector = document.getElementById('pos-load-selector');
+                    if (loadSelector) loadSelector.value = invoice.load_id;
+                    await this.loadTruckStock(invoice.load_id);
+                }
+
+                // Restore Customer
+                if (invoice.customer_id) {
+                    const customerRes = await this.apiCall(`/api/customers/${invoice.customer_id}`);
+                    const customerData = await customerRes.json();
+                    if (customerData.success && Array.isArray(customerData.data) && customerData.data.length > 0) {
+                        await this.selectPOSCustomer(customerData.data[0]);
+                    }
+                }
+
+                // Restore Cart Items
+                this.posState.cart = invoice.items.map(item => {
+                    // Try to match product in currently loaded products to get current metadata
+                    const availableProducts = Array.isArray(this.posState.products) ? this.posState.products : [];
+                    const product = availableProducts.find(p => p.id === item.product_id);
+
+                    let allowedDiscount = 0;
+                    let weighted = false;
+                    let allowFreeIssue = 1;
+
+                    if (product) {
+                        weighted = product.weighted;
+                        allowFreeIssue = product.allow_free_issue;
+                        const priceLevel = (product.prices || []).find(p => p.price == item.msrp) || { supplier_discount: product.supplier_discount || 0 };
+                        allowedDiscount = priceLevel.supplier_discount || 0;
+                    }
+
+                    return {
+                        product_id: item.product_id,
+                        product_name: item.product_name,
+                        batch_number: item.batch_number,
+                        msrp: item.msrp,
+                        quantity: item.quantity,
+                        discount_percentage: item.discount_percentage,
+                        discount_amount: item.discount_amount,
+                        is_free: item.is_free === 1,
+                        line_total: item.line_total,
+                        weighted: weighted,
+                        allow_free_issue: allowFreeIssue,
+                        allowed_discount: allowedDiscount,
+                        selected_price_id: null
+                    };
+                });
+
+                // Update UI
                 this.updateCartUI();
+
+                // Close modal safely (hide, do not remove)
                 const modal = document.getElementById('recall-modal');
-                if (modal) modal.remove();
-                this.showNotification('Invoice recalled', 'success');
+                if (modal) {
+                    modal.classList.remove('active');
+                    modal.style.display = 'none';
+                }
+
+                this.showNotification('Invoice recalled successfully', 'success');
             }
         } catch (e) {
-            this.showNotification('Failed to recall invoice', 'error');
+            console.error(e);
+            this.showNotification('Failed to recall invoice: ' + (e.message || 'Unknown Error'), 'error');
         }
     }
 
@@ -9143,6 +9589,8 @@ class AgroDistributionApp {
         const from = document.getElementById('ci-date-from').value;
         const to = document.getElementById('ci-date-to').value;
 
+        this.showNotification('Analyzing customer behavior patterns...', 'info');
+
         try {
             const res = await this.apiCall(`/api/reports/sales-analytics?type=customer_intelligence&dateFrom=${from}&dateTo=${to}`);
             if (!res) return;
@@ -9150,18 +9598,29 @@ class AgroDistributionApp {
             if (data.success) {
                 const { metrics, cohort, outstanding } = data.data;
 
-                // 1. Update KPIs
-                document.getElementById('ci-new-count').textContent = cohort.new_customers || 0;
-                document.getElementById('ci-inactive-count').textContent = cohort.inactive_customers || 0;
-                document.getElementById('ci-total-outstanding').textContent = this.formatCurrency(outstanding.total_outstanding || 0);
-                document.getElementById('ci-over-limit').textContent = (outstanding.over_limit_count || 0) + ' Accounts';
-                document.getElementById('ci-over-limit-amt').textContent = this.formatCurrency(outstanding.over_limit_amount || 0) + ' Over';
+                // 1. Update KPIs with Animation
+                const counters = [
+                    { id: 'ci-new-count', val: (cohort.new_customers || 0) },
+                    { id: 'ci-inactive-count', val: (cohort.inactive_customers || 0) },
+                    { id: 'ci-total-outstanding', val: this.formatCurrency(outstanding.total_outstanding || 0) },
+                    { id: 'ci-over-limit', val: (outstanding.over_limit_count || 0) }
+                ];
+
+                counters.forEach(c => {
+                    if (document.getElementById(c.id)) document.getElementById(c.id).textContent = c.val;
+                });
+
+                if (document.getElementById('ci-over-limit-amt')) {
+                    document.getElementById('ci-over-limit-amt').textContent = this.formatCurrency(outstanding.over_limit_amount || 0) + ' Excess';
+                }
 
                 // 2. Render Charts
                 this.renderCICharts(metrics, cohort);
 
                 // 3. Render Table
                 this.renderCITable(metrics);
+
+                this.showNotification('Customer intelligence analysis complete', 'success');
             }
         } catch (err) {
             console.error('Customer Intelligence load error:', err);
@@ -9227,34 +9686,53 @@ class AgroDistributionApp {
         const tbody = document.getElementById('ci-table-body');
         if (!tbody) return;
 
+        if (metrics.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center" style="padding: 30px;">No customer data found for this period.</td></tr>';
+            return;
+        }
+
         tbody.innerHTML = metrics.map(m => {
             const usagePercent = Math.round(m.credit_usage_percent || 0);
-            let usageClass = 'progress-bar-success';
-            if (usagePercent > 75) usageClass = 'progress-bar-warning';
-            if (usagePercent > 100) usageClass = 'progress-bar-danger';
+
+            // Logic for bar color
+            const barColor = usagePercent > 100 ? '#ef4444' : (usagePercent > 75 ? '#f59e0b' : '#3b82f6');
 
             const lastDate = m.last_purchase ? new Date(m.last_purchase) : null;
             const now = new Date();
             const daysSince = lastDate ? Math.floor((now - lastDate) / (1000 * 60 * 60 * 24)) : 999;
 
-            let statusBadge = '<span class="badge badge-success">ACTIVE</span>';
-            if (daysSince > 30) statusBadge = '<span class="badge badge-warning">SLEEPING</span>';
-            if (daysSince > 90) statusBadge = '<span class="badge badge-danger">INACTIVE</span>';
+            let statusBadge = '<span class="badge" style="background: #ecfdf5; color: #10b981;">ACTIVE</span>';
+            if (daysSince > 30) statusBadge = '<span class="badge" style="background: #fffbeb; color: #b45309;">DORMANT</span>';
+            if (daysSince > 90) statusBadge = '<span class="badge" style="background: #fef2f2; color: #ef4444;">LOST</span>';
 
             return `
-                <tr>
-                    <td style="font-weight:700; color:var(--gray-800)">${m.name}</td>
-                    <td class="text-right" style="font-weight:600">${this.formatCurrency(m.lifetime_value || 0)}</td>
-                    <td class="text-center">${m.period_orders || 0}</td>
-                    <td class="text-right" style="color:${m.balance > 0 ? 'var(--error)' : 'var(--gray-600)'}">${this.formatCurrency(m.balance || 0)}</td>
-                    <td>
-                        <div style="width: 100px; background: #eee; border-radius: 4px; height: 8px; overflow: hidden; margin-top: 5px;">
-                            <div style="width: ${Math.min(usagePercent, 100)}%; height: 100%; background: ${usagePercent > 100 ? '#ef4444' : usagePercent > 75 ? '#f59e0b' : '#10b981'}"></div>
-                        </div>
-                        <span style="font-size: 0.7rem; color: var(--gray-500)">${usagePercent}% used</span>
+                <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                    <td style="padding: 16px 24px;">
+                        <div style="font-weight: 700; color: #1e293b;">${m.name}</div>
+                        <small style="color: #94a3b8; font-size: 0.75rem;">ID: #${m.id}</small>
                     </td>
-                    <td style="font-size: 0.85rem">${m.last_purchase || 'Never'}</td>
-                    <td>${statusBadge}</td>
+                    <td class="text-right" style="padding: 16px 24px;">
+                        <span style="font-weight: 700; color: #0f172a;">${this.formatCurrency(m.lifetime_value || 0)}</span>
+                    </td>
+                    <td class="text-center" style="padding: 16px 24px;">
+                        <span style="background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.85rem; color: #475569;">${m.period_orders || 0}</span>
+                    </td>
+                    <td class="text-right" style="padding: 16px 24px;">
+                        <span style="font-weight: 700; color: ${m.balance > 0 ? '#ef4444' : '#64748b'}">${this.formatCurrency(m.balance || 0)}</span>
+                    </td>
+                    <td style="padding: 16px 24px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="flex-grow: 1; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
+                                <div style="width: ${Math.min(usagePercent, 100)}%; height: 100%; background: ${barColor}; border-radius: 3px;"></div>
+                            </div>
+                            <span style="font-size: 0.75rem; font-weight: 600; color: #64748b; width: 40px; text-align: right;">${usagePercent}%</span>
+                        </div>
+                    </td>
+                    <td class="text-center" style="padding: 16px 24px;">
+                        <div style="font-size: 0.85rem; color: #475569; font-weight: 500;">${m.last_purchase ? daysSince + ' days ago' : 'Never'}</div>
+                        <small style="color: #94a3b8; font-size: 0.7rem;">${m.last_purchase || '--'}</small>
+                    </td>
+                    <td class="text-center" style="padding: 16px 24px;">${statusBadge}</td>
                 </tr>
             `;
         }).join('');
@@ -9279,6 +9757,8 @@ class AgroDistributionApp {
         const from = document.getElementById('ii-date-from').value;
         const to = document.getElementById('ii-date-to').value;
 
+        this.showNotification('Synchronizing warehouse and logistics data...', 'info');
+
         try {
             const res = await this.apiCall(`/api/reports/sales-analytics?type=inventory_intelligence&dateFrom=${from}&dateTo=${to}`);
             if (!res) return;
@@ -9290,14 +9770,33 @@ class AgroDistributionApp {
                 const totalLoaded = loadMetrics.reduce((sum, m) => sum + (m.loaded || 0), 0);
                 const totalDelivered = loadMetrics.reduce((sum, m) => sum + (m.delivered || 0), 0);
                 const totalVariance = loadMetrics.reduce((sum, m) => sum + (m.total_variance || 0), 0);
-                const avgAccuracy = loadMetrics.length > 0
-                    ? (loadMetrics.reduce((sum, m) => sum + (m.delivered + m.returned) / m.loaded, 0) / loadMetrics.length * 100)
-                    : 100;
 
-                document.getElementById('ii-total-loaded').textContent = totalLoaded.toLocaleString();
-                document.getElementById('ii-total-delivered').textContent = totalDelivered.toLocaleString();
-                document.getElementById('ii-variance-count').textContent = totalVariance.toLocaleString();
-                document.getElementById('ii-avg-accuracy').textContent = Math.round(avgAccuracy) + '%';
+                // Improve accuracy calculation: (Delivered + Returned) / Loaded
+                // If loaded is 0, ignore
+                let accuracySum = 0;
+                let accuracyCount = 0;
+                loadMetrics.forEach(m => {
+                    if (m.loaded > 0) {
+                        const rec = (m.delivered || 0) + (m.returned || 0);
+                        // Cap at 100% logic or allow >100 if surplus? Usually 100 is max ideal. 
+                        // Let's use simple match rate. 1 - abs(variance)/loaded
+                        const match = 1 - (Math.abs(m.total_variance || 0) / m.loaded);
+                        accuracySum += (match * 100);
+                        accuracyCount++;
+                    }
+                });
+                const avgAccuracy = accuracyCount > 0 ? (accuracySum / accuracyCount) : 100;
+
+                // Animate Counters
+                const counters = [
+                    { id: 'ii-total-loaded', val: totalLoaded.toLocaleString() },
+                    { id: 'ii-total-delivered', val: totalDelivered.toLocaleString() },
+                    { id: 'ii-variance-count', val: totalVariance.toLocaleString() },
+                    { id: 'ii-avg-accuracy', val: Math.round(avgAccuracy) + '%' }
+                ];
+                counters.forEach(c => {
+                    if (document.getElementById(c.id)) document.getElementById(c.id).textContent = c.val;
+                });
 
                 // 2. Render Charts
                 this.renderIICharts(loadMetrics, trends);
@@ -9307,6 +9806,8 @@ class AgroDistributionApp {
 
                 // 4. Render Reorder Alerts
                 this.renderReorderAlerts(reorderAlerts);
+
+                this.showNotification('Logistics intelligence analysis complete', 'success');
             }
         } catch (err) {
             console.error('Inventory Intelligence load error:', err);
@@ -9380,23 +9881,33 @@ class AgroDistributionApp {
         const container = document.getElementById('ii-reorder-alerts');
         if (!container) return;
 
-        // Show only those with low stock or high sales priority
-        const filtered = alerts.filter(a => a.current_stock < 50); // Using 50 as a generic threshold
+        // Show only those with low stock or highly active sales
+        // let's adjust threshold or logic inside logic
+        const filtered = alerts.filter(a => a.current_stock < 100);
 
         if (filtered.length === 0) {
-            container.innerHTML = '<p style="color: var(--gray-500); font-size: 0.85rem;">No critical low-stock items.</p>';
+            container.innerHTML = '<p style="color: #94a3b8; font-size: 0.9rem; text-align: center; font-style: italic;">No active stock warnings.</p>';
             return;
         }
 
         container.innerHTML = filtered.map(a => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #fef2f2; border-left: 3px solid #ef4444; border-radius: 6px;">
-                <div>
-                    <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700;">${a.name}</h5>
-                    <small style="color: #64748b">Weekly Sales: ${a.weekly_sales || 0}</small>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fff; border: 1px solid #fee2e2; border-radius: 12px; transition: all 0.2s; cursor: default;">
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <div style="width: 36px; height: 36px; background: #fef2f2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #ef4444;">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <div>
+                        <h5 style="margin: 0; font-size: 0.85rem; font-weight: 700; color: #1e293b;">${a.name}</h5>
+                        <div style="display: flex; gap: 8px; margin-top: 2px;">
+                            <span style="font-size: 0.7rem; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                                <i class="fas fa-bolt" style="font-size: 0.6rem; color: #f59e0b;"></i> ${a.weekly_sales || 0} / wk
+                            </span>
+                        </div>
+                    </div>
                 </div>
-                <div style="text-align: right">
-                    <span style="font-size: 0.9rem; font-weight: 800; color: #ef4444;">${a.current_stock}</span>
-                    <small style="display: block; font-size: 0.6rem; color: #94a3b8">LEVEL</small>
+                <div style="text-align: right;">
+                    <span style="font-size: 1rem; font-weight: 800; color: #ef4444;">${a.current_stock}</span>
+                    <small style="display: block; font-size: 0.65rem; color: #ef4444; opacity: 0.8; font-weight: 600;">CRITICAL</small>
                 </div>
             </div>
         `).join('');
@@ -9421,6 +9932,9 @@ class AgroDistributionApp {
         const from = document.getElementById('df-date-from').value;
         const to = document.getElementById('df-date-to').value;
 
+        // Add loading state to button if feasible or simple notification
+        this.showNotification('Crunching predictive models...', 'info');
+
         try {
             const res = await this.apiCall(`/api/reports/sales-analytics?type=demand_forecast&dateFrom=${from}&dateTo=${to}`);
             if (!res) return;
@@ -9428,31 +9942,71 @@ class AgroDistributionApp {
             if (data.success) {
                 const { productDemand, fulfillment, routeForecast, leadTime } = data.data;
 
-                // 1. Update KPIs
-                const fulfillRate = fulfillment.total_preorders > 0
-                    ? Math.round((fulfillment.fulfilled_count / fulfillment.total_preorders) * 100)
-                    : 100;
-                const backorderRate = fulfillment.total_preorders > 0
-                    ? Math.round((fulfillment.backorder_count / fulfillment.total_preorders) * 100)
-                    : 0;
+                // Animate KPI Updates
+                const counters = [
+                    { id: 'df-fulfillment-rate', val: (fulfillment.total_preorders > 0 ? Math.round((fulfillment.fulfilled_count / fulfillment.total_preorders) * 100) : 100), suffix: '%' },
+                    { id: 'df-backorder-rate', val: (fulfillment.total_preorders > 0 ? Math.round((fulfillment.backorder_count / fulfillment.total_preorders) * 100) : 0), suffix: '%' },
+                ];
 
-                document.getElementById('df-fulfillment-rate').textContent = fulfillRate + '%';
-                document.getElementById('df-fulfilled-count').textContent = `${fulfillment.fulfilled_count} orders converted`;
-                document.getElementById('df-backorder-rate').textContent = backorderRate + '%';
-                document.getElementById('df-backorder-count').textContent = `${fulfillment.backorder_count} orders pending`;
-                document.getElementById('df-lost-revenue').textContent = this.formatCurrency(fulfillment.lost_revenue_estimate || 0);
-                document.getElementById('df-avg-lead').textContent = `${leadTime} Days`;
+                // Simple counter update logic
+                counters.forEach(c => {
+                    if (document.getElementById(c.id))
+                        document.getElementById(c.id).textContent = c.val + c.suffix;
+                });
+
+                if (document.getElementById('df-fulfilled-count'))
+                    document.getElementById('df-fulfilled-count').innerHTML = `<i class="fas fa-check-circle"></i> ${fulfillment.fulfilled_count} Orders Completed`;
+
+                if (document.getElementById('df-backorder-count'))
+                    document.getElementById('df-backorder-count').innerHTML = `<i class="fas fa-clock"></i> ${fulfillment.backorder_count} Pending`;
+
+                if (document.getElementById('df-lost-revenue'))
+                    document.getElementById('df-lost-revenue').textContent = this.formatCurrency(fulfillment.lost_revenue_estimate || 0);
+
+                if (document.getElementById('df-avg-lead'))
+                    document.getElementById('df-avg-lead').textContent = `${leadTime} Days`;
 
                 // 2. Render Charts
                 this.renderDFCharts(productDemand, routeForecast);
 
                 // 3. Render Table
                 this.renderDFTable(productDemand);
+
+                // Store for export
+                this.lastDemandForecastData = productDemand;
+
+                this.showNotification('Demand intelligence analysis complete', 'success');
             }
         } catch (err) {
             console.error('Demand Forecast load error:', err);
             this.showNotification('Failed to load forecasting data', 'error');
         }
+    }
+
+    downloadDemandReport() {
+        if (!this.lastDemandForecastData || this.lastDemandForecastData.length === 0) {
+            this.showNotification('No data available to export. Please run analysis first.', 'warning');
+            return;
+        }
+
+        const csvContent = [
+            ['Product Model', 'Forecasted Demand', 'Fulfilled', 'Gap (Backorder)', 'Trend'],
+            ...this.lastDemandForecastData.map(p => {
+                const gap = Math.max(0, p.pre_ordered - p.actual_sales);
+                const trend = p.pre_ordered > p.actual_sales ? 'High Demand' : 'Fulfilled';
+                return [p.label, p.pre_ordered, p.actual_sales, gap, trend];
+            })
+        ].map(e => e.join(",")).join("\n");
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `demand_forecast_report_${new Date().toISOString().slice(0, 10)}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 
     renderDFCharts(productDemand, routeForecast) {

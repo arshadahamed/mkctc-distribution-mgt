@@ -1,0 +1,171 @@
+<div id="banking-cheques-view" class="view-content" style="display: none;">
+                <!-- Internal Styles for Cheque Management -->
+                <style>
+                    .cheque-badge {
+                        padding: 4px 12px;
+                        border-radius: 50px;
+                        font-size: 0.85rem;
+                        font-weight: 600;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                    }
+
+                    .cheque-badge.pending {
+                        background: #fff3cd;
+                        color: #856404;
+                    }
+
+                    .cheque-badge.deposited {
+                        background: #cce5ff;
+                        color: #004085;
+                    }
+
+                    .cheque-badge.cleared {
+                        background: #d4edda;
+                        color: #155724;
+                    }
+
+                    .cheque-badge.returned {
+                        background: #f8d7da;
+                        color: #721c24;
+                    }
+
+                    .cheque-filters {
+                        display: flex;
+                        gap: 15px;
+                        margin-bottom: 20px;
+                        background: white;
+                        padding: 15px;
+                        border-radius: 12px;
+                        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+                        align-items: center;
+                    }
+
+                    .cheque-search-box {
+                        flex: 1;
+                        position: relative;
+                    }
+
+                    .cheque-search-box input {
+                        width: 100%;
+                        padding: 10px 15px 10px 40px;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 8px;
+                        font-size: 0.95rem;
+                    }
+
+                    .cheque-search-box i {
+                        position: absolute;
+                        left: 15px;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        color: #94a3b8;
+                    }
+
+                    .filter-pill {
+                        padding: 8px 16px;
+                        border-radius: 20px;
+                        background: #f1f5f9;
+                        border: none;
+                        color: #64748b;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                    }
+
+                    .filter-pill.active {
+                        background: var(--primary-green);
+                        color: white;
+                    }
+                </style>
+
+                <!-- Header & Stats -->
+                <div style="margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <h2 style="font-size: 1.8rem; font-weight: 700; color: var(--text-dark);">Cheque Management
+                            </h2>
+                            <p style="color: var(--text-light);">Track, deposit, and manage all cheque payments.</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="app.loadBankingCheques()">
+                            <i class="fas fa-sync"></i> Refresh Data
+                        </button>
+                    </div>
+
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <div class="kpi-icon" style="background: #fff3cd; color: #856404;"><i
+                                        class="fas fa-clock"></i></div>
+                            </div>
+                            <div class="kpi-body">
+                                <h3>Pending</h3>
+                                <div class="kpi-value" id="bank-pending-val">0</div>
+                            </div>
+                            <div class="kpi-footer" id="bank-pending-count">0 cheques waiting</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <div class="kpi-icon"
+                                    style="color: var(--success); background-color: rgba(76, 175, 80, 0.1);">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                            </div>
+                            <div class="kpi-body">
+                                <h3>Deposited / Cleared</h3>
+                                <div class="kpi-value" id="bank-deposited-val">0</div>
+                            </div>
+                            <div class="kpi-footer" id="bank-deposited-count">0 cheques processed</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-header">
+                                <div class="kpi-icon"
+                                    style="color: var(--error); background-color: rgba(244, 67, 54, 0.1);">
+                                    <i class="fas fa-undo"></i>
+                                </div>
+                            </div>
+                            <div class="kpi-body">
+                                <h3>Returned</h3>
+                                <div class="kpi-value" id="bank-returned-val">0</div>
+                            </div>
+                            <div class="kpi-footer" id="bank-returned-count">0 cheques bounced</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="cheque-filters">
+                    <div class="cheque-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="cheque-search-input"
+                            placeholder="Search by cheque number, customer, or bank..." oninput="app.filterCheques()">
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="filter-pill active" onclick="app.setChequeFilter('all', this)">All</button>
+                        <button class="filter-pill" onclick="app.setChequeFilter('Pending', this)">Pending</button>
+                        <button class="filter-pill" onclick="app.setChequeFilter('Deposited', this)">Deposited</button>
+                        <button class="filter-pill" onclick="app.setChequeFilter('Cleared', this)">Cleared</button>
+                        <button class="filter-pill" onclick="app.setChequeFilter('Returned', this)">Returned</button>
+                    </div>
+                </div>
+
+                <!-- Main Registry Table -->
+                <div class="card" style="overflow: hidden; border: none; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+                    <div class="table-container" style="max-height: 600px; padding: 0;">
+                        <table class="data-table">
+                            <thead style="background: #f8fafc; position: sticky; top: 0; z-index: 10;">
+                                <tr>
+                                    <th>Cheque Details</th>
+                                    <th>Customer</th>
+                                    <th class="text-right">Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="banking-cheques-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>

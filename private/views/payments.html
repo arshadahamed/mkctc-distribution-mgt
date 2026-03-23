@@ -1,0 +1,106 @@
+<div id="payments-view" class="view-content" style="display: none;">
+                <!-- Premium Payments Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Financial Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-wallet"></i> Tracking all inbound
+                                collections and credit adjustments.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openPaymentModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Record Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-hand-holding-usd"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Collected</span>
+                            <h4 class="v-value" id="pay-stat-total" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;"><i
+                                class="fas fa-undo"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Returns</span>
+                            <h4 class="v-value" id="pay-stat-returns" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-money-bill-wave"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Cash Flow</span>
+                            <h4 class="v-value" id="pay-stat-cash" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(243, 156, 18, 0.1); color: #f39c12;"><i
+                                class="fas fa-money-check"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Cheque Deposits</span>
+                            <h4 class="v-value" id="pay-stat-cheque" style="font-size: 1.2rem;">0.00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modern Filter Bar -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-input-wrapper" style="flex: 1; min-width: 250px; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="payment-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by Receipt # or Customer..." onkeyup="app.loadPayments()">
+                        </div>
+                        <select id="payment-method-filter" class="form-control"
+                            style="width: 150px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadPayments()">
+                            <option value="">All Methods</option>
+                            <option value="cash">Cash</option>
+                            <option value="cheque">Cheque</option>
+                            <option value="transfer">Transfer</option>
+                        </select>
+                        <select id="payment-cat-filter" class="form-control"
+                            style="width: 150px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadPayments()">
+                            <option value="">All Categories</option>
+                            <option value="collection">Collection</option>
+                            <option value="return">Return</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="app.loadPayments()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Payment Grid -->
+                <div id="payment-grid-container" class="visit-grid">
+                    <!-- Cards will be injected via JS -->
+                    <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Synchronizing financial records...</p>
+                    </div>
+                </div>
+
+                <!-- Fallback Table (Hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="payment-table-body"></tbody>
+                    </table>
+                </div>
+            </div>

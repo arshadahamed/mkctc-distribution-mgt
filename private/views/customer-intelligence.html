@@ -1,0 +1,226 @@
+<div id="customer-intelligence-view" class="view-content" style="display: none; background: #f8fafc; min-height: 100%;">
+    <!-- Hero Section -->
+    <div
+        style="background: linear-gradient(135deg, #475569 0%, #1e293b 100%); color: white; padding: 3rem 2rem 5rem; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);">
+        <!-- Ambient Background -->
+        <div
+            style="position: absolute; top: -50%; right: -10%; width: 800px; height: 800px; background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, rgba(0,0,0,0) 60%); border-radius: 50%; pointer-events: none;">
+        </div>
+        <div
+            style="position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);">
+        </div>
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 10;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                    <span
+                        style="background: rgba(14, 165, 233, 0.2); color: #7dd3fc; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; border: 1px solid rgba(14, 165, 233, 0.3);">
+                        <i class="fas fa-users-viewfinder"></i> CUSTOMER ANALYTICS
+                    </span>
+                </div>
+                <h2
+                    style="font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1px; background: linear-gradient(to right, #fff, #cbd5e1); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                    Customer Intelligence
+                </h2>
+                <p style="color: #94a3b8; font-size: 1rem; margin: 10px 0 0; max-width: 500px; line-height: 1.6;">
+                    Insights into customer behavior, credit risks, and lifetime value.
+                </p>
+            </div>
+
+            <div
+                style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 10px;">
+                <div class="input-with-icon-dark" style="position: relative;">
+                    <i class="fas fa-calendar"
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="date" id="ci-date-from" class="form-control-dark"
+                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 10px 10px 35px; border-radius: 10px; outline: none;">
+                </div>
+                <span style="color: #64748b;">to</span>
+                <div class="input-with-icon-dark" style="position: relative;">
+                    <i class="fas fa-calendar"
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="date" id="ci-date-to" class="form-control-dark"
+                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 10px 10px 35px; border-radius: 10px; outline: none;">
+                </div>
+                <button class="btn btn-primary" onclick="app.loadCustomerIntelligence()"
+                    style="background: #0ea5e9; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.4); transition: all 0.2s;">
+                    <i class="fas fa-search" style="margin-right: 8px;"></i> Analyze
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 0 2rem 2rem; margin-top: -3rem; position: relative; z-index: 20;">
+        <!-- KPI Grid -->
+        <div class="kpi-grid"
+            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 2rem;">
+            <!-- KPI 1 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">New
+                        Customers</span>
+                    <h3 id="ci-new-count" style="font-size: 2rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">0
+                    </h3>
+                    <p style="font-size: 0.8rem; color: #0ea5e9; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-plus-circle"></i> Acquisition
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #f0f9ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #0ea5e9; font-size: 1.5rem;">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+            </div>
+
+            <!-- KPI 2 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Inactive
+                        (90d)</span>
+                    <h3 id="ci-inactive-count"
+                        style="font-size: 2rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">0</h3>
+                    <p style="font-size: 0.8rem; color: #f59e0b; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-clock"></i> Dormant
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #fffbeb; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #d97706; font-size: 1.5rem;">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+            </div>
+
+            <!-- KPI 3 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Outstanding</span>
+                    <h3 id="ci-total-outstanding"
+                        style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">LKR 0</h3>
+                    <p style="font-size: 0.8rem; color: #64748b; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-file-invoice-dollar"></i> Receivables
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #f8fafc; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #475569; font-size: 1.5rem;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+            </div>
+
+            <!-- KPI 4 -->
+            <div class="premium-card"
+                style="background: #fef2f2; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #ef4444; letter-spacing: 0.5px; text-transform: uppercase;">Credit
+                        Risk</span>
+                    <h3 id="ci-over-limit" style="font-size: 2rem; font-weight: 800; color: #b91c1c; margin: 5px 0 0;">0
+                    </h3>
+                    <p id="ci-over-limit-amt"
+                        style="font-size: 0.8rem; color: #ef4444; margin: 4px 0 0; font-weight: 700;">
+                        LKR 0 Excess
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: rgba(255, 255, 255, 0.6); border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 2rem;">
+            <!-- Main Chart -->
+            <div class="premium-card"
+                style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Credit Usage
+                            Distribution</h4>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Utilization of assigned credit
+                            limits across customer base.</p>
+                    </div>
+                </div>
+                <div style="height: 350px;">
+                    <canvas id="creditUsageChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Side Chart -->
+            <div class="premium-card"
+                style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Customer Loyalty
+                        Segments</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Repeat purchase behavior analysis.
+                    </p>
+                </div>
+                <div style="height: 350px;">
+                    <canvas id="behaviorChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="premium-card"
+            style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <div
+                style="padding: 24px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Customer Performance
+                        Ledger</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Detailed breakdown of LTV, balance,
+                        and activity.</p>
+                </div>
+                <div class="input-with-icon" style="position: relative;">
+                    <i class="fas fa-search"
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="text" id="ci-table-search" placeholder="Search customer..."
+                        style="padding: 8px 12px 8px 35px; border-radius: 10px; border: 1px solid #e2e8f0; font-size: 0.9rem; width: 250px;">
+                </div>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Customer</th>
+                            <th class="text-right"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Lifetime Value</th>
+                            <th class="text-center"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Orders</th>
+                            <th class="text-right"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Balance</th>
+                            <th class="text-center"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Credit Usage</th>
+                            <th class="text-center"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Last Activity</th>
+                            <th class="text-center"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ci-table-body">
+                        <tr>
+                            <td colspan="7" class="text-center" style="padding: 40px; color: #94a3b8;">
+                                <i class="fas fa-users"
+                                    style="font-size: 2rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i>
+                                Ready to analyze customer data...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

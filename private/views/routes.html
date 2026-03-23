@@ -1,0 +1,71 @@
+<div id="routes-view" class="view-content" style="display: none;">
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Delivery Network</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-route"></i> Define and optimize your
+                                distribution reach.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openRouteModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Create New Route
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Routes KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-road"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Routes</span>
+                            <h4 class="v-value" id="route-stat-total">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-users"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Mapped Customers</span>
+                            <h4 class="v-value" id="route-stat-customers">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;"><i
+                                class="fas fa-star"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Most Populated</span>
+                            <h4 class="v-value" id="route-stat-top" style="font-size: 1rem;">N/A</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="route-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search routes by name or description..." onkeyup="app.loadRoutes()">
+                        </div>
+                        <button class="btn btn-secondary" onclick="app.loadRoutes()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Routes Grid -->
+                <div id="route-grid-container" class="visit-grid">
+                    <!-- Cards injected via JS -->
+                </div>
+            </div>

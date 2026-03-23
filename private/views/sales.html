@@ -1,0 +1,210 @@
+<div id="sales-view" class="view-content" style="display: none;">
+    <div class="pos-container">
+        <!-- Left: Product Selection -->
+        <div class="pos-products">
+            <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+                <div class="card-header pos-header">
+                    <div class="pos-controls">
+                        <div class="form-group mb-0" style="flex: 1;">
+                            <div class="input-with-icon">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="pos-product-search"
+                                    placeholder="Search products (Name/SKU/Barcode)..." class="form-control mb-0">
+                            </div>
+                        </div>
+                        <div class="form-group mb-0" style="width: 350px;">
+                            <select id="pos-load-selector" class="form-control mb-0">
+                                <option value="">Select Truck Load</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="pos-grid-container" id="pos-product-grid">
+                    <div class="pos-empty-state">
+                        <i class="fas fa-truck-loading"></i>
+                        <p>Please select an active truck load to start selling.</p>
+                    </div>
+                </div>
+                <!-- Added Truck Stock Footer -->
+                <div class="pos-truck-footer" id="pos-truck-footer" style="display: none;">
+                    <div id="pos-truck-info" style="font-weight: 700; color: var(--gray-700);">
+                        <i class="fas fa-truck" style="margin-right: 8px; color: var(--primary-green);"></i>
+                        <span id="pos-selected-truck-name">No Truck Loaded</span>
+                    </div>
+                    <div class="pos-truck-stats">
+                        <div class="pos-stat-item">
+                            <i class="fas fa-boxes"></i>
+                            <span>Items: <span id="pos-total-items-count" class="pos-stat-value">0</span></span>
+                        </div>
+                        <div class="pos-stat-item">
+                            <i class="fas fa-layer-group"></i>
+                            <span>Total Qty: <span id="pos-total-truck-qty" class="pos-stat-value">0</span></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Cart & Checkout (Futuristic Redesign) -->
+        <div class="pos-cart">
+            <div class="card"
+                style="height: 100%; display: flex; flex-direction: column; background: var(--white); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 20px; overflow: hidden;">
+                <div class="card-header"
+                    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 24px; border-bottom: none; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div
+                            style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 0.05) 100%); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                            <i class="fas fa-shopping-cart" style="color: #4ade80; font-size: 1.3rem;"></i>
+                        </div>
+                        <div>
+                            <h3 class="card-title"
+                                style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 800; letter-spacing: -0.5px;">
+                                Current Checkout</h3>
+                            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 500; margin-top: 2px;">Invoice
+                                <span id="pos-invoice-number" style="color: #4ade80; font-weight: 800;">#...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-actions" style="display: flex; gap: 10px;">
+                        <button class="btn btn-sm" onclick="app.recallInvoiceModal()" title="Recall Held Invoice"
+                            style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i class="fas fa-history"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="app.holdInvoice()" title="Hold Invoice"
+                            style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i class="fas fa-pause"></i>
+                        </button>
+                        <button class="btn btn-sm" onclick="app.clearCart()" title="Clear Cart"
+                            style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="pos-cart-header-info"
+                    style="background: transparent; padding: 10px 20px; border-bottom: 1px solid rgba(0,0,0,0.03);">
+                    <div class="form-row" style="display: flex; gap: 12px;">
+                        <div class="form-group" style="flex: 1; position: relative; margin-bottom: 0;">
+                            <!-- Search Customer Mode (Stylized) -->
+                            <div id="pos-customer-search-mode">
+                                <div
+                                    style="display: flex; gap: 8px; align-items: center; background: #f8fafc; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 6px 10px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+                                    <i class="fas fa-search" style="color: #94a3b8; margin-left: 2px;"></i>
+                                    <input type="text" id="pos-customer-search" class="form-control"
+                                        placeholder="Assign Customer to Invoice..."
+                                        oninput="app.filterPOSCustomers(this.value)"
+                                        onfocus="app.filterPOSCustomers(this.value)" autocomplete="off"
+                                        style="border: none; padding: 0; font-size: 0.95rem; background: transparent; box-shadow: none; font-weight: 500;">
+                                    <button class="btn btn-icon btn-add-customer-icon"
+                                        onclick="app.openPOSAddCustomer()" title="Add New Customer"
+                                        style="background: #ecfdf5; border: none; color: #10b981; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; box-shadow: 0 2px 5px rgba(16, 185, 129, 0.1);">
+                                        <i class="fas fa-user-plus" style="font-size: 0.8rem;"></i>
+                                    </button>
+                                </div>
+                                <div id="pos-customer-results" class="search-results-dropdown"
+                                    style="display: none; top: calc(100% + 4px); border-radius: 12px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
+                                    <!-- Results injected here -->
+                                </div>
+                            </div>
+
+                            <!-- Selected Customer Mode (Premium Card) -->
+                            <div id="pos-selected-customer"
+                                style="display: none; align-items: center; justify-content: space-between; padding: 8px 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; color: white; box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);">
+                                <div
+                                    style="width: 32px; height: 32px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-right: 10px;">
+                                    <i class="fas fa-user" style="font-size: 0.95rem;"></i>
+                                </div>
+                                <div style="flex: 1; min-width: 0; padding-right: 12px;">
+                                    <div id="pos-cust-name"
+                                        style="font-weight: 800; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                        Customer Name</div>
+                                    <div id="pos-cust-detail"
+                                        style="font-size: 0.7rem; color: rgba(255,255,255,0.9); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 1px;">
+                                        Details</div>
+                                </div>
+                                <div style="text-align: right; margin-right: 12px; flex-shrink: 0;">
+                                    <div
+                                        style="font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;">
+                                        Balance</div>
+                                    <div id="pos-cust-balance"
+                                        style="font-weight: 800; font-size: 1rem; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                        0.00</div>
+                                </div>
+                                <button onclick="app.resetPOSCustomer()"
+                                    style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
+                                    <i class="fas fa-times" style="font-size: 0.75rem;"></i>
+                                </button>
+                                <input type="hidden" id="pos-customer-selector">
+                            </div>
+                        </div>
+                        <div class="form-group" style="width: 140px; margin-bottom: 0;">
+                            <div
+                                style="background: #f8fafc; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px; padding: 6px 10px; height: 100%; display: flex; align-items: center;">
+                                <input type="date" id="pos-date" class="form-control"
+                                    style="border: none; padding: 0; background: transparent; font-size: 0.9rem; font-weight: 700; color: #475569; box-shadow: none; outline: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pos-cart-items" id="pos-cart-items"
+                    style="flex: 1; overflow-y: auto; background: #f8fafc; padding: 12px;">
+                    <div id="pos-cart-body" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Items will be injected with new styling -->
+                    </div>
+                </div>
+
+                <div class="pos-summary"
+                    style="background: transparent; border-top: 1px solid rgba(0,0,0,0.05); padding: 12px 16px; z-index: 20;">
+
+                    <div style="display: flex; gap: 12px; margin-bottom: 8px;">
+                        <div
+                            style="flex: 1; background: #f8fafc; padding: 8px 12px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(0,0,0,0.02);">
+                            <div
+                                style="font-size: 0.65rem; color: #64748b; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                Subtotal</div>
+                            <div style="font-size: 1.05rem; color: #1e293b; font-weight: 800; display:flex; align-items:center;">
+                                <span style="font-size: 0.6rem; opacity:0.6; margin-right:4px;">RS.</span><span id="pos-subtotal">0.00</span>
+                            </div>
+                        </div>
+                        <div
+                            style="flex: 1; background: #fff1f2; padding: 8px 12px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(225, 29, 72, 0.05);">
+                            <div
+                                style="font-size: 0.65rem; color: #fda4af; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                Discount</div>
+                            <div style="font-size: 1.05rem; color: #e11d48; font-weight: 800; display:flex; align-items:center;">
+                                <span style="font-size: 0.6rem; opacity:0.6; margin-right:4px;">RS.</span><span id="pos-total-discount">-0.00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; background: rgba(248, 250, 252, 0.6); border-radius: 10px; padding: 10px 14px; border: 1px solid rgba(0,0,0,0.03);">
+                        <div>
+                            <div
+                                style="font-size: 0.75rem; color: #64748b; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 2px;">
+                                TOTAL PAYABLE</div>
+                            <div style="font-size: 0.6rem; color: #94a3b8; font-weight: 600;">Includes taxes</div>
+                        </div>
+                        <div style="text-align: right; line-height: 1;">
+                            <span class="currency"
+                                style="font-size: 0.8rem; color: #10b981; font-weight: 800; margin-right: 4px;">RS.</span>
+                            <span id="pos-net-total"
+                                style="font-size: 1.8rem; font-weight: 900; color: #0f172a; letter-spacing: -1px;">0.00</span>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-pay-animated" onclick="app.processPOS()">
+                        <span style="position: relative; z-index: 2; font-weight: 800; color: white;">PROCEED TO
+                            PAY</span>
+                        <div style="width: 24px; height: 24px; background: rgba(255,255,255,0.25); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 2; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);"
+                            onmouseover="this.style.transform='translateX(6px)'"
+                            onmouseout="this.style.transform='translateX(0)'">
+                            <i class="fas fa-arrow-right" style="color: white; font-size: 0.75rem;"></i>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

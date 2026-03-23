@@ -1,0 +1,215 @@
+<div id="reports-view" class="view-content" style="display: none;">
+                <!-- Reports Analytics Dash Header -->
+                <div class="report-content-header">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--gray-900); margin-bottom: 4px;">
+                            Sales Analytics</h2>
+                        <p style="color: var(--gray-500); font-size: 0.9rem;">Comprehensive revenue and performance
+                            insights</p>
+                    </div>
+                    <div class="report-filters-bar">
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="report-date-from" class="form-control mb-0"
+                                style="width: 140px; border:none; background:transparent;">
+                        </div>
+                        <span style="color: var(--gray-300);">→</span>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="report-date-to" class="form-control mb-0"
+                                style="width: 140px; border:none; background:transparent;">
+                        </div>
+                        <div class="input-with-icon" style="margin-left: 10px;">
+                            <i class="fas fa-layer-group"></i>
+                            <select id="report-group-by" class="form-control mb-0"
+                                style="width: 120px; border:none; background:transparent;">
+                                <option value="daily">Daily</option>
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly">Monthly</option>
+                                <option value="yearly">Yearly</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="app.loadAnalyticsSummary()"
+                            style="padding: 10px 20px; border-radius: 10px;">
+                            <i class="fas fa-sync"></i> Update
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reporting KPIs (Modern Styled) -->
+                <div class="kpi-grid" style="grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div class="kpi-card card-sales" style="min-height: auto; padding: 1.25rem;">
+                        <div class="kpi-header" style="margin-bottom: 8px;">
+                            <div class="kpi-icon-badge"
+                                style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="rep-total-revenue" style="font-size: 1.25rem;">LKR 0</span>
+                            <span class="kpi-label-refined" style="font-size: 0.75rem;">Total Revenue</span>
+                        </div>
+                        <i class="fas fa-wallet kpi-bg-icon-v2" style="font-size: 3rem;"></i>
+                    </div>
+
+                    <div class="kpi-card card-profit" style="min-height: auto; padding: 1.25rem;">
+                        <div class="kpi-header" style="margin-bottom: 8px;">
+                            <div class="kpi-icon-badge"
+                                style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-shopping-basket"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="rep-total-orders" style="font-size: 1.25rem;">0</span>
+                            <span class="kpi-label-refined" style="font-size: 0.75rem;">Total Orders</span>
+                        </div>
+                        <i class="fas fa-shopping-basket kpi-bg-icon-v2" style="font-size: 3rem;"></i>
+                    </div>
+
+                    <div class="kpi-card card-trucks" style="min-height: auto; padding: 1.25rem;">
+                        <div class="kpi-header" style="margin-bottom: 8px;">
+                            <div class="kpi-icon-badge"
+                                style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="rep-avg-order" style="font-size: 1.25rem;">LKR 0</span>
+                            <span class="kpi-label-refined" style="font-size: 0.75rem;">Avg. Ticket Size</span>
+                        </div>
+                        <i class="fas fa-bullseye kpi-bg-icon-v2" style="font-size: 3rem;"></i>
+                    </div>
+
+                    <div class="kpi-card card-expenses" style="min-height: auto; padding: 1.25rem;">
+                        <div class="kpi-header" style="margin-bottom: 8px;">
+                            <div class="kpi-icon-badge"
+                                style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="rep-repeat-rate" style="font-size: 1.25rem;">0%</span>
+                            <span class="kpi-label-refined" style="font-size: 0.75rem;">Retention Rate</span>
+                        </div>
+                        <i class="fas fa-sync-alt kpi-bg-icon-v2" style="font-size: 3rem;"></i>
+                    </div>
+
+                    <div class="kpi-card card-outstanding" style="min-height: auto; padding: 1.25rem;">
+                        <div class="kpi-header" style="margin-bottom: 8px;">
+                            <div class="kpi-icon-badge"
+                                style="width: 32px; height: 32px; font-size: 0.8rem; border-radius: 8px;">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="rep-total-discount" style="font-size: 1.25rem;">LKR 0</span>
+                            <span class="kpi-label-refined" style="font-size: 0.75rem;">Revenue Leak (Disc)</span>
+                        </div>
+                        <i class="fas fa-tags kpi-bg-icon-v2" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+
+                <!-- Main Analytics Layout -->
+                <div class="report-container">
+                    <!-- Modern Nav Sidebar -->
+                    <aside class="report-sidebar">
+                        <div class="report-nav-group">
+                            <span class="report-nav-label">General Performance</span>
+                            <button class="report-nav-btn active" onclick="app.switchReportTab('date', this)">
+                                <i class="fas fa-calendar-day"></i> <span>Revenue Trend</span>
+                            </button>
+                        </div>
+                        <div class="report-nav-group">
+                            <span class="report-nav-label">Financials</span>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('payments', this)">
+                                <i class="fas fa-credit-card"></i> <span>Payment Summary</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('expenses', this)">
+                                <i class="fas fa-receipt"></i> <span>Expense Analysis</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('debtors', this)">
+                                <i class="fas fa-hand-holding-dollar"></i> <span>Ageing & Debtors</span>
+                            </button>
+                        </div>
+                        <div class="report-nav-group">
+                            <span class="report-nav-label">Entity Performance</span>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('customer', this)">
+                                <i class="fas fa-users-viewfinder"></i> <span>Customer Sales</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('supplier', this)">
+                                <i class="fas fa-parachute-box"></i> <span>Supplier Analysis</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('route', this)">
+                                <i class="fas fa-map-location-dot"></i> <span>Route Efficiency</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('sales_rep', this)">
+                                <i class="fas fa-user-gear"></i> <span>Rep Performance</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('vehicle', this)">
+                                <i class="fas fa-truck-fast"></i> <span>Vehicle Metrics</span>
+                            </button>
+                        </div>
+                        <div class="report-nav-group">
+                            <span class="report-nav-label">Product Insights</span>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('products', this)">
+                                <i class="fas fa-arrow-trend-up"></i> <span>Top Products</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('low_products', this)">
+                                <i class="fas fa-arrow-trend-down"></i> <span>Bottom Products</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('discounts', this)">
+                                <i class="fas fa-percent"></i> <span>Discount Leakage</span>
+                            </button>
+                        </div>
+                        <div class="report-nav-group">
+                            <span class="report-nav-label">Operations & Logistics</span>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('inventory', this)">
+                                <i class="fas fa-boxes-stacked"></i> <span>Stock Valuation</span>
+                            </button>
+                            <button class="report-nav-btn" onclick="app.switchReportTab('load_consistency', this)">
+                                <i class="fas fa-truck-ramp-box"></i> <span>Load Consistency</span>
+                            </button>
+                        </div>
+                    </aside>
+
+                    <!-- Analytics Display Area -->
+                    <div class="report-display-main">
+                        <div class="report-chart-container">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h4 id="report-title"
+                                    style="font-size: 1.1rem; font-weight: 700; color: var(--gray-800);">Daily
+                                    Revenue
+                                </h4>
+                                <div class="badge badge-success">Visual Trend</div>
+                            </div>
+                            <div style="height: 300px;">
+                                <canvas id="reportChart"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="report-table-card">
+                            <div class="report-table-header">
+                                <h4 style="font-size: 1rem; font-weight: 700; color: var(--gray-800);">Detailed
+                                    Breakdown</h4>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-outline btn-sm" onclick="app.exportReport('csv')"
+                                        style="padding: 6px 12px; font-size: 0.75rem;">
+                                        <i class="fas fa-file-csv"></i> Export CSV
+                                    </button>
+                                    <button class="btn btn-outline btn-sm" onclick="app.exportReport('print')"
+                                        style="padding: 6px 12px; font-size: 0.75rem;">
+                                        <i class="fas fa-print"></i> Print PDF
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="table-container">
+                                <table class="data-table" id="report-table">
+                                    <thead id="report-table-head"></thead>
+                                    <tbody id="report-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>

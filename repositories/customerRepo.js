@@ -70,11 +70,11 @@ class CustomerRepository {
 
     async create(customer) {
         const sql = `
-            INSERT INTO customers (name, address, contact, category, route_id, price_level_id, credit_limit, account_balance, status, latitude, longitude, is_deleted)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            INSERT INTO customers (name, address, contact, email, category, route_id, price_level_id, credit_limit, account_balance, status, latitude, longitude, is_deleted)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         `;
         const params = [
-            customer.name, customer.address, customer.contact, customer.category,
+            customer.name, customer.address, customer.contact, customer.email || null, customer.category,
             customer.route_id, customer.price_level_id || null, customer.credit_limit || 0, customer.account_balance || 0, customer.status || 'active',
             customer.latitude || null, customer.longitude || null
         ];
@@ -85,13 +85,13 @@ class CustomerRepository {
     async update(id, customer) {
         const sql = `
             UPDATE customers SET
-                name = ?, address = ?, contact = ?, category = ?,
+                name = ?, address = ?, contact = ?, email = ?, category = ?,
                 route_id = ?, price_level_id = ?, credit_limit = ?, account_balance = ?, status = ?,
                 latitude = ?, longitude = ?
             WHERE id = ? AND is_deleted = 0
         `;
         const params = [
-            customer.name, customer.address, customer.contact, customer.category,
+            customer.name, customer.address, customer.contact, customer.email || null, customer.category,
             customer.route_id, customer.price_level_id || null, customer.credit_limit || 0, customer.account_balance || 0, customer.status,
             customer.latitude || null, customer.longitude || null, id
         ];
@@ -120,18 +120,28 @@ class CustomerRepository {
             SELECT 
                 invoice_date as date, 
                 invoice_number as reference, 
-                'Invoice' as type, 
-                net_total as debit, 
+                CASE 
+                    WHEN payment_method = 'split' THEN 'Invoice (Partial Credit)'
+                    ELSE 'Invoice' 
+                END as type, 
+                CASE 
+                    WHEN payment_method = 'split' THEN 
+                        CAST(json_extract(payment_details, '$.credit') AS REAL)
+                    ELSE net_total 
+                END as debit, 
                 0 as credit
             FROM invoices 
-            WHERE customer_id = ? AND payment_method = 'account'
+            WHERE customer_id = ? AND (payment_method = 'account' OR (payment_method = 'split' AND CAST(json_extract(payment_details, '$.credit') AS REAL) > 0))
 
             UNION ALL
 
             SELECT 
                 receipt_date as date, 
                 receipt_number as reference, 
-                'Receipt' as type, 
+                CASE 
+                    WHEN receipt_category = 'collection' AND receiver_name = 'RMA Settlement' THEN 'Credit Note (RMA)'
+                    ELSE 'Receipt'
+                END as type, 
                 0 as debit, 
                 amount as credit
             FROM receipts 

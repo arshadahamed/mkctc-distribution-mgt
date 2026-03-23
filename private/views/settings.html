@@ -1,0 +1,1178 @@
+<div id="settings-view" class="view-content" style="display: none;">
+    <style>
+        .settings-container {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+            min-height: calc(100vh - 200px);
+        }
+
+        .settings-sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--gray-100);
+        }
+
+        .settings-nav-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--gray-600);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .settings-nav-item i {
+            font-size: 1.1rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        .settings-nav-item:hover {
+            background: var(--gray-50);
+            color: var(--primary-green);
+            transform: translateX(5px);
+        }
+
+        .settings-nav-item.active {
+            background: var(--light-green-bg);
+            color: var(--primary-green);
+            border-color: rgba(46, 125, 50, 0.1);
+            box-shadow: 0 4px 12px rgba(46, 125, 50, 0.05);
+        }
+
+        .settings-nav-item.danger {
+            color: var(--error);
+            margin-top: 1rem;
+            border-top: 1px solid var(--gray-100);
+            padding-top: 1.5rem;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .settings-nav-item.danger:hover {
+            background: #fff5f5;
+        }
+
+        .settings-nav-item.danger.active {
+            background: #fff5f5;
+            border-color: rgba(244, 67, 54, 0.1);
+        }
+
+        .settings-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .settings-section-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            display: none;
+        }
+
+        .settings-section-card.active {
+            display: block;
+        }
+
+        .settings-header {
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .settings-header h2 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .settings-header h2 i {
+            color: var(--primary-green);
+            background: var(--light-green-bg);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 14px;
+            font-size: 1.4rem;
+        }
+
+        .settings-group {
+            margin-bottom: 3rem;
+        }
+
+        .settings-group-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gray-400);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            border-bottom: 1px solid var(--gray-50);
+        }
+
+        .settings-row:last-child {
+            border-bottom: none;
+        }
+
+        .settings-info {
+            flex: 1;
+            padding-right: 2.5rem;
+        }
+
+        .settings-info h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--gray-800);
+            margin-bottom: 6px;
+        }
+
+        .settings-info p {
+            font-size: 0.9rem;
+            color: var(--gray-500);
+            line-height: 1.5;
+        }
+
+        .settings-control {
+            min-width: 140px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        /* Modernized Switch */
+        .switch-custom {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 28px;
+        }
+
+        .switch-custom input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-custom {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--gray-200);
+            transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 28px;
+        }
+
+        .slider-custom:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+        }
+
+        input:checked+.slider-custom {
+            background-color: var(--primary-green);
+        }
+
+        input:checked+.slider-custom:before {
+            transform: translateX(24px);
+        }
+
+        .upload-avatar-shell {
+            width: 140px;
+            height: 140px;
+            border-radius: 24px;
+            background: var(--gray-50);
+            border: 2.5px dashed var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+
+        .upload-avatar-shell:hover {
+            border-color: var(--primary-green);
+            background: var(--light-green-bg);
+            transform: translateY(-2px);
+        }
+
+        .upload-avatar-shell img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            position: absolute;
+            top: 0;
+            left: 0;
+            padding: 15px;
+        }
+
+        .invoice-card {
+            border: 2px solid var(--gray-100);
+            border-radius: 20px;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--gray-50);
+            text-align: center;
+            position: relative;
+        }
+
+        .invoice-card:hover {
+            border-color: var(--primary-green-light);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .invoice-card.active {
+            border-color: var(--primary-green);
+            background: var(--light-green-bg);
+            box-shadow: 0 8px 24px rgba(46, 125, 50, 0.12);
+        }
+
+        .invoice-card i.main-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.75rem;
+            color: var(--gray-400);
+            transition: color 0.3s;
+        }
+
+        .invoice-card.active i.main-icon {
+            color: var(--primary-green);
+        }
+
+        .invoice-card span {
+            display: block;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--gray-700);
+        }
+
+        .invoice-card .preview-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: white;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            color: var(--gray-500);
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .invoice-card:hover .preview-btn {
+            opacity: 1;
+        }
+
+        .invoice-card .preview-btn:hover {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+        }
+
+        .danger-banner {
+            background: linear-gradient(135deg, #7f1d1d 0%, #ef4444 100%);
+            border-radius: 24px;
+            padding: 3rem;
+            color: white;
+            text-align: center;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 20px 40px rgba(239, 68, 68, 0.2);
+        }
+
+        .danger-banner i {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .danger-banner h2 {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .settings-container {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-sidebar {
+                position: relative;
+                top: 0;
+            }
+
+            .settings-nav-list {
+                flex-direction: row;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+            }
+
+            .settings-nav-item {
+                white-space: nowrap;
+            }
+
+            .settings-nav-item.danger {
+                margin-top: 0;
+                border-top: none;
+                padding-top: 12px;
+            }
+        }
+    </style>
+
+    <div class="settings-container">
+        <!-- Sidebar Navigation -->
+        <aside class="settings-sidebar">
+            <h3
+                style="font-size: 1.1rem; font-weight: 800; color: var(--gray-800); margin-bottom: 1.5rem; padding-left: 0.5rem;">
+                System Settings</h3>
+            <ul class="settings-nav-list">
+                <li>
+                    <a class="settings-nav-item active" onclick="app.switchSettingsTab('general', event)">
+                        <i class="fas fa-cog"></i> General
+                    </a>
+                </li>
+                <li>
+                    <a class="settings-nav-item" id="nav-link-company" onclick="app.switchSettingsTab('company', event)"
+                        style="display: none;">
+                        <i class="fas fa-building"></i> Company Profile
+                    </a>
+                </li>
+                <li>
+                    <a class="settings-nav-item" onclick="app.switchSettingsTab('security', event)">
+                        <i class="fas fa-shield-alt"></i> Security
+                    </a>
+                </li>
+                <li>
+                    <a class="settings-nav-item" id="nav-link-backup" onclick="app.switchSettingsTab('backup', event)">
+                        <i class="fas fa-database"></i> Backup & Recovery
+                    </a>
+                </li>
+                <li>
+                    <a class="settings-nav-item" id="nav-link-notifications"
+                        onclick="app.switchSettingsTab('notifications', event)">
+                        <i class="fas fa-bell"></i> Notifications
+                    </a>
+                </li>
+                <li>
+                    <a class="settings-nav-item danger" id="nav-link-data"
+                        onclick="app.switchSettingsTab('data', event)" style="display: none;">
+                        <i class="fas fa-fire-alt"></i> Danger Zone
+                    </a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="settings-main">
+
+            <!-- SECTION: General Settings -->
+            <section id="tab-settings-general" class="settings-section-card active">
+                <div class="settings-header">
+                    <h2><i class="fas fa-cog"></i> General Preferences</h2>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-desktop"></i> Interface</h5>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <h4>Font Scaling</h4>
+                            <p>Adjust the overall size of text and interface elements (70% - 150%)</p>
+                        </div>
+                        <div class="settings-control" style="flex: 2; flex-direction: column; align-items: flex-end;">
+                            <div style="display: flex; align-items: center; gap: 1rem; width: 100%;">
+                                <span style="font-size: 0.8rem; font-weight: 600; color: var(--gray-400);">SMALL</span>
+                                <input type="range" id="setting-font-size" min="70" max="150" value="100" step="5"
+                                    style="flex: 1; accent-color: var(--primary-green);"
+                                    oninput="app.previewFontSize(this.value)">
+                                <span style="font-size: 1.2rem; font-weight: 600; color: var(--gray-400);">LARGE</span>
+                                <span id="font-size-label"
+                                    style="min-width: 55px; font-weight: 800; color: var(--primary-green); text-align: right; font-size: 1.1rem;">100%</span>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="app.resetFontSize()"
+                                style="margin-top: 10px; font-size: 0.75rem;">Reset to Default</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-user-clock"></i> Session Security</h5>
+                    <div class="settings-row">
+                        <div class="settings-info">
+                            <h4>Inactivity Timeout</h4>
+                            <p>Automatically log out users after a certain period of inactivity to prevent unauthorized
+                                access.</p>
+                        </div>
+                        <div class="settings-control">
+                            <label class="switch-custom">
+                                <input type="checkbox" id="setting-timer-enabled">
+                                <span class="slider-custom"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="settings-row" id="timeout-input-row">
+                        <div class="settings-info">
+                            <h4>Timeout Duration</h4>
+                            <p>Time in minutes before the session expires. Max 120 minutes.</p>
+                        </div>
+                        <div class="settings-control">
+                            <div class="input-with-icon" style="width: 140px;">
+                                <i class="fas fa-clock"></i>
+                                <input type="number" id="setting-timeout" class="form-control" min="1" max="120"
+                                    value="10" style="margin-bottom: 0; padding-left: 35px;">
+                                <span
+                                    style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--gray-400); font-weight: 600; pointer-events: none;">MIN</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    style="margin-top: 2rem; border-top: 1px solid var(--gray-100); padding-top: 1.5rem; text-align: right;">
+                    <button class="btn btn-primary" id="save-settings-btn"
+                        style="padding: 14px 40px; border-radius: 14px; font-weight: 700; font-size: 1rem; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                        <i class="fas fa-save" style="margin-right: 10px;"></i> Save Preference
+                    </button>
+                </div>
+            </section>
+
+            <!-- SECTION: Company Profile -->
+            <section id="tab-settings-company" class="settings-section-card">
+                <div class="settings-header">
+                    <h2><i class="fas fa-building"></i> Company Identity</h2>
+                </div>
+
+                <form id="company-settings-form">
+                    <div class="settings-group">
+                        <h5 class="settings-group-title"><i class="fas fa-image"></i> Branding Assets</h5>
+                        <div style="display: flex; gap: 4rem; margin-bottom: 2.5rem;">
+                            <div style="text-align: center;">
+                                <div class="upload-avatar-shell"
+                                    onclick="document.getElementById('comp-logo-file').click()">
+                                    <img id="comp-logo-preview" src="" style="display: none;">
+                                    <div id="comp-logo-placeholder" style="color: var(--gray-400);">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem;"></i>
+                                        <p style="font-size: 0.8rem; margin-top: 8px; font-weight: 700;">LOGO</p>
+                                    </div>
+                                    <input type="file" id="comp-logo-file" accept="image/*" style="display: none;">
+                                    <input type="hidden" id="comp-logo-url">
+                                </div>
+                                <span
+                                    style="font-size: 0.85rem; color: var(--gray-500); margin-top: 10px; display: block; font-weight: 600;">Main
+                                    Brand Logo</span>
+                            </div>
+                            <div style="text-align: center;">
+                                <div class="upload-avatar-shell"
+                                    onclick="document.getElementById('comp-favicon-file').click()"
+                                    style="width: 100px; height: 100px;">
+                                    <img id="comp-favicon-preview" src="" style="display: none; padding: 15px;">
+                                    <div id="comp-favicon-placeholder" style="color: var(--gray-400);">
+                                        <i class="fas fa-fingerprint" style="font-size: 1.8rem;"></i>
+                                        <p style="font-size: 0.7rem; margin-top: 5px; font-weight: 700;">ICON</p>
+                                    </div>
+                                    <input type="file" id="comp-favicon-file" accept="image/x-icon,image/png"
+                                        style="display: none;">
+                                    <input type="hidden" id="comp-favicon-url">
+                                </div>
+                                <span
+                                    style="font-size: 0.85rem; color: var(--gray-500); margin-top: 10px; display: block; font-weight: 600;">Favicon</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h5 class="settings-group-title"><i class="fas fa-info-circle"></i> Contact & Basic Info</h5>
+                        <div class="form-grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <div class="form-group">
+                                <label class="form-label">Legal Trading Name</label>
+                                <input type="text" id="comp-name" class="form-control" placeholder="M.K.C Trade Center"
+                                    required style="height: 50px; font-size: 1.05rem;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Global Access Numbers</label>
+                                <input type="text" id="comp-contacts" class="form-control"
+                                    placeholder="0112345678, 0771234567" style="height: 50px;">
+                            </div>
+                            <div class="form-group" style="grid-column: span 2;">
+                                <label class="form-label">Headquarters Address</label>
+                                <textarea id="comp-address" class="form-control" rows="3"
+                                    placeholder="Full Business Address..."
+                                    style="padding: 15px; font-size: 1rem;"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h5 class="settings-group-title"><i class="fas fa-file-invoice"></i> Invoice Personalization
+                        </h5>
+                        <p style="font-size: 0.9rem; color: var(--gray-500); margin-bottom: 2rem;">Choose your preferred
+                            document architecture for computer-generated A4 invoices.</p>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1.5rem;">
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('premium')"
+                                data-template="premium">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('premium')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-crown main-icon"></i>
+                                <span>Premium Elite</span>
+                            </div>
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('classic')"
+                                data-template="classic">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('classic')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-file-invoice main-icon"></i>
+                                <span>Classic Business</span>
+                            </div>
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('modern')"
+                                data-template="modern">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('modern')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-leaf main-icon"></i>
+                                <span>Modern Agro</span>
+                            </div>
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('minimal')"
+                                data-template="minimal">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('minimal')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-minus main-icon"></i>
+                                <span>Minimalist</span>
+                            </div>
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('corporate')"
+                                data-template="corporate">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('corporate')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-briefcase main-icon"></i>
+                                <span>Corp (Dot-Matrix)</span>
+                            </div>
+                            <div class="invoice-card" onclick="app.selectInvoiceTemplate('custom')"
+                                data-template="custom">
+                                <button type="button" class="preview-btn"
+                                    onclick="event.stopPropagation(); app.previewInvoiceTemplate('custom')"><i
+                                        class="fas fa-eye"></i></button>
+                                <i class="fas fa-paint-brush main-icon"></i>
+                                <span>Designer Studio</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="comp-invoice-template">
+
+                        <!-- Custom Config Section (Modernized) -->
+                        <div id="custom-template-config"
+                            style="display: none; margin-top: 2rem; background: var(--gray-50); border-radius: 24px; padding: 2rem; border: 1px solid var(--gray-100);">
+                            <div class="form-grid"
+                                style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem;">
+                                <div class="form-group">
+                                    <label class="form-label">Brand Theme Color</label>
+                                    <div style="display: flex; gap: 16px; align-items: center;">
+                                        <input type="color" id="cfg-color" value="#2E7D32"
+                                            style="width: 55px; height: 55px; border: none; background: none; cursor: pointer;"
+                                            onchange="app.updateCustomConfig()">
+                                        <span id="cfg-color-val"
+                                            style="font-family: monospace; font-weight: 800; color: var(--gray-700); font-size: 1.1rem;">#2E7D32</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Document Typography</label>
+                                    <select id="cfg-font" class="form-control" onchange="app.updateCustomConfig()"
+                                        style="height: 50px;">
+                                        <option value="Inter, sans-serif">Modern (Inter)</option>
+                                        <option value="'Times New Roman', serif">Classic Serif (Times)</option>
+                                        <option value="Arial, sans-serif">Clean Sans (Arial)</option>
+                                        <option value="'Courier New', monospace">Monospace (Courier)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Header Alignment</label>
+                                    <select id="cfg-header" class="form-control" onchange="app.updateCustomConfig()"
+                                        style="height: 50px;">
+                                        <option value="left">Left Aligned</option>
+                                        <option value="center">Centered</option>
+                                        <option value="right">Right Aligned</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"
+                                    style="display: flex; flex-direction: column; gap: 15px; justify-content: center; padding-top: 10px;">
+                                    <label
+                                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 0.95rem; font-weight: 700; color: var(--gray-700);">
+                                        <input type="checkbox" id="cfg-show-logo" checked
+                                            onchange="app.updateCustomConfig()"> Show Enterprise Logo
+                                    </label>
+                                    <label
+                                        style="display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 0.95rem; font-weight: 700; color: var(--gray-700);">
+                                        <input type="checkbox" id="cfg-show-footer" checked
+                                            onchange="app.updateCustomConfig()"> Include Invoice Notes Footer
+                                    </label>
+                                </div>
+                            </div>
+                            <input type="hidden" id="invoice_custom_config_json">
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 2.5rem;">
+                        <button type="submit" class="btn btn-primary"
+                            style="padding: 14px 40px; border-radius: 14px; font-weight: 700;">
+                            <i class="fas fa-check-circle" style="margin-right: 10px;"></i> Commit Identity Changes
+                        </button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- SECTION: Security -->
+            <section id="tab-settings-security" class="settings-section-card">
+                <div class="settings-header">
+                    <h2><i class="fas fa-shield-alt"></i> Authentication Security</h2>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-key"></i> Key Management</h5>
+                    <form id="change-password-form"
+                        style="max-width: 550px; background: var(--gray-50); padding: 2.5rem; border-radius: 24px; border: 1px solid var(--gray-100);">
+                        <div class="form-group">
+                            <label class="form-label">Active Password</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-lock" style="color: var(--gray-400);"></i>
+                                <input type="password" id="cp-current" class="form-control" required
+                                    placeholder="Enter current password" style="height: 50px; padding-left: 45px;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label">New Credential</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-fingerprint" style="color: var(--gray-400);"></i>
+                                <input type="password" id="cp-new" class="form-control" required minlength="4"
+                                    placeholder="Minimum 4 characters" style="height: 50px; padding-left: 45px;">
+                            </div>
+                            <div class="password-strength-meter"
+                                style="height: 6px; background: white; margin-top: 12px; border-radius: 10px; overflow: hidden; border: 1px solid var(--gray-200);">
+                                <div id="password-strength-bar"
+                                    style="width: 0%; height: 100%; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: var(--error);">
+                                </div>
+                            </div>
+                            <p style="font-size: 0.75rem; color: var(--gray-500); margin-top: 8px;">Ensure your new
+                                password uses mixed characters for maximum security.</p>
+                        </div>
+                        <div class="form-group" style="margin-top: 1.5rem;">
+                            <label class="form-label">Verify New Credential</label>
+                            <div class="input-with-icon">
+                                <i class="fas fa-check-double" style="color: var(--gray-400);"></i>
+                                <input type="password" id="cp-confirm" class="form-control" required minlength="4"
+                                    placeholder="Repeat new password" style="height: 50px; padding-left: 45px;">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="change-password-btn"
+                            style="width: 100%; margin-top: 2rem; border-radius: 14px; height: 55px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.25);">
+                            Update Authentication Keys
+                        </button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- SECTION: Backup & Recovery -->
+            <section id="tab-settings-backup" class="settings-section-card">
+                <div class="settings-header">
+                    <h2><i class="fas fa-database"></i> Database & Recovery</h2>
+                    <button class="btn btn-primary" onclick="app.performManualBackup()"
+                        style="height: 50px; padding: 0 25px; border-radius: 12px;">
+                        <i class="fas fa-save" style="margin-right: 8px;"></i> Create Instant Snapshot
+                    </button>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-history"></i> Automated Scheduling</h5>
+                    <div
+                        style="background: var(--gray-50); border-radius: 24px; padding: 2.5rem; border: 1px solid var(--gray-100);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--gray-100);">
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <div
+                                    style="width: 48px; height: 48px; background: var(--light-green-bg); color: var(--primary-green); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div>
+                                    <h4 id="backup-status-text"
+                                        style="font-size: 1.15rem; color: var(--gray-800); margin: 0; font-weight: 800;">
+                                        Auto-Archive Service</h4>
+                                    <p style="font-size: 0.85rem; color: var(--gray-500); margin: 4px 0 0;">Periodic
+                                        vault snapshots for data durability.</p>
+                                </div>
+                            </div>
+                            <label class="switch-custom">
+                                <input type="checkbox" id="backup-enabled-toggle">
+                                <span class="slider-custom"></span>
+                            </label>
+                        </div>
+
+                        <div id="backup-config-fields" class="form-grid"
+                            style="grid-template-columns: repeat(3, 1fr); gap: 2rem; transition: all 0.3s ease;">
+                            <div class="form-group">
+                                <label class="form-label">Occurrence Frequency</label>
+                                <select id="backup-freq" class="form-control" style="height: 50px;">
+                                    <option value="daily">Every Single Day</option>
+                                    <option value="weekly">Once per Week (Sunday)</option>
+                                    <option value="monthly">Monthly Master Backup</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Execution Window</label>
+                                <input type="time" id="backup-time" class="form-control" value="23:00"
+                                    style="height: 50px;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Archive Retention</label>
+                                <div class="input-with-icon">
+                                    <i class="fas fa-layer-group"></i>
+                                    <input type="number" id="backup-retention" class="form-control" value="10" min="1"
+                                        max="50" style="height: 50px; padding-left: 35px;">
+                                    <span
+                                        style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-size: 0.75rem; color: var(--gray-400); font-weight: 700;">FILES</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="text-align: right; margin-top: 2rem;">
+                            <button class="btn btn-outline" id="save-backup-config-btn"
+                                onclick="app.saveBackupSettings()"
+                                style="height: 50px; padding: 0 30px; border-radius: 12px; font-weight: 700;">Update
+                                Schedule Configuration</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-boxes"></i> Cloud & Local Archives</h5>
+                    <div class="table-container"
+                        style="border-radius: 20px; border: 1px solid var(--gray-100); overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">
+                        <table class="data-table">
+                            <thead>
+                                <tr style="background: var(--gray-50);">
+                                    <th style="padding: 18px 20px;">Archived Vault Filename</th>
+                                    <th>Commit Date</th>
+                                    <th>Uncompressed Size</th>
+                                    <th class="text-right" style="padding-right: 20px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="backup-list-body">
+                                <tr>
+                                    <td colspan="4" class="text-center" style="padding: 40px;">Synchronizing with local
+                                        vault...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION: Messaging -->
+            <section id="tab-settings-notifications" class="settings-section-card">
+                <div class="settings-header">
+                    <h2><i class="fas fa-bell"></i> Communications Hub</h2>
+                </div>
+
+                <div class="settings-group">
+                    <h5 class="settings-group-title"><i class="fas fa-at"></i> Mail Delivery Gateway (SMTP)</h5>
+                    <div
+                        style="background: var(--gray-50); border-radius: 24px; padding: 2.5rem; border: 1px solid var(--gray-100);">
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--gray-100);">
+                            <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                <div
+                                    style="width: 50px; height: 50px; background: #e3f2fd; color: #1e88e5; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 8px 16px rgba(30, 136, 229, 0.15);">
+                                    <i class="fas fa-envelope-open-text"></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--gray-800);">
+                                        Mail-Relay Connector</h4>
+                                    <p style="font-size: 0.85rem; margin: 5px 0 0; color: var(--gray-500);">Enable
+                                        automated digital dispatch and logging.</p>
+                                </div>
+                            </div>
+                            <label class="switch-custom">
+                                <input type="checkbox" id="setting-email-enabled">
+                                <span class="slider-custom"></span>
+                            </label>
+                        </div>
+
+                        <div id="email-config-fields" class="form-grid"
+                            style="grid-template-columns: 2fr 1fr; gap: 2rem;">
+                            <div class="form-group"><label class="form-label">Relay Endpoint (SMTP Host)</label><input
+                                    type="text" id="setting-email-host" class="form-control"
+                                    placeholder="e.g. smtp.office365.com" style="height: 50px;"></div>
+                            <div class="form-group"><label class="form-label">Service Port</label><input type="number"
+                                    id="setting-email-port" class="form-control" placeholder="587"
+                                    style="height: 50px;"></div>
+                            <div class="form-group"><label class="form-label">Connector ID (User)</label><input
+                                    type="text" id="setting-email-user" class="form-control"
+                                    placeholder="user@domain.com" style="height: 50px;"></div>
+                            <div class="form-group"><label class="form-label">Access Token / Pass</label><input
+                                    type="password" id="setting-email-pass" class="form-control" placeholder="••••••••"
+                                    style="height: 50px;"></div>
+                            <div class="form-group" style="grid-column: span 2;"><label class="form-label">Masked Public
+                                    Sender (From)</label><input type="text" id="setting-email-from" class="form-control"
+                                    placeholder="no-reply@mkc.trade" style="height: 50px;"></div>
+                        </div>
+                        <div style="text-align: right; margin-top: 1.5rem;"><button class="btn btn-outline"
+                                onclick="app.testEmailConfig()"
+                                style="height: 45px; padding: 0 25px; border-radius: 12px; font-weight: 700;">Ping Cloud
+                                Relay</button></div>
+                    </div>
+
+                    <div class="settings-group" style="margin-top: 3rem;">
+                        <h5 class="settings-group-title"><i class="fas fa-sms"></i> SMS Delivery Gateway</h5>
+                        <div
+                            style="background: var(--gray-50); border-radius: 24px; padding: 2.5rem; border: 1px solid var(--gray-100);">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2.5rem; background: white; padding: 1.5rem; border-radius: 16px; border: 1px solid var(--gray-100);">
+                                <div style="display: flex; gap: 1rem; align-items: flex-start;">
+                                    <div
+                                        style="width: 50px; height: 50px; background: #f3e5f5; color: #7b1fa2; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: 0 8px 16px rgba(123, 31, 162, 0.15);">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </div>
+                                    <div>
+                                        <h4
+                                            style="margin: 0; font-size: 1.2rem; font-weight: 800; color: var(--gray-800);">
+                                            SMS Cloud Bridge</h4>
+                                        <p style="font-size: 0.85rem; margin: 5px 0 0; color: var(--gray-500);">Connect
+                                            with Twilio or Textbelt for mobile notifications.</p>
+                                    </div>
+                                </div>
+                                <label class="switch-custom">
+                                    <input type="checkbox" id="setting-sms-enabled">
+                                    <span class="slider-custom"></span>
+                                </label>
+                            </div>
+
+                            <div id="sms-config-fields">
+                                <div class="form-group" style="margin-bottom: 2rem;">
+                                    <label class="form-label">Preferred Gateway Provider</label>
+                                    <select id="setting-sms-provider" class="form-control" style="height: 50px;"
+                                        onchange="app.toggleSmsProviderFields()">
+                                        <option value="twilio">Twilio (Global / Enterprise)</option>
+                                        <option value="textbelt">Textbelt (Simple / No SDK)</option>
+                                        <option value="generic_webhook">Custom Webhook (Advanced)</option>
+                                    </select>
+                                </div>
+
+                                <div id="sms-twilio-fields" class="form-grid"
+                                    style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+                                    <div class="form-group" style="grid-column: span 2;">
+                                        <label class="form-label">Twilio Account SID</label>
+                                        <input type="text" id="setting-sms-twilio-sid" class="form-control"
+                                            placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxx" style="height: 50px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Auth Token</label>
+                                        <input type="password" id="setting-sms-twilio-token" class="form-control"
+                                            placeholder="••••••••••••" style="height: 50px;">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Sender (Phone # or Service SID)</label>
+                                        <input type="text" id="setting-sms-twilio-from" class="form-control"
+                                            placeholder="+1xxx or MGxxx" style="height: 50px;">
+                                    </div>
+                                </div>
+
+                                <div id="sms-generic-fields" class="form-grid"
+                                    style="grid-template-columns: 1fr; gap: 2rem; display: none;">
+                                    <div class="form-group">
+                                        <label class="form-label" id="sms-key-label">API Key / Webhook URL</label>
+                                        <input type="text" id="setting-sms-api-key" class="form-control"
+                                            placeholder="Secure Key or Endpoint URL" style="height: 50px;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="text-align: right; margin-top: 1.5rem;">
+                                <button class="btn btn-outline" onclick="app.testSmsConfig()"
+                                    style="height: 45px; padding: 0 25px; border-radius: 12px; font-weight: 700;">Broadcast
+                                    Test Pulse</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-group">
+                        <h5 class="settings-group-title"><i class="fas fa-bolt"></i> Intelligent Event Pipelines</h5>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem;">
+                            <div
+                                style="background: white; border: 2px solid var(--gray-50); padding: 1.75rem; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 1rem; font-weight: 800;">Real-time Sales Alert</h5>
+                                    <p style="font-size: 0.8rem; margin: 4px 0 0; color: var(--gray-500);">Auto-email
+                                        invoice to customers.</p>
+                                </div>
+                                <label class="switch-custom"><input type="checkbox" id="setting-notify-invoice"
+                                        checked><span class="slider-custom"></span></label>
+                            </div>
+                            <div
+                                style="background: white; border: 2px solid var(--gray-50); padding: 1.75rem; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 1rem; font-weight: 800;">Receipt Acknowledgement
+                                    </h5>
+                                    <p style="font-size: 0.8rem; margin: 4px 0 0; color: var(--gray-500);">Instant SMS
+                                        for
+                                        payment proof.</p>
+                                </div>
+                                <label class="switch-custom"><input type="checkbox" id="setting-notify-receipt"
+                                        checked><span class="slider-custom"></span></label>
+                            </div>
+                            <div
+                                style="background: white; border: 2px solid var(--gray-50); padding: 1.75rem; border-radius: 20px; display: flex; align-items: center; justify-content: space-between; transition: all 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                                <div>
+                                    <h5 style="margin: 0; font-size: 1rem; font-weight: 800;">Returns Management</h5>
+                                    <p style="font-size: 0.8rem; margin: 4px 0 0; color: var(--gray-500);">Notify Admin
+                                        on
+                                        item return.</p>
+                                </div>
+                                <label class="switch-custom"><input type="checkbox" id="setting-notify-rma"
+                                        checked><span class="slider-custom"></span></label>
+                            </div>
+                        </div>
+
+                        <div style="text-align: right; margin-top: 3rem;"><button class="btn btn-primary"
+                                onclick="app.saveNotificationSettings()"
+                                style="height: 55px; padding: 0 40px; border-radius: 14px; font-weight: 800; font-size: 1rem; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.15);"><i
+                                    class="fas fa-save" style="margin-right: 12px;"></i> Persist Pipeline
+                                Settings</button>
+                        </div>
+                    </div>
+            </section>
+
+            <!-- SECTION: Danger Zone (Premium Redesign) -->
+            <section id="tab-settings-data" class="settings-section-card"
+                style="background: #111; color: white; border: 1px solid #333; position: relative; overflow: hidden; padding: 0;">
+
+                <!-- Background Ambient Effect -->
+                <div
+                    style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(220, 38, 38, 0.1) 0%, rgba(0,0,0,0) 60%); z-index: 0; pointer-events: none;">
+                </div>
+
+                <div style="position: relative; z-index: 1; padding: 3rem;">
+                    <div class="settings-header"
+                        style="border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 2rem; margin-bottom: 2rem;">
+                        <h2 style="color: white; letter-spacing: 1px; font-family: 'Inter', sans-serif;">
+                            <i class="fas fa-biohazard"
+                                style="color: #ef4444; background: rgba(239, 68, 68, 0.1); box-shadow: 0 0 20px rgba(239, 68, 68, 0.2);"></i>
+                            SYSTEM DESTRUCTION
+                        </h2>
+                        <div
+                            style="padding: 6px 16px; border-radius: 50px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; font-size: 0.8rem; font-weight: 700; letter-spacing: 1px;">
+                            <i class="fas fa-lock"></i> RESTRICTED AREA
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+                        <div>
+                            <h3 style="font-size: 1.8rem; font-weight: 900; margin-bottom: 1rem; color: #fff;">
+                                Emergency Data Wipe
+                            </h3>
+                            <p style="color: #999; line-height: 1.7; font-size: 1.05rem; margin-bottom: 2rem;">
+                                This protocol initiates a <strong style="color: #ef4444;">complete factory
+                                    reset</strong> of the AgroDistribution database.
+                                <br><br>
+                                Execution will permanently incinerate:
+                            <ul
+                                style="color: #777; list-style: none; padding: 0; margin-top: 10px; display: grid; gap: 8px;">
+                                <li><i class="fas fa-check" style="color: #ef4444; margin-right: 10px;"></i> Sales &
+                                    Transaction History</li>
+                                <li><i class="fas fa-check" style="color: #ef4444; margin-right: 10px;"></i> Customer
+                                    Registries & Balances</li>
+                                <li><i class="fas fa-check" style="color: #ef4444; margin-right: 10px;"></i> Inventory &
+                                    Product Catalogs</li>
+                                <li><i class="fas fa-check" style="color: #ef4444; margin-right: 10px;"></i> System Logs
+                                    & Audit Trails</li>
+                            </ul>
+                            </p>
+
+                            <div id="initial-reset-action" style="transition: all 0.3s ease;">
+                                <button onclick="app.showResetConfirmation()"
+                                    style="background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%); color: white; border: none; padding: 18px 40px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; gap: 15px; box-shadow: 0 10px 30px rgba(185, 28, 28, 0.3); transition: all 0.3s ease;">
+                                    <span
+                                        style="background: rgba(0,0,0,0.2); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                        <i class="fas fa-power-off"></i>
+                                    </span>
+                                    INITIATE RESET PROTOCOL
+                                </button>
+                                <p style="font-size: 0.8rem; color: #555; margin-top: 15px; font-style: italic;">
+                                    * Protocol requires dual-factor authentication step.
+                                </p>
+                            </div>
+
+                            <div id="danger-confirmation-step"
+                                style="display: none; opacity: 0; transform: translateY(20px); transition: all 0.4s ease;">
+                                <div
+                                    style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.08); padding: 2rem; border-radius: 16px;">
+                                    <label
+                                        style="display: block; color: #ef4444; font-size: 0.8rem; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 15px; text-transform: uppercase;">
+                                        Security Confirmation
+                                    </label>
+
+                                    <div style="display: flex; gap: 20px; align-items: stretch; margin-bottom: 25px;">
+                                        <div
+                                            style="flex: 1; background: black; border-radius: 8px; border: 1px solid #333; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px;">
+                                            <span
+                                                style="font-size: 0.7rem; color: #555; text-transform: uppercase; margin-bottom: 4px;">Authorization
+                                                Code</span>
+                                            <span id="reset-code-display"
+                                                style="font-family: 'Courier New', monospace; font-size: 1.8rem; font-weight: 700; color: #ef4444; letter-spacing: 3px; text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);">----</span>
+                                        </div>
+                                        <div
+                                            style="display: flex; align-items: center; justify-content: center; color: #444;">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <input type="text" id="reset-confirmation-input" placeholder="ENTER CODE"
+                                                oninput="app.validateResetCode(this.value)" onpaste="return false;"
+                                                autocomplete="off"
+                                                style="width: 100%; height: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; font-family: 'Courier New', monospace; font-size: 1.4rem; font-weight: 700; text-align: center; border-radius: 8px; outline: none; transition: all 0.3s; letter-spacing: 2px;">
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; gap: 15px;">
+                                        <button onclick="app.cancelReset()"
+                                            style="flex: 1; padding: 14px; background: transparent; border: 1px solid #444; color: #888; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                                            ABORT
+                                        </button>
+                                        <button id="final-reset-btn" onclick="app.handleDataReset()" disabled
+                                            style="flex: 2; padding: 14px; background: #333; color: #666; border: none; border-radius: 8px; font-weight: 800; cursor: not-allowed; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                                            <i class="fas fa-trash-alt"></i> CONFIRM DESTRUCTION
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            style="position: relative; height: 100%; min-height: 400px; display: flex; align-items: center; justify-content: center;">
+                            <!-- Animated Visual Effect -->
+                            <div style="position: relative; width: 280px; height: 280px;">
+                                <div
+                                    style="position: absolute; inset: 0; border: 2px solid rgba(239, 68, 68, 0.2); border-radius: 50%; animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;">
+                                </div>
+                                <div
+                                    style="position: absolute; inset: 20px; border: 2px solid rgba(239, 68, 68, 0.3); border-radius: 50%; animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; animation-delay: 0.5s;">
+                                </div>
+                                <div
+                                    style="position: absolute; inset: 40px; border: 2px solid rgba(239, 68, 68, 0.4); border-radius: 50%; animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite; animation-delay: 1s;">
+                                </div>
+
+                                <div
+                                    style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;">
+                                    <i class="fas fa-exclamation-triangle"
+                                        style="font-size: 8rem; color: #1a0505; text-shadow: 0 0 5px rgba(239, 68, 68, 0.5); filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.4)); opacity: 0.8;"></i>
+                                </div>
+                            </div>
+
+                            <style>
+                                @keyframes pulse-ring {
+                                    0% {
+                                        transform: scale(0.8);
+                                        opacity: 0;
+                                    }
+
+                                    50% {
+                                        opacity: 1;
+                                    }
+
+                                    100% {
+                                        transform: scale(1.3);
+                                        opacity: 0;
+                                    }
+                                }
+
+                                #final-reset-btn:not(:disabled) {
+                                    background: #ef4444 !important;
+                                    color: white !important;
+                                    cursor: pointer !important;
+                                    box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+                                }
+
+                                #final-reset-btn:not(:disabled):hover {
+                                    background: #dc2626 !important;
+                                    transform: scale(1.02);
+                                }
+
+                                #reset-confirmation-input:focus {
+                                    border-color: #ef4444 !important;
+                                    background: rgba(255, 255, 255, 0.1) !important;
+                                    box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+                                }
+                            </style>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+</div>

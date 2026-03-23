@@ -1,0 +1,31 @@
+<div id="sales-history-view" class="view-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Sales History</h3>
+                        <div class="card-actions">
+                            <input type="text" id="sales-history-search" placeholder="Search invoices..."
+                                class="form-control mb-0" style="width: 250px;">
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Invoice #</th>
+                                    <th>Date</th>
+                                    <th>Customer</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-history-table">
+                                <!-- entries loaded via JS -->
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading sales history...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>

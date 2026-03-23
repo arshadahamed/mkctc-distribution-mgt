@@ -107,6 +107,19 @@ const SettingsRepository = {
     async get(key) { return await this.getSetting(key); },
     async set(key, value) { return await this.saveSetting(key, value); },
 
+    async getAllSettings() {
+        const rows = await allQuery('SELECT key, value FROM app_settings');
+        const settings = {};
+        rows.forEach(row => {
+            try {
+                settings[row.key] = JSON.parse(row.value);
+            } catch (e) {
+                settings[row.key] = row.value;
+            }
+        });
+        return settings;
+    },
+
     async executeQuery(sql, params = []) {
         console.log('Running Raw SQL:', sql);
         return await allQuery(sql, params);

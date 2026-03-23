@@ -48,34 +48,256 @@
             z-index: 1;
         }
 
+        /* Printer Effect Styles */
+        .printer-container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .printer-machine {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            /* Slightly wider than card */
+            height: 90px;
+            background: linear-gradient(180deg, #2d3748 0%, #1a202c 100%);
+            border-radius: 12px 12px 2px 2px;
+            box-shadow:
+                0 20px 40px rgba(0, 0, 0, 0.6),
+                inset 0 1px 2px rgba(255, 255, 255, 0.1);
+            z-index: -1;
+            /* Firmly in front */
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 15px;
+            border-top: 4px solid #4a5568;
+            animation: vibrate 1.8s linear forwards;
+            margin-bottom: 0 !important;
+        }
+
+        .paper-exit {
+            position: relative;
+            width: 100%;
+            max-width: 460px;
+            /* overflow: visible; default */
+            margin-top: -45px;
+            /* Removed z-index to avoid creating a new stacking context */
+            display: flex;
+            justify-content: center;
+            padding-bottom: 20px;
+        }
+
+        /* The 'Slot Shadow' that makes it look like it's coming out of a hole */
+        .paper-exit::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 40px);
+            height: 30px;
+            background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* Front flap shadow/shroud */
+        .printer-machine::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(100% - 20px);
+            max-width: 440px;
+            height: 20px;
+            background: #1a202c;
+            border-radius: 0 0 6px 6px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.8);
+            z-index: 60;
+            border-top: 2px solid #2d3748;
+        }
+
+        @keyframes vibrate {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            10%,
+            30%,
+            50%,
+            70%,
+            90% {
+                transform: translateY(-1px);
+            }
+
+            20%,
+            40%,
+            60%,
+            80% {
+                transform: translateY(1px);
+            }
+        }
+
+        .printer-machine::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: 30px;
+            height: 4px;
+            background: #10B981;
+            /* Status LED */
+            border-radius: 2px;
+            box-shadow: 0 0 10px #10B981;
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+
+        .printer-slot {
+            width: calc(100% - 40px);
+            max-width: 380px;
+            height: 8px;
+            background: #111827;
+            border-radius: 4px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
         .login-wrapper {
             position: relative;
             z-index: 2;
             width: 100%;
             max-width: 450px;
             padding: 20px;
-            animation: fadeIn 0.8s ease-out;
+            perspective: 1000px;
         }
 
         .card {
-            background: var(--glass-bg);
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            padding: 40px;
+            background: #ffffff;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.9)),
+                radial-gradient(#00000008 1px, transparent 0);
+            background-size: 100% 100%, 4px 4px;
+            width: 90%;
+            max-width: 390px;
+            /* Slightly narrower for 'receipt' feel */
+            border-radius: 2px;
+            box-shadow:
+                0 10px 30px rgba(0, 0, 0, 0.2),
+                inset 0 0 50px rgba(0, 0, 0, 0.01);
+            padding: 35px 25px;
             text-align: center;
             position: relative;
+            z-index: 5;
+            transform-origin: top center;
+            animation: printOut 2.2s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
         }
 
-        /* Decorative top bar */
+        /* Shine on the paper */
+        .card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.4) 45%, rgba(255, 255, 255, 0.4) 48%, transparent 52%);
+            pointer-events: none;
+            z-index: 10;
+            opacity: 0.1;
+        }
+
+        /* Allow owl items to overflow */
+
+
+        /* Zig-zag bottom effect */
+        .card::before {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-image:
+                linear-gradient(135deg, white 25%, transparent 25%),
+                linear-gradient(225deg, white 25%, transparent 25%);
+            background-position: left top;
+            background-size: 20px 20px;
+            background-repeat: repeat-x;
+            z-index: 5;
+        }
+
+        @keyframes printOut {
+            0% {
+                transform: translateY(-90%) scaleY(0.01);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            /* Slow, heavy mechanical stepping */
+            20% {
+                transform: translateY(-70%) scaleY(0.3);
+            }
+
+            25% {
+                transform: translateY(-72%) scaleY(0.28);
+            }
+
+            40% {
+                transform: translateY(-40%) scaleY(0.6);
+            }
+
+            45% {
+                transform: translateY(-42%) scaleY(0.58);
+            }
+
+            65% {
+                transform: translateY(-10%) scaleY(0.9);
+            }
+
+            70% {
+                transform: translateY(-12%) scaleY(0.88);
+            }
+
+            100% {
+                transform: translateY(0) scaleY(1);
+                opacity: 1;
+            }
+        }
+
+        /* Decorative top bar - modified for printer theme */
         .card::after {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 6px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary), var(--secondary));
-            border-radius: 24px 24px 0 0;
+            height: 4px;
+            background: #d1d5db;
+            /* Looks like paper edge */
+            border-radius: 0;
+            z-index: 6;
         }
 
         .brand-logo {
@@ -276,11 +498,23 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
-            animation: fadeIn 0.3s ease;
+            animation: modalFadeIn 0.3s ease;
         }
 
         .admin-modal.show {
             display: flex;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .admin-modal-content {
@@ -483,7 +717,8 @@
         /* Speech Bubble */
         .speech-bubble {
             position: absolute;
-            top: -70px;
+            top: -40px;
+            /* Shifted up to be clearly over the printer */
             left: 50%;
             transform: translateX(-50%) scale(0);
             background: white;
@@ -495,7 +730,8 @@
             color: var(--primary);
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
             transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            z-index: 1000;
+            z-index: 5000;
+            /* Extremely high to stay above the printer head (z-index 50/60) */
             white-space: nowrap;
         }
 
@@ -689,112 +925,119 @@
     </div>
 
     <div class="login-wrapper">
-        <div class="card">
-            <!-- Animated Owl Character -->
-            <div class="character-container" id="character-container">
-                <!-- Speech Bubble -->
+        <div class="printer-container">
+            <div class="printer-machine">
+                <div class="printer-slot"></div>
+            </div>
+            <div class="paper-exit">
+                <!-- Speech Bubble extracted from Card to break stacking context -->
                 <div class="speech-bubble" id="speech-bubble">Hi! 👋</div>
 
-                <svg class="owl" viewBox="0 0 200 200">
-                    <!-- Body -->
-                    <circle cx="100" cy="140" r="60" fill="#2E7D32" class="owl-body" />
-                    <!-- Head -->
-                    <circle cx="100" cy="70" r="60" fill="#2E7D32" />
-                    <!-- Ears -->
-                    <path d="M45 40 L60 10 L80 30" fill="#2E7D32" />
-                    <path d="M155 40 L140 10 L120 30" fill="#2E7D32" />
+                <div class="card">
+                    <!-- Animated Owl Character -->
+                    <div class="character-container" id="character-container">
 
-                    <!-- Angry Eyebrows (Hidden by default) -->
-                    <g class="owl-eyebrow">
-                        <path d="M55 55 L85 60" />
-                        <path d="M145 55 L115 60" />
-                    </g>
+                        <svg class="owl" viewBox="0 0 200 200">
+                            <!-- Body -->
+                            <circle cx="100" cy="140" r="60" fill="#2E7D32" class="owl-body" />
+                            <!-- Head -->
+                            <circle cx="100" cy="70" r="60" fill="#2E7D32" />
+                            <!-- Ears -->
+                            <path d="M45 40 L60 10 L80 30" fill="#2E7D32" />
+                            <path d="M155 40 L140 10 L120 30" fill="#2E7D32" />
 
-                    <!-- Eyes Open -->
-                    <g class="owl-eye-open">
-                        <circle class="owl-eye" cx="70" cy="70" r="22" />
-                        <circle class="owl-eye" cx="130" cy="70" r="22" />
-                        <!-- Pupils -->
-                        <g id="owl-pupils">
-                            <circle class="owl-pupil" cx="70" cy="70" r="10" />
-                            <circle class="owl-pupil" cx="130" cy="70" r="10" />
-                        </g>
-                    </g>
+                            <!-- Angry Eyebrows (Hidden by default) -->
+                            <g class="owl-eyebrow">
+                                <path d="M55 55 L85 60" />
+                                <path d="M145 55 L115 60" />
+                            </g>
 
-                    <!-- Eyes Closed (Lines) -->
-                    <g class="owl-eye-closed">
-                        <path d="M55 75 Q70 60 85 75" />
-                        <path d="M115 75 Q130 60 145 75" />
-                    </g>
+                            <!-- Eyes Open -->
+                            <g class="owl-eye-open">
+                                <circle class="owl-eye" cx="70" cy="70" r="22" />
+                                <circle class="owl-eye" cx="130" cy="70" r="22" />
+                                <!-- Pupils -->
+                                <g id="owl-pupils">
+                                    <circle class="owl-pupil" cx="70" cy="70" r="10" />
+                                    <circle class="owl-pupil" cx="130" cy="70" r="10" />
+                                </g>
+                            </g>
 
-                    <!-- Beak -->
-                    <path d="M90 85 L100 105 L110 85 Z" fill="#FFA000" />
+                            <!-- Eyes Closed (Lines) -->
+                            <g class="owl-eye-closed">
+                                <path d="M55 75 Q70 60 85 75" />
+                                <path d="M115 75 Q130 60 145 75" />
+                            </g>
 
-                    <!-- Paws -->
-                    <circle class="owl-paw owl-paw-left" cx="50" cy="180" r="15" />
-                    <circle class="owl-paw owl-paw-right" cx="150" cy="180" r="15" />
-                </svg>
-            </div>
+                            <!-- Beak -->
+                            <path d="M90 85 L100 105 L110 85 Z" fill="#FFA000" />
 
-            <div class="brand-logo" style="margin-top: -30px; position: relative; z-index: 6;">
-                <i class="fas fa-leaf"></i>
-            </div>
-            <h1 id="company-main-title">Welcome Back</h1>
-            <div class="company-name" id="login-company-name">M.K.C. TRADE CENTER</div>
-            <p class="subtitle">Sign in to continue</p>
-
-            <div id="error-message" class="alert alert-error">
-                <i class="fas fa-exclamation-circle"></i> <span>Error message</span>
-            </div>
-
-            <form id="login-form">
-                <div class="form-group">
-                    <label class="form-label" for="username">Username</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="username" class="form-control" placeholder="Enter your username" required
-                            autocomplete="username">
-                        <i class="fas fa-user icon"></i>
+                            <!-- Paws -->
+                            <circle class="owl-paw owl-paw-left" cx="50" cy="180" r="15" />
+                            <circle class="owl-paw owl-paw-right" cx="150" cy="180" r="15" />
+                        </svg>
                     </div>
-                </div>
 
-                <div class="form-group">
-                    <label class="form-label" for="password">Password</label>
-                    <div class="input-wrapper">
-                        <input type="password" id="password" class="form-control" placeholder="Enter your password"
-                            required autocomplete="current-password">
-                        <i class="fas fa-lock icon"></i>
-                        <button type="button" class="password-toggle" id="togglePassword">
-                            <i class="fas fa-eye"></i>
+                    <div class="brand-logo" style="margin-top: -30px; position: relative; z-index: 6;">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h1 id="company-main-title">Welcome Back</h1>
+                    <div class="company-name" id="login-company-name">M.K.C. TRADE CENTER</div>
+                    <p class="subtitle">Sign in to continue</p>
+
+                    <div id="error-message" class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i> <span>Error message</span>
+                    </div>
+
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label class="form-label" for="username">Username</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="username" class="form-control" placeholder="Enter your username"
+                                    required autocomplete="username">
+                                <i class="fas fa-user icon"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="password">Password</label>
+                            <div class="input-wrapper">
+                                <input type="password" id="password" class="form-control"
+                                    placeholder="Enter your password" required autocomplete="current-password">
+                                <i class="fas fa-lock icon"></i>
+                                <button type="button" class="password-toggle" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="caps-lock-warning"
+                            style="display: none; align-items: center; gap: 8px; color: #f59e0b; font-size: 11px; margin-top: 5px; font-weight: 600;">
+                            <i class="fas fa-exclamation-triangle"></i> Caps Lock is ON
+                        </div>
+
+                        <button type="submit" class="btn-login" id="submit-btn-login">
+                            <span>Sign In</span>
+                            <i class="fas fa-arrow-right"></i>
                         </button>
+                    </form>
+
+                    <div class="trouble-hint" style="margin-top: 20px; font-size: 13px; color: var(--text-light);">
+                        Trouble signing in?
+                        <a href="javascript:void(0)" onclick="openAdminContactModal()"
+                            style="color: var(--primary); font-weight: 700; text-decoration: none;">Help Support</a>
                     </div>
-                </div>
-                <div id="caps-lock-warning"
-                    style="display: none; align-items: center; gap: 8px; color: #f59e0b; font-size: 11px; margin-top: 5px; font-weight: 600;">
-                    <i class="fas fa-exclamation-triangle"></i> Caps Lock is ON
-                </div>
-
-                <button type="submit" class="btn-login" id="submit-btn-login">
-                    <span>Sign In</span>
-                    <i class="fas fa-arrow-right"></i>
-                </button>
-            </form>
-
-            <div class="trouble-hint" style="margin-top: 20px; font-size: 13px; color: var(--text-light);">
-                Trouble signing in?
-                <a href="javascript:void(0)" onclick="openAdminContactModal()"
-                    style="color: var(--primary); font-weight: 700; text-decoration: none;">Help Support</a>
-            </div>
 
 
 
-            <div class="footer">
-                <a href="javascript:void(0)" onclick="openAdminContactModal()" class="contact-admin-link">
-                    <i class="fas fa-headset"></i> Contact Admin
-                </a>
-                <span style="margin-top: 8px;">&copy; 2026 - Designed By ArshaD AhameD</span>
-            </div>
-        </div>
-    </div>
+                    <div class="footer">
+                        <a href="javascript:void(0)" onclick="openAdminContactModal()" class="contact-admin-link">
+                            <i class="fas fa-headset"></i> Contact Admin
+                        </a>
+                    </div> <!-- End Footer -->
+                </div> <!-- End Card -->
+            </div> <!-- End Paper Exit -->
+        </div> <!-- End Printer Container -->
+    </div> <!-- End Login Wrapper -->
 
     <!-- Admin Contact Modal -->
     <div id="admin-contact-modal" class="admin-modal">
@@ -802,7 +1045,8 @@
             <div class="admin-modal-header">
                 <i class="fas fa-user-shield"></i>
                 <h2>System Administrator</h2>
-                <p style="font-size: 14px; color: var(--text-light); margin-top: 8px;">For account recovery, blocking
+                <p style="font-size: 14px; color: var(--text-light); margin-top: 8px;">For account recovery,
+                    blocking
                     issues, or password resets, please reach out to ArshaD AhameD.</p>
             </div>
             <div class="contact-options">
@@ -833,7 +1077,7 @@
             const charContainer = document.getElementById('character-container');
             const speechBubble = document.getElementById('speech-bubble');
 
-            // Show greeting after a short delay
+            // Show greeting after the printing animation is nearly complete
             setTimeout(() => {
                 charContainer.classList.add('greeting');
                 speechBubble.classList.add('show');
@@ -843,7 +1087,7 @@
                     speechBubble.classList.remove('show');
                     charContainer.classList.remove('greeting');
                 }, 3000);
-            }, 500);
+            }, 2200); /* Matched to printOut animation duration (1.8s + buffer) */
         });
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {

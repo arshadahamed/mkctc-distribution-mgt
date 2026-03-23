@@ -1,0 +1,114 @@
+<div id="visits-view" class="view-content" style="display: none;">
+                <!-- Premium Visit Logs Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Shop Visit Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-map-marker-alt"></i> Tracking field team
+                                activity and shop availability.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openVisitModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> New Visit Log
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visit KPIs Row -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;"
+                    id="visit-kpi-row">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-calendar-check"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Visits Today</span>
+                            <h4 class="v-value" id="visit-stat-today">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 204, 113, 0.1); color: #2ecc71;"><i
+                                class="fas fa-store"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Open Shops</span>
+                            <h4 class="v-value" id="visit-stat-open">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(231, 76, 60, 0.1); color: #e74c3c;"><i
+                                class="fas fa-store-slash"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Closed Shops</span>
+                            <h4 class="v-value" id="visit-stat-closed">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-route"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Routes Covered</span>
+                            <h4 class="v-value" id="visit-stat-routes">0</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modern Filter Bar -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <div class="search-input-wrapper" style="flex: 1; min-width: 250px; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="visit-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by customer or remarks..." onkeyup="app.loadVisits()">
+                        </div>
+                        <div
+                            style="display: flex; gap: 10px; align-items: center; background: #f8fafc; padding: 5px; border-radius: 14px; border: 1px solid #edf2f7;">
+                            <input type="date" id="visit-date-from" class="form-control-minimal"
+                                style="width: 130px; border: none; background: transparent; font-weight: 600;"
+                                onchange="app.loadVisits()">
+                            <span style="color:var(--gray-400); font-weight: 700; font-size: 0.8rem;">TO</span>
+                            <input type="date" id="visit-date-to" class="form-control-minimal"
+                                style="width: 130px; border: none; background: transparent; font-weight: 600;"
+                                onchange="app.loadVisits()">
+                        </div>
+                        <select id="visit-route-filter" class="form-control"
+                            style="width: 180px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadVisits()">
+                            <option value="">All Routes</option>
+                        </select>
+                        <select id="visit-status-filter" class="form-control"
+                            style="width: 140px; margin:0; height: 48px; border-radius: 12px;"
+                            onchange="app.loadVisits()">
+                            <option value="">All Status</option>
+                            <option value="open">Open</option>
+                            <option value="closed">Closed</option>
+                        </select>
+                        <button class="btn btn-secondary" onclick="app.resetVisitFilters()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Visit Logs Grid -->
+                <div id="visit-grid-container" class="visit-grid">
+                    <!-- Cards will be injected here -->
+                    <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                        <i class="fas fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                        <p>Loading your visit logs...</p>
+                    </div>
+                </div>
+
+                <!-- Fallback Table (initially hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="visit-table-body"></tbody>
+                    </table>
+                </div>
+            </div>

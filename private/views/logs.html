@@ -1,0 +1,135 @@
+<div id="logs-view" class="view-content" style="display: none;">
+                <!-- Hero Header -->
+                <div class="report-hero"
+                    style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 40px; border-radius: 24px; margin-bottom: 32px; position: relative; overflow: hidden; color: white; box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);">
+                    <div style="position: relative; z-index: 2;">
+                        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">System Audit & Intelligence
+                        </h2>
+                        <p style="opacity: 0.9; font-size: 1.05rem; max-width: 500px;">Monitor system activities, track
+                            user actions, and investigate error patterns for peak operational integrity.</p>
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <div
+                                style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 12px; backdrop-filter: blur(4px); font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="fas fa-shield-check" style="margin-right: 8px;"></i> Security Compliance
+                                Active
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fas fa-microchip"
+                        style="position: absolute; right: -20px; bottom: -20px; font-size: 15rem; opacity: 0.05; transform: rotate(-15deg);"></i>
+                </div>
+
+                <!-- KPI Cards for Logs -->
+                <div class="kpi-grid" style="grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+                    <div class="kpi-card"
+                        style="border-left: 4px solid #4f46e5; background: white; min-height: auto; padding: 20px;">
+                        <div class="kpi-content">
+                            <span class="kpi-label"
+                                style="color: #4f46e5; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Total
+                                Events</span>
+                            <h3 class="kpi-value" id="log-stat-total" style="margin: 5px 0; font-size: 1.5rem;">0</h3>
+                            <p style="font-size: 0.7rem; color: var(--gray-500);">Retained system logs</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card"
+                        style="border-left: 4px solid #ef4444; background: white; min-height: auto; padding: 20px;">
+                        <div class="kpi-content">
+                            <span class="kpi-label"
+                                style="color: #ef4444; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">System
+                                Errors</span>
+                            <h3 class="kpi-value" id="log-stat-errors" style="margin: 5px 0; font-size: 1.5rem;">0</h3>
+                            <p style="font-size: 0.7rem; color: var(--gray-500);">Exceptions needing attention</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card"
+                        style="border-left: 4px solid #f59e0b; background: white; min-height: auto; padding: 20px;">
+                        <div class="kpi-content">
+                            <span class="kpi-label"
+                                style="color: #f59e0b; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Admin
+                                Actions</span>
+                            <h3 class="kpi-value" id="log-stat-admin" style="margin: 5px 0; font-size: 1.5rem;">0</h3>
+                            <p style="font-size: 0.7rem; color: var(--gray-500);">Strategic changes tracked</p>
+                        </div>
+                    </div>
+                    <div class="kpi-card"
+                        style="border-left: 4px solid #10b981; background: white; min-height: auto; padding: 20px;">
+                        <div class="kpi-content">
+                            <span class="kpi-label"
+                                style="color: #10b981; font-weight: 700; font-size: 0.75rem; text-transform: uppercase;">Top
+                                User</span>
+                            <h3 class="kpi-value" id="log-stat-top-user" style="margin: 5px 0; font-size: 1.5rem;">-
+                            </h3>
+                            <p style="font-size: 0.7rem; color: var(--gray-500);">Most active administrator</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters Bar -->
+                <div class="card" style="margin-bottom: 24px; padding: 20px; border-radius: 16px;">
+                    <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label
+                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--gray-500); margin-bottom: 8px;">Search
+                                Detailed Logs</label>
+                            <div class="input-with-icon" style="margin-bottom: 0;">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="log-search" class="form-control" style="margin-bottom: 0;"
+                                    placeholder="Search by details, table name, or user..." onkeyup="app.loadLogs()">
+                            </div>
+                        </div>
+                        <div style="width: 180px;">
+                            <label
+                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--gray-500); margin-bottom: 8px;">Action
+                                Category</label>
+                            <select id="log-action-filter" class="form-control" style="margin-bottom: 0;"
+                                onchange="app.loadLogs()">
+                                <option value="">All Categories</option>
+                                <option value="CREATE">Create Operations</option>
+                                <option value="UPDATE">Update Operations</option>
+                                <option value="DELETE">Delete Operations</option>
+                                <option value="ERROR">System Errors</option>
+                                <option value="LOGIN">Security: Logins</option>
+                            </select>
+                        </div>
+                        <div style="width: 150px;">
+                            <label
+                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--gray-500); margin-bottom: 8px;">From
+                                Date</label>
+                            <input type="date" id="log-date-from" class="form-control" style="margin-bottom: 0;"
+                                onchange="app.loadLogs()">
+                        </div>
+                        <div style="width: 150px;">
+                            <label
+                                style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--gray-500); margin-bottom: 8px;">To
+                                Date</label>
+                            <input type="date" id="log-date-to" class="form-control" style="margin-bottom: 0;"
+                                onchange="app.loadLogs()">
+                        </div>
+                        <button class="btn btn-primary" onclick="app.loadLogs()"
+                            style="height: 44px; display: flex; align-items: center; gap: 8px; border-radius: 10px;">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                        <button class="btn btn-delete" id="clear-logs-btn"
+                            style="display: none; height: 44px; border-radius: 10px;" onclick="app.handleClearLogs()">
+                            <i class="fas fa-trash-alt"></i> Purge Logs
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Logs Table -->
+                <div class="card" style="border-radius: 20px; overflow: hidden; border: 1px solid var(--gray-100);">
+                    <div class="table-container" style="max-height: 600px; overflow-y: auto;">
+                        <table class="data-table">
+                            <thead style="position: sticky; top: 0; z-index: 10; background: var(--gray-50);">
+                                <tr>
+                                    <th style="width: 200px;">Chronology</th>
+                                    <th style="width: 180px;">Operator</th>
+                                    <th style="width: 140px;" class="text-center">Protocol Action</th>
+                                    <th>Audit Details & Trace</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logs-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>

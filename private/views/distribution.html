@@ -1,0 +1,92 @@
+<div id="distribution-view" class="view-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                            <h3 class="card-title">Distribution & Load Management</h3>
+                            <div class="view-tabs" style="display: flex; gap: 10px; margin-left: 20px;">
+                                <button class="btn btn-sm btn-secondary active"
+                                    onclick="app.switchDistributionTab('active', this)">Active Loads</button>
+                                <button class="btn btn-sm btn-secondary"
+                                    onclick="app.switchDistributionTab('history', this)">Load History</button>
+                                <button class="btn btn-sm btn-secondary"
+                                    onclick="app.switchDistributionTab('map', this)">Geospatial Intel</button>
+                            </div>
+                        </div>
+                        <button class="btn btn-primary" id="add-load-btn" onclick="app.openLoadModal()"><i
+                                class="fas fa-plus"></i> New Truck Load</button>
+                    </div>
+
+                    <div id="distribution-filters" class="card-body"
+                        style="padding: 15px; border-bottom: 1px solid #eee;">
+                        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-search" style="color: var(--gray-400);"></i>
+                                <input type="text" id="load-search" class="form-control" style="width: 250px; margin:0;"
+                                    placeholder="Search Truck No. or Driver..." onkeyup="app.loadDistributionData()">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.85rem; color: var(--gray-600);">From:</span>
+                                <input type="date" id="load-date-from" class="form-control"
+                                    style="width: 140px; margin:0;" onchange="app.loadDistributionData()">
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.85rem; color: var(--gray-600);">To:</span>
+                                <input type="date" id="load-date-to" class="form-control"
+                                    style="width: 140px; margin:0;" onchange="app.loadDistributionData()">
+                            </div>
+                            <button class="btn btn-secondary btn-sm" onclick="app.resetDistributionFilters()">
+                                <i class="fas fa-sync"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="active-loads-container">
+                        <div class="truck-grid" id="active-loads-grid">
+                            <!-- Cards will be rendered here -->
+                            <div class="text-center" style="grid-column: 1/-1; padding: 3rem;">
+                                <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary-green);"></i>
+                                <p style="margin-top: 10px; color: var(--gray-500);">Loading active loads...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="history-loads-container" style="display: none;">
+                        <div class="truck-grid" id="history-loads-grid">
+                            <!-- Cards will be rendered here -->
+                        </div>
+                    </div>
+
+                    <div id="map-loads-container" style="display: none; padding: 20px;">
+                        <div
+                            style="background: #f8fafc; border-radius: 20px; border: 1px solid #e2e8f0; overflow: hidden; height: 600px; position: relative;">
+                            <div id="distribution-map" style="width: 100%; height: 100%; z-index: 1;"></div>
+                            <div
+                                style="position: absolute; bottom: 20px; left: 20px; z-index: 1000; background: rgba(255,255,255,0.9); padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; backdrop-filter: blur(8px); min-width: 200px;">
+                                <h5
+                                    style="margin: 0 0 10px 0; font-weight: 800; font-size: 0.85rem; color: var(--gray-800); text-transform: uppercase; letter-spacing: 0.05em;">
+                                    Map Intelligence</h5>
+                                <div style="display: flex; flex-direction: column; gap: 8px;">
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--gray-600);">
+                                        <div
+                                            style="width: 12px; height: 12px; border-radius: 50%; background: #10b981;">
+                                        </div> Active Customers
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--gray-600);">
+                                        <div
+                                            style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444;">
+                                        </div> Blocked Accounts
+                                    </div>
+                                    <div
+                                        style="display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: var(--gray-600);">
+                                        <div
+                                            style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6;">
+                                        </div> Distribution Hub
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>

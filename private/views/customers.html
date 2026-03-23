@@ -1,0 +1,68 @@
+<div id="customers-view" class="view-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header">
+                        <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                            <h3 class="card-title">Customer Management</h3>
+                            <input type="text" id="customer-search" placeholder="Search customer name or contact..."
+                                class="form-control" style="width: 300px; margin-bottom: 0;">
+                            <select id="customer-status-filter" class="form-control"
+                                style="width: 150px; margin-bottom: 0;" onchange="app.loadCustomers()">
+                                <option value="">All Status</option>
+                                <option value="active">Active Only</option>
+                                <option value="blocked">Blocked Only</option>
+                                <option value="deleted">Recycle Bin</option>
+                            </select>
+                        </div>
+                        <div style="display:flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="app.navigateTo('visits')"><i
+                                    class="fas fa-walking"></i> Shop Visits</button>
+                            <button class="btn btn-primary" id="add-customer-btn" onclick="app.openCustomerModal()"><i
+                                    class="fas fa-plus"></i> Add Customer</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer Details</th>
+                                    <th>Category</th>
+                                    <th>Route</th>
+                                    <th>Balance / Limit</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customer-table-body"></tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination Controls -->
+                    <div class="pagination-container" id="customer-pagination">
+                        <div class="pagination-info">
+                            Showing <span id="customer-page-start">0</span>-<span id="customer-page-end">0</span> of
+                            <span id="customer-total">0</span> customers
+                        </div>
+                        <div class="pagination-controls">
+                            <button class="btn btn-secondary btn-sm" id="customer-prev-btn"
+                                onclick="app.changeCustomerPage(-1)" disabled>
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </button>
+                            <div class="pagination-pages" id="customer-pages"></div>
+                            <button class="btn btn-secondary btn-sm" id="customer-next-btn"
+                                onclick="app.changeCustomerPage(1)" disabled>
+                                Next <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                        <div class="pagination-limit">
+                            <label>Per page:</label>
+                            <select id="customer-limit" class="form-control" style="width: 80px; margin-bottom: 0;"
+                                onchange="app.loadCustomers()">
+                                <option value="10">10</option>
+                                <option value="20" selected>20</option>
+                                <option value="50">50</option>
+                                <option value="100">100</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>

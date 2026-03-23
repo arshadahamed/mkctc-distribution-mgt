@@ -1,0 +1,69 @@
+<div id="suppliers-view" class="view-content" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                <h3 class="card-title">Supplier Management</h3>
+                <input type="text" id="supplier-search" placeholder="Search suppliers..." class="form-control"
+                    style="width: 300px; margin-bottom: 0;">
+            </div>
+            <div style="display: flex; gap: var(--spacing-sm);">
+                <button class="btn btn-secondary" id="supplier-export-excel-btn" title="Export to Excel">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button class="btn btn-secondary" id="supplier-export-pdf-btn" title="Export to PDF">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="btn btn-secondary" id="supplier-import-excel-btn" title="Import from Excel">
+                    <i class="fas fa-file-import"></i> Import Excel
+                </button>
+                <input type="file" id="supplier-import-file" style="display: none;" accept=".xlsx, .xls">
+                <button class="btn btn-primary" id="add-supplier-btn" onclick="app.openSupplierModal()"><i
+                        class="fas fa-plus"></i> Add
+                    Supplier</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Personnel (TSR/AM)</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="supplier-table-body"></tbody>
+            </table>
+        </div>
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="supplier-pagination">
+            <div class="pagination-info">
+                Showing <span id="supplier-page-start">0</span>-<span id="supplier-page-end">0</span> of
+                <span id="supplier-total">0</span> suppliers
+            </div>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary btn-sm" id="supplier-prev-btn" onclick="app.changeSupplierPage(-1)"
+                    disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-pages" id="supplier-pages"></div>
+                <button class="btn btn-secondary btn-sm" id="supplier-next-btn" onclick="app.changeSupplierPage(1)"
+                    disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="pagination-limit">
+                <label>Per page:</label>
+                <select id="supplier-limit" class="form-control" style="width: 80px; margin-bottom: 0;"
+                    onchange="app.loadSuppliers()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,317 @@
+<div id="report-center-view" class="view-content" style="display: none;">
+                <!-- Hero Header -->
+                <div class="report-hero"
+                    style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px; border-radius: 24px; margin-bottom: 32px; position: relative; overflow: hidden; color: white; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2);">
+                    <div style="position: relative; z-index: 2;">
+                        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 8px;">Document Repository</h2>
+                        <p style="opacity: 0.9; font-size: 1.05rem; max-width: 500px;">Access your official business
+                            documents, audit records, and financial statements in print-ready A4 format.</p>
+                        <div style="margin-top: 24px; display: flex; gap: 12px;">
+                            <div
+                                style="background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 12px; backdrop-filter: blur(4px); font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="fas fa-file-check" style="margin-right: 8px;"></i> 8 Core Reports Available
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fas fa-file-invoice"
+                        style="position: absolute; right: -20px; bottom: -20px; font-size: 15rem; opacity: 0.05; transform: rotate(-15deg);"></i>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                    <!-- Sales & Revenue Section -->
+                    <div class="premium-report-card"
+                        style="background: white; border-radius: 20px; padding: 32px; border: 1px solid var(--gray-100); transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <div
+                            style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div
+                                style="width: 56px; height: 56px; background: #eff6ff; color: #3b82f6; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <span
+                                style="font-size: 0.75rem; font-weight: 700; color: #3b82f6; background: #eff6ff; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Growth</span>
+                        </div>
+                        <h4 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin-bottom: 12px;">
+                            Commercial Performance</h4>
+                        <p style="color: var(--gray-500); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;">
+                            Official record of sales realization, tax invoices, and revenue distribution markers.</p>
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('daily_sales')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-calendar-check"
+                                        style="margin-right: 12px; color: #3b82f6;"></i> Revenue Trend</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('customer')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-user-tag"
+                                        style="margin-right: 12px; color: #3b82f6;"></i> Customer Sales Summary</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('product_discounts')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-percent"
+                                        style="margin-right: 12px; color: #3b82f6;"></i> Product Discount Report</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Supply Chain Section -->
+                    <div class="premium-report-card"
+                        style="background: white; border-radius: 20px; padding: 32px; border: 1px solid var(--gray-100); transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <div
+                            style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div
+                                style="width: 56px; height: 56px; background: #ecfdf5; color: #10b981; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="fas fa-warehouse"></i>
+                            </div>
+                            <span
+                                style="font-size: 0.75rem; font-weight: 700; color: #10b981; background: #ecfdf5; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Logistics</span>
+                        </div>
+                        <h4 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin-bottom: 12px;">
+                            Operational Assets</h4>
+                        <p style="color: var(--gray-500); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;">
+                            Warehouse inventory audits, stock valuation certificates, and product performance metrics.
+                        </p>
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('stock_ledger')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-boxes-stacked"
+                                        style="margin-right: 12px; color: #10b981;"></i> Current Stock Master</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('top_products')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-arrow-trend-up"
+                                        style="margin-right: 12px; color: #10b981;"></i> Top Selling Products</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('bottom_products')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-arrow-trend-down"
+                                        style="margin-right: 12px; color: #10b981;"></i> Bottom Performing
+                                    Products</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Treasury & Risk Section -->
+                    <div class="premium-report-card"
+                        style="background: white; border-radius: 20px; padding: 32px; border: 1px solid var(--gray-100); transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        <div
+                            style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div
+                                style="width: 56px; height: 56px; background: #fff7ed; color: #f97316; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                <i class="fas fa-shield-halved"></i>
+                            </div>
+                            <span
+                                style="font-size: 0.75rem; font-weight: 700; color: #f97316; background: #fff7ed; padding: 4px 10px; border-radius: 20px; text-transform: uppercase;">Finance</span>
+                        </div>
+                        <h4 style="font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin-bottom: 12px;">
+                            Treasury Intelligence</h4>
+                        <p style="color: var(--gray-500); font-size: 0.9rem; line-height: 1.6; margin-bottom: 24px;">
+                            Ageing debtor reports, collection summaries, and payment method distribution.</p>
+
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('debtor_list')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-user-clock"
+                                        style="margin-right: 12px; color: #f97316;"></i> Master Ageing List</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('payments')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-credit-card"
+                                        style="margin-right: 12px; color: #f97316;"></i> Payment Method Breakdown</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                            <button class="btn btn-report-action"
+                                style="width: 100%; justify-content: space-between; padding: 14px 18px; border-radius: 14px; background: #f8fafc; border: 1px solid #e2e8f0; color: var(--gray-700); font-weight: 600; display: flex; align-items: center; transition: all 0.2s;"
+                                onclick="app.generateA4Report('expense_summary')">
+                                <span style="display: flex; align-items: center;"><i class="fas fa-receipt"
+                                        style="margin-right: 12px; color: #f97316;"></i> Operating Expenses Audit</span>
+                                <i class="fas fa-chevron-right" style="font-size: 0.8rem; opacity: 0.5;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <style>
+                    .premium-report-card:hover {
+                        transform: translateY(-8px);
+                        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+                        border-color: #e2e8f0 !important;
+                    }
+
+                    .btn-report-action:hover {
+                        background: white !important;
+                        border-color: #cbd5e1 !important;
+                        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+                        transform: translateX(4px);
+                        color: var(--gray-900) !important;
+                    }
+                </style>
+                <!-- Report Config Modal (High-Visibility Command Center) -->
+                <div id="report-config-modal" class="modal">
+                    <div class="modal-content"
+                        style="max-width: 500px; padding: 0; border-radius: 28px; overflow: hidden; border: none; box-shadow: 0 30px 60px -12px rgba(0,0,0,0.3);">
+                        <!-- Dynamic Header -->
+                        <div
+                            style="background: #1e293b; padding: 32px; color: white; position: relative; border-bottom: 4px solid #10b981;">
+                            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
+                                <div
+                                    style="width: 44px; height: 44px; background: #10b981; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    <i class="fas fa-sliders"></i>
+                                </div>
+                                <div>
+                                    <h3
+                                        style="font-weight: 800; font-size: 1.4rem; margin: 0; letter-spacing: -0.02em;">
+                                        Report Configurator</h3>
+                                    <p id="rc-active-title"
+                                        style="opacity: 0.6; font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 2px;">
+                                        SALES SUMMARY</p>
+                                </div>
+                            </div>
+                            <p style="opacity: 0.8; font-size: 0.95rem; margin: 0; max-width: 300px;">Define the
+                                parameters
+                                for your A4 audit document compilation.</p>
+                        </div>
+
+                        <div style="padding: 40px; background: white;">
+                            <input type="hidden" id="rc-type">
+
+                            <!-- Temporal Window Section -->
+                            <div class="form-group" style="margin-bottom: 32px;" id="rc-date-group">
+                                <label
+                                    style="font-weight: 800; color: var(--gray-900); font-size: 0.95rem; display: flex; align-items: center; margin-bottom: 20px;">
+                                    <i class="fas fa-calendar-range" style="margin-right: 12px; color: #10b981;"></i>
+                                    Temporal Window
+                                </label>
+                                <div
+                                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                                    <div>
+                                        <span
+                                            style="font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; display: block; margin-bottom: 8px;">Commencement</span>
+                                        <input type="date" id="rc-from" class="form-control"
+                                            style="border: none; background: transparent; font-weight: 700; color: var(--gray-800); font-size: 1.05rem; padding: 0; outline: none;">
+                                    </div>
+                                    <div style="border-left: 1px solid #e2e8f0; padding-left: 20px;">
+                                        <span
+                                            style="font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; display: block; margin-bottom: 8px;">Completion</span>
+                                        <input type="date" id="rc-to" class="form-control"
+                                            style="border: none; background: transparent; font-weight: 700; color: var(--gray-800); font-size: 1.05rem; padding: 0; outline: none;">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Customer Selection Section -->
+                            <div class="form-group" style="margin-bottom: 32px; display: none;" id="rc-customer-group">
+                                <label
+                                    style="font-weight: 800; color: var(--gray-900); font-size: 0.95rem; display: flex; align-items: center; margin-bottom: 20px;">
+                                    <i class="fas fa-user" style="margin-right: 12px; color: #10b981;"></i>
+                                    Target Customer
+                                </label>
+                                <div
+                                    style="background: #f8fafc; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0;">
+                                    <select id="rc-customer-id" class="form-control"
+                                        style="width: 100%; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px;">
+                                        <option value="">All Customers (Aggregated)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Data Aggregation Section -->
+                            <div class="form-group" style="margin-bottom: 0;" id="rc-grouping-group">
+                                <label
+                                    style="font-weight: 800; color: var(--gray-900); font-size: 0.95rem; display: flex; align-items: center; margin-bottom: 20px;">
+                                    <i class="fas fa-layer-group" style="margin-right: 12px; color: #10b981;"></i>
+                                    Data Aggregation
+                                </label>
+
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+                                    <div class="rc-agg-chip selected" onclick="app.setReportAggregation('daily', this)"
+                                        style="padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.2s; position: relative;">
+                                        <div style="font-weight: 800; font-size: 0.9rem; color: var(--gray-800);">Daily
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 4px;">High
+                                            precision</div>
+                                        <input type="radio" value="daily" name="rc-agg" checked
+                                            style="position: absolute; opacity: 0;">
+                                    </div>
+                                    <div class="rc-agg-chip" onclick="app.setReportAggregation('weekly', this)"
+                                        style="padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.2s; position: relative;">
+                                        <div style="font-weight: 800; font-size: 0.9rem; color: var(--gray-800);">Weekly
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 4px;">
+                                            Interval
+                                            summaries</div>
+                                        <input type="radio" value="weekly" name="rc-agg"
+                                            style="position: absolute; opacity: 0;">
+                                    </div>
+                                    <div class="rc-agg-chip" onclick="app.setReportAggregation('monthly', this)"
+                                        style="padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.2s; position: relative;">
+                                        <div style="font-weight: 800; font-size: 0.9rem; color: var(--gray-800);">
+                                            Monthly
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 4px;">Macro
+                                            perspective</div>
+                                        <input type="radio" value="monthly" name="rc-agg"
+                                            style="position: absolute; opacity: 0;">
+                                    </div>
+                                    <div class="rc-agg-chip" onclick="app.setReportAggregation('yearly', this)"
+                                        style="padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.2s; position: relative;">
+                                        <div style="font-weight: 800; font-size: 0.9rem; color: var(--gray-800);">Yearly
+                                        </div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); margin-top: 4px;">Fiscal
+                                            overview</div>
+                                        <input type="radio" value="yearly" name="rc-agg"
+                                            style="position: absolute; opacity: 0;">
+                                    </div>
+                                </div>
+
+                                <input type="hidden" id="rc-group-by" value="daily">
+                            </div>
+                        </div>
+
+                        <div
+                            style="padding: 24px 40px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <button class="btn btn-link"
+                                style="color: var(--gray-500); font-weight: 700; text-decoration: none; padding: 0;"
+                                onclick="document.getElementById('report-config-modal').classList.remove('active')">DISCARD
+                                CONFIG</button>
+                            <button class="btn btn-primary"
+                                style="padding: 16px 32px; border-radius: 16px; background: #1e293b; color: white; border: none; font-weight: 800; display: flex; align-items: center; gap: 12px; box-shadow: 0 10px 15px -3px rgba(30, 41, 59, 0.25);"
+                                onclick="app.processReportPrint()">
+                                COMPILE A4 COMPENDIUM <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <style>
+                        .rc-agg-chip.selected {
+                            border-color: #10b981 !important;
+                            background: #f0fdf4;
+                        }
+
+                        .rc-agg-chip.selected div:first-child {
+                            color: #10b981 !important;
+                        }
+
+                        .rc-agg-chip:hover:not(.selected) {
+                            border-color: #cbd5e1 !important;
+                            background: #f8fafc;
+                        }
+                    </style>
+                </div> <!-- End of report-config-modal -->
+            </div>

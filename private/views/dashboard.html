@@ -1,0 +1,439 @@
+<div id="dashboard-view" class="view-content active">
+                <!-- Welcome Banner with ALL Available System Actions -->
+                <div class="welcome-banner">
+                    <div class="welcome-text">
+                        <h1 id="welcome-message">Good Day, Admin!</h1>
+                        <p id="current-date-display"><i class="far fa-calendar-alt"></i> Today is ...</p>
+                    </div>
+                    <div class="quick-access-wrapper">
+                        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                            <span class="qa-label">Available System Actions</span>
+                            <button class="btn-customize" id="toggle-actions-btn" onclick="openCustomizePanel()"
+                                title="Customize Actions">
+                                <i class="fas fa-sliders-h"></i> Customize
+                            </button>
+                        </div>
+                        <div class="quick-process-row" id="quick-actions-grid">
+                            <!-- Sales & POS -->
+                            <button class="btn-glass" data-action="sale" onclick="app.navigateTo('sales')">
+                                <i class="fas fa-shopping-cart"></i> Sale
+                            </button>
+
+                            <!-- Payment Collection -->
+                            <button class="btn-glass" data-action="payment" onclick="app.openPaymentModal()">
+                                <i class="fas fa-money-bill-wave"></i> Payment
+                            </button>
+
+                            <!-- Expense Entry -->
+                            <button class="btn-glass" data-action="expense" onclick="app.openExpenseModal()">
+                                <i class="fas fa-receipt"></i> Expense
+                            </button>
+
+                            <!-- Products Management -->
+                            <button class="btn-glass" data-action="products" onclick="app.navigateTo('products')">
+                                <i class="fas fa-box"></i> Products
+                            </button>
+
+                            <!-- Customers -->
+                            <button class="btn-glass" data-action="customers" onclick="app.navigateTo('customers')">
+                                <i class="fas fa-users"></i> Customers
+                            </button>
+
+                            <!-- Suppliers -->
+                            <button class="btn-glass" data-action="suppliers" onclick="app.navigateTo('suppliers')">
+                                <i class="fas fa-truck-moving"></i> Suppliers
+                            </button>
+
+                            <!-- Distribution/Truck Management -->
+                            <button class="btn-glass" data-action="distribution"
+                                onclick="app.navigateTo('distribution')">
+                                <i class="fas fa-truck"></i> Distribution
+                            </button>
+
+                            <!-- Reports -->
+                            <button class="btn-glass" data-action="reports" onclick="app.navigateTo('reports')">
+                                <i class="fas fa-file-alt"></i> Reports
+                            </button>
+
+                            <!-- Settings -->
+                            <button class="btn-glass" data-action="settings" onclick="app.navigateTo('settings')">
+                                <i class="fas fa-cog"></i> Settings
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Customize Panel Modal -->
+                    <div class="customize-panel-overlay" id="customize-overlay" onclick="closeCustomizePanel()"></div>
+                    <div class="customize-panel" id="customize-panel">
+                        <div class="customize-panel-header">
+                            <h3><i class="fas fa-sliders-h"></i> Customize Actions</h3>
+                            <button class="close-customize-btn" onclick="closeCustomizePanel()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="customize-panel-body" id="customize-panel-body">
+                            <!-- Toggle items will be dynamically generated -->
+                        </div>
+                        <div class="customize-panel-footer">
+                            <button class="btn-reset-all" onclick="resetAllActions()">
+                                <i class="fas fa-undo"></i> Reset All
+                            </button>
+                            <button class="btn-save-customize" onclick="saveCustomization()">
+                                <i class="fas fa-check"></i> Save & Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    // Action buttons configuration
+                    const actionButtons = [
+                        { id: 'sale', label: 'Sale', icon: 'fa-shopping-cart' },
+                        { id: 'payment', label: 'Payment', icon: 'fa-money-bill-wave' },
+                        { id: 'expense', label: 'Expense', icon: 'fa-receipt' },
+                        { id: 'products', label: 'Products', icon: 'fa-box' },
+                        { id: 'customers', label: 'Customers', icon: 'fa-users' },
+                        { id: 'suppliers', label: 'Suppliers', icon: 'fa-truck-moving' },
+                        { id: 'distribution', label: 'Distribution', icon: 'fa-truck' },
+                        { id: 'reports', label: 'Reports', icon: 'fa-file-alt' },
+                        { id: 'settings', label: 'Settings', icon: 'fa-cog' }
+                    ];
+
+                    // Load saved preferences from localStorage
+                    function loadActionPreferences() {
+                        const saved = localStorage.getItem('actionButtonPreferences');
+                        if (saved) {
+                            return JSON.parse(saved);
+                        }
+                        // Default: all visible
+                        const defaults = {};
+                        actionButtons.forEach(action => {
+                            defaults[action.id] = true;
+                        });
+                        return defaults;
+                    }
+
+                    // Save preferences to localStorage
+                    function saveActionPreferences(preferences) {
+                        localStorage.setItem('actionButtonPreferences', JSON.stringify(preferences));
+                    }
+
+                    // Apply visibility to buttons based on preferences
+                    function applyButtonVisibility() {
+                        const preferences = loadActionPreferences();
+                        actionButtons.forEach(action => {
+                            const button = document.querySelector(`[data-action="${action.id}"]`);
+                            if (button) {
+                                if (preferences[action.id]) {
+                                    button.classList.remove('hidden');
+                                } else {
+                                    button.classList.add('hidden');
+                                }
+                            }
+                        });
+                    }
+
+                    // Open customize panel
+                    function openCustomizePanel() {
+                        const panel = document.getElementById('customize-panel');
+                        const overlay = document.getElementById('customize-overlay');
+                        const panelBody = document.getElementById('customize-panel-body');
+
+                        // Generate toggle items
+                        const preferences = loadActionPreferences();
+                        panelBody.innerHTML = '';
+
+                        actionButtons.forEach(action => {
+                            const isActive = preferences[action.id] !== false;
+                            const item = document.createElement('div');
+                            item.className = 'action-toggle-item';
+                            item.innerHTML = `
+                                <div class="action-toggle-label">
+                                    <i class="fas ${action.icon}"></i>
+                                    <span>${action.label}</span>
+                                </div>
+                                <div class="toggle-switch ${isActive ? 'active' : ''}" 
+                                     data-action="${action.id}" 
+                                     onclick="toggleActionButton('${action.id}')">
+                                </div>
+                            `;
+                            panelBody.appendChild(item);
+                        });
+
+                        // Show panel
+                        overlay.classList.add('active');
+                        panel.classList.add('active');
+                    }
+
+                    // Close customize panel
+                    function closeCustomizePanel() {
+                        const panel = document.getElementById('customize-panel');
+                        const overlay = document.getElementById('customize-overlay');
+
+                        overlay.classList.remove('active');
+                        panel.classList.remove('active');
+                    }
+
+                    // Toggle individual action button
+                    function toggleActionButton(actionId) {
+                        const toggle = document.querySelector(`.toggle-switch[data-action="${actionId}"]`);
+                        const preferences = loadActionPreferences();
+
+                        // Toggle state
+                        preferences[actionId] = !preferences[actionId];
+                        saveActionPreferences(preferences);
+
+                        // Update UI
+                        toggle.classList.toggle('active');
+                        applyButtonVisibility();
+                    }
+
+                    // Reset all actions to visible
+                    function resetAllActions() {
+                        const preferences = {};
+                        actionButtons.forEach(action => {
+                            preferences[action.id] = true;
+                        });
+                        saveActionPreferences(preferences);
+
+                        // Update all toggles
+                        document.querySelectorAll('.toggle-switch').forEach(toggle => {
+                            toggle.classList.add('active');
+                        });
+
+                        applyButtonVisibility();
+                    }
+
+                    // Save and close
+                    function saveCustomization() {
+                        closeCustomizePanel();
+                        // Show a brief success message
+                        const btn = document.getElementById('toggle-actions-btn');
+                        const originalHTML = btn.innerHTML;
+                        btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+                        setTimeout(() => {
+                            btn.innerHTML = originalHTML;
+                        }, 2000);
+                    }
+
+                    // Apply preferences on page load
+                    document.addEventListener('DOMContentLoaded', function () {
+                        applyButtonVisibility();
+                        updateWelcomeMessage();
+                    });
+
+                    // Update welcome message with actual username
+                    function updateWelcomeMessage() {
+                        // Wait a bit for the user data to be loaded by app.js
+                        setTimeout(() => {
+                            const userNameElement = document.getElementById('user-display-name');
+                            const welcomeMessage = document.getElementById('welcome-message');
+
+                            if (userNameElement && welcomeMessage) {
+                                const userName = userNameElement.textContent.trim();
+                                if (userName && userName !== 'Admin User') {
+                                    // Extract first name only (if full name is provided)
+                                    const firstName = userName.split(' ')[0];
+                                    welcomeMessage.textContent = `Good Day, ${firstName}!`;
+                                } else {
+                                    // Default if no specific user found
+                                    welcomeMessage.textContent = `Good Day, ${userName || 'Admin'}!`;
+                                }
+                            }
+                        }, 100);
+                    }
+
+                    // Also update when user profile changes (if needed)
+                    // Create a MutationObserver to watch for changes to user-display-name
+                    const observeUserNameChange = () => {
+                        const userNameElement = document.getElementById('user-display-name');
+                        if (userNameElement) {
+                            const observer = new MutationObserver(() => {
+                                updateWelcomeMessage();
+                            });
+                            observer.observe(userNameElement, {
+                                childList: true,
+                                characterData: true,
+                                subtree: true
+                            });
+                        }
+                    };
+
+                    // Start observing after DOM is loaded
+                    document.addEventListener('DOMContentLoaded', observeUserNameChange);
+                </script>
+
+                <!-- Custom Quick Actions Grid (Dynamic Injection Target) -->
+                <div class="quick-actions-grid" id="main-qa-grid" style="display:none;"></div>
+
+                <!-- KPI Grid -->
+                <div class="kpi-grid" id="dashboard-kpi-grid">
+                    <!-- Sales Performance -->
+                    <div class="kpi-card card-sales" id="kpi-sales">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-badge">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="daily-sales">LKR 0.00</span>
+                            <span class="kpi-label-refined">Daily Sales Revenue</span>
+                        </div>
+                        <div class="kpi-footer-stats">
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">This Month</span>
+                                <span class="kpi-stat-val" id="monthly-sales">LKR 0</span>
+                            </div>
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Year to Date</span>
+                                <span class="kpi-stat-val" id="ytd-sales">LKR 0</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-chart-line kpi-bg-icon-v2"></i>
+                    </div>
+
+                    <!-- Profitability -->
+                    <div class="kpi-card card-profit" id="kpi-profit">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-badge">
+                                <i class="fas fa-coins"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="net-profit">LKR 0.00</span>
+                            <span class="kpi-label-refined">Net Profit (YTD)</span>
+                        </div>
+                        <div class="kpi-footer-stats">
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Gross Profit</span>
+                                <span class="kpi-stat-val" id="gross-profit">LKR 0</span>
+                            </div>
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Profit Margin</span>
+                                <span class="kpi-stat-val" id="profit-margin">0.0%</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-coins kpi-bg-icon-v2"></i>
+                    </div>
+
+                    <!-- Finance & Credit -->
+                    <div class="kpi-card card-outstanding" id="kpi-outstanding">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-badge">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="outstanding" style="color: var(--error);">LKR 0.00</span>
+                            <span class="kpi-label-refined">Total Receivables</span>
+                        </div>
+                        <div class="kpi-footer-stats">
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Cash/Credit</span>
+                                <span class="kpi-stat-val" id="cash-credit-split">0 / 0</span>
+                            </div>
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Collections</span>
+                                <span class="kpi-stat-val" id="collections">LKR 0</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-file-invoice-dollar kpi-bg-icon-v2"></i>
+                    </div>
+
+                    <!-- Operations -->
+                    <div class="kpi-card card-expenses" id="kpi-expenses">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-badge">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="total-expenses">LKR 0.00</span>
+                            <span class="kpi-label-refined">Operational Expenses</span>
+                        </div>
+                        <div class="kpi-footer-stats">
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Customers</span>
+                                <span class="kpi-stat-val" id="active-customers">0</span>
+                            </div>
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Succ. Rate</span>
+                                <span class="kpi-stat-val" id="delivery-success">0.0%</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-cogs kpi-bg-icon-v2"></i>
+                    </div>
+
+                    <!-- Logistics -->
+                    <div class="kpi-card card-trucks" id="kpi-trucks">
+                        <div class="kpi-header">
+                            <div class="kpi-icon-badge">
+                                <i class="fas fa-truck-loading"></i>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <span class="kpi-main-val" id="avg-route-sale">LKR 0.00</span>
+                            <span class="kpi-label-refined">Avg. Sale per Truck</span>
+                        </div>
+                        <div class="kpi-footer-stats">
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">On Route</span>
+                                <span class="kpi-stat-val" id="active-trucks">0</span>
+                            </div>
+                            <div class="kpi-stat-item">
+                                <span class="kpi-stat-label">Utilization</span>
+                                <span class="kpi-stat-val" id="vehicle-utilization">0.0%</span>
+                            </div>
+                        </div>
+                        <i class="fas fa-truck-loading kpi-bg-icon-v2"></i>
+                    </div>
+                </div>
+                <div class="dashboard-grid" id="dashboard-grid-1">
+                    <div class="card" id="widget-sales-trend">
+                        <div class="card-header">
+                            <h3 class="card-title">Sales Trend</h3>
+                            <div class="kpi-trend up"><i class="fas fa-arrow-up"></i> 12% vs last week</div>
+                        </div>
+                        <div class="chart-container"><canvas id="salesTrendChart"></canvas></div>
+                    </div>
+                    <div class="card" id="widget-activities">
+                        <div class="card-header">
+                            <h3 class="card-title">Recent Activities</h3>
+                            <button class="btn btn-secondary btn-sm" onclick="app.navigateTo('logs')">View All</button>
+                        </div>
+                        <ul class="activity-list" id="activity-list" style="max-height: 250px; overflow-y: auto;"></ul>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: 1fr 1fr;" id="dashboard-grid-2">
+                    <div class="card" id="widget-stock">
+                        <div class="card-header">
+                            <h3 class="card-title">Product Stock Status</h3>
+                            <span class="badge" id="low-stock-count" style="background: var(--error); color: white;">0
+                                Alerts</span>
+                        </div>
+                        <div class="table-container" style="max-height: 250px; overflow-y: auto;">
+                            <table class="data-table" style="margin-top: 0; font-size: 0.8rem;">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="low-stock-body">
+                                    <tr>
+                                        <td colspan="3" class="text-center">No stock alerts</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Sales by Category</h3>
+                        </div>
+                        <div class="chart-container" style="height: 250px;"><canvas id="categoryChart"></canvas></div>
+                    </div>
+                </div>
+            </div>

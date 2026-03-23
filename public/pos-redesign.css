@@ -1,0 +1,258 @@
+/* ========================================
+   POS UI REDESIGN - ANIMATED & PREMIUM
+   ======================================== */
+
+/* Animated Icon Buttons (Lottie Simulation) */
+.btn-icon-animate {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-icon-animate i {
+    font-size: 1.1rem;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    z-index: 2;
+}
+
+.btn-icon-animate::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease;
+}
+
+.btn-icon-animate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-icon-animate:hover::before {
+    width: 150%;
+    height: 150%;
+}
+
+.btn-icon-animate:hover i {
+    transform: scale(1.2) rotate(10deg);
+}
+
+.btn-icon-animate:active {
+    transform: scale(0.95);
+}
+
+/* Pay Button Animation */
+.btn-pay-animated {
+    overflow: hidden;
+    position: relative;
+}
+
+.btn-pay-animated::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg,
+            transparent,
+            rgba(255, 255, 255, 0.2),
+            transparent);
+    transform: skewX(-20deg);
+    transition: none;
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        left: -100%;
+    }
+
+    20% {
+        left: 200%;
+    }
+
+    100% {
+        left: 200%;
+    }
+}
+
+.btn-pay-animated:hover i {
+    animation: arrow-slide 1s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes arrow-slide {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(5px);
+    }
+}
+
+/* Search Input Styling */
+.pos-customer-search-mode input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.btn-add-mini {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #ecfdf5;
+    color: #10b981;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-add-mini:hover {
+    background: #10b981;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Selected Customer Card */
+.customer-selected-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    border-radius: 16px;
+    color: white;
+    box-shadow: 0 8px 20px -5px rgba(5, 150, 105, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.customer-selected-card::before {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: -20px;
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+}
+
+.cust-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.cust-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    margin-bottom: 2px;
+}
+
+.cust-detail {
+    font-size: 0.75rem;
+    opacity: 0.85;
+}
+
+.cust-balance-info {
+    text-align: right;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 4px 8px;
+    border-radius: 8px;
+}
+
+.cust-balance-info .label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+.cust-balance-info .value {
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+
+.btn-remove-cust {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 20px;
+    height: 20px;
+    background: rgba(239, 68, 68, 0.8);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    cursor: pointer;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.2s;
+}
+
+.customer-selected-card:hover .btn-remove-cust {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Date Input Hidden Hack */
+.date-input-hidden::-webkit-calendar-picker-indicator {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    cursor: pointer;
+    opacity: 0;
+}
+
+/* Hover Scale Utility */
+.hover-scale {
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+    transform: scale(1.05);
+    border-color: #cbd5e1 !important;
+    background: white !important;
+}
+
+/* Table Header Polish */
+.th-clean {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    font-weight: 700;
+    padding: 12px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}

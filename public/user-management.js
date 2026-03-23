@@ -2,6 +2,8 @@
 
 // Load all users
 AgroDistributionApp.prototype.loadUsers = async function () {
+    if (this.currentView !== 'admin' || !document.getElementById('users-table-body')) return;
+
     console.log('loadUsers called');
     try {
         const response = await this.apiCall('/api/users');
@@ -34,13 +36,12 @@ AgroDistributionApp.prototype.loadUsers = async function () {
 
             // Auto-refresh mechanism for admin status board
             if (this.currentView === 'admin' && !this.userRefreshInterval) {
-                console.log('Starting user refresh interval');
                 this.userRefreshInterval = setInterval(() => {
-                    if (this.currentView === 'admin') this.loadUsers();
-                    else {
+                    if (this.currentView === 'admin' && document.getElementById('users-table-body')) {
+                        this.loadUsers();
+                    } else if (this.currentView !== 'admin') {
                         clearInterval(this.userRefreshInterval);
                         this.userRefreshInterval = null;
-                        console.log('User refresh interval stopped');
                     }
                 }, 5000); // Poll every 5 seconds
             }
@@ -60,7 +61,9 @@ AgroDistributionApp.prototype.displayUsers = function (users) {
     const tbody = document.getElementById('users-table-body');
 
     if (!tbody) {
-        console.error('users-table-body element not found!');
+        if (this.currentView === 'admin') {
+            console.warn('users-table-body element not found, skipping displayUsers (view might be loading)');
+        }
         return;
     }
 

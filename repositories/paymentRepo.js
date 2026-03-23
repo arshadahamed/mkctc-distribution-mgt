@@ -1,9 +1,11 @@
 const { transaction, runQuery, allQuery, getQuery } = require('../lib/db');
 const customerRepo = require('./customerRepo');
+const settingsRepo = require('./settingsRepo');
+const notificationService = require('../services/notificationService');
 
 class PaymentRepository {
     async createReceipt(receiptData) {
-        return await transaction(async () => {
+        const result = await transaction(async () => {
             const receiptNumber = await this.generateReceiptNumber();
 
             // Insert receipt
@@ -67,6 +69,44 @@ class PaymentRepository {
 
             return receiptId;
         });
+
+        // Trigger Notifications (Outside Transaction)
+        try {
+            const notifyEnabled = await settingsRepo.getSetting('notify_receipt');
+            if (notifyEnabled === 'true' || notifyEnabled === true) {
+                const customer = await customerRepo.getById(receiptData.customer_id);
+                const company = await settingsRepo.getCompanyDetails();
+
+                if (customer) {
+                    const receiptNumber = await this.getReceiptNumber(result);
+
+                    // Send Email
+                    if (customer.email) {
+                        const emailHtml = notificationService.formatReceiptEmail({
+                            ...receiptData,
+                            receipt_number: receiptNumber,
+                            customer_name: customer.name
+                        }, company);
+                        await notificationService.sendEmail(customer.email, `Payment Receipt ${receiptNumber} from ${company.company_name}`, emailHtml);
+                    }
+
+                    // Send SMS
+                    if (customer.contact) {
+                        const message = `Dear ${customer.name}, we received your payment of LKR ${parseFloat(receiptData.amount).toLocaleString()} (Receipt: ${receiptNumber}). Thank you! - ${company.company_name}`;
+                        await notificationService.sendSMS(customer.contact, message);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Notification Error:', err);
+        }
+
+        return result;
+    }
+
+    async getReceiptNumber(id) {
+        const res = await getQuery('SELECT receipt_number FROM receipts WHERE id = ?', [id]);
+        return res?.receipt_number;
     }
 
     async generateReceiptNumber() {

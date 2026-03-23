@@ -1,0 +1,32 @@
+<div id="customer-map-view" class="view-content" style="display: none;">
+                <div class="card">
+                    <div class="card-header" style="justify-content: space-between;">
+                        <h3 class="card-title"><i class="fas fa-map-marked-alt"></i> Customer Geographical Map</h3>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn btn-secondary" onclick="app.loadCustomerMap()"><i
+                                    class="fas fa-sync"></i> Refresh Map</button>
+                            <button class="btn btn-primary" onclick="app.navigateTo('customers')"><i
+                                    class="fas fa-users"></i> Back to List</button>
+                        </div>
+                    </div>
+                    <div class="card-body" style="padding: 0; position: relative;">
+                        <div id="customer-leaflet-map"
+                            style="height: 600px; width: 100%; border-radius: 0 0 12px 12px; z-index: 1;"></div>
+                        <div id="map-stats-overlay"
+                            style="position: absolute; bottom: 20px; right: 20px; background: rgba(255,255,255,0.95); padding: 15px; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1000; border: 1px solid var(--primary-green-light); backdrop-filter: blur(4px); min-width: 180px;">
+                            <div
+                                style="font-weight: 800; color: var(--primary-green-dark); border-bottom: 2px solid var(--primary-green-light); margin-bottom: 12px; padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-satellite"></i> Map Intelligence
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr auto; gap: 8px; font-size: 0.9rem;">
+                                <span style="color: var(--gray-600);">Total:</span><strong
+                                    id="map-total-count">0</strong>
+                                <span style="color: var(--gray-600);">Located:</span><strong id="map-located-count"
+                                    style="color: var(--success);">0</strong>
+                                <span style="color: var(--gray-600);">Unlocated:</span><strong id="map-unlocated-count"
+                                    style="color: var(--error);">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>

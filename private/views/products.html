@@ -1,0 +1,73 @@
+<div id="products-view" class="view-content" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                <h3 class="card-title">Product Catalog</h3>
+                <input type="text" id="product-search" placeholder="Search products..." class="form-control"
+                    style="width: 300px; margin-bottom: 0;">
+            </div>
+            <div style="display: flex; gap: var(--spacing-sm);">
+                <button class="btn btn-secondary" id="export-excel-btn" title="Export to Excel">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
+                <button class="btn btn-secondary" id="export-pdf-btn" title="Export to PDF">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button class="btn btn-secondary" id="import-excel-btn" title="Import from Excel">
+                    <i class="fas fa-file-import"></i> Import Excel
+                </button>
+                <input type="file" id="product-import-file" style="display: none;" accept=".xlsx, .xls">
+                <button class="btn btn-primary" id="add-product-btn" onclick="app.openProductModal()"><i
+                        class="fas fa-plus"></i> Add
+                    Product</button>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Reference ID / SKU</th>
+                        <th>Image</th>
+                        <th>Product Details</th>
+                        <th>Supplier</th>
+                        <th>Size</th>
+                        <th>Price/Stock</th>
+                        <th>Carton Info</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="product-table-body"></tbody>
+            </table>
+        </div>
+        <!-- Pagination Controls -->
+        <div class="pagination-container" id="product-pagination">
+            <div class="pagination-info">
+                Showing <span id="product-page-start">0</span>-<span id="product-page-end">0</span> of <span
+                    id="product-total">0</span> products
+            </div>
+            <div class="pagination-controls">
+                <button class="btn btn-secondary btn-sm" id="product-prev-btn" onclick="app.changeProductPage(-1)"
+                    disabled>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <div class="pagination-pages" id="product-pages"></div>
+                <button class="btn btn-secondary btn-sm" id="product-next-btn" onclick="app.changeProductPage(1)"
+                    disabled>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+            <div class="pagination-limit">
+                <label>Per page:</label>
+                <select id="product-limit" class="form-control" style="width: 80px; margin-bottom: 0;"
+                    onchange="app.loadProducts()">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>

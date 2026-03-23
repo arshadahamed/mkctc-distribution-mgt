@@ -1,5 +1,7 @@
 const { transaction, runQuery, allQuery, getQuery } = require('../lib/db');
 const customerRepo = require('./customerRepo');
+const settingsRepo = require('./settingsRepo');
+const notificationService = require('../services/notificationService');
 
 class SalesRepository {
     async createInvoice(invoiceData) {
@@ -8,7 +10,39 @@ class SalesRepository {
             throw new Error('Customer ID is required to create an invoice');
         }
 
-        return await transaction(async () => {
+        const result = await transaction(async () => {
+            // --- CREDIT LIMIT CHECK ---
+            let creditRequired = 0;
+            if (invoiceData.payment_method === 'account') {
+                creditRequired = parseFloat(invoiceData.net_total || 0);
+            } else if (invoiceData.payment_method === 'split') {
+                let details = invoiceData.payment_details;
+                if (typeof details === 'string') {
+                    try { details = JSON.parse(details); } catch (e) { console.error('Error parsing payment details for credit check', e); }
+                }
+                if (details && details.credit) {
+                    creditRequired = parseFloat(details.credit || 0);
+                }
+            }
+
+            if (creditRequired > 0) {
+                const customer = await customerRepo.getById(invoiceData.customer_id);
+                if (customer) {
+                    const currentBalance = parseFloat(customer.account_balance || 0);
+                    const creditLimit = parseFloat(customer.credit_limit || 0);
+
+                    // Allow tiny floating point tolerance if needed, but strictly:
+                    if (currentBalance + creditRequired > creditLimit) {
+                        const fmtLimit = creditLimit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const fmtBal = currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const available = Math.max(0, creditLimit - currentBalance).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                        throw new Error(`Credit Limit Exceeded! \nLimit: LKR ${fmtLimit}\nCurrent Balance: LKR ${fmtBal}\nAvailable Credit: LKR ${available}\n\nCannot process credit of LKR ${creditRequired.toLocaleString(undefined, { minimumFractionDigits: 2 })}.`);
+                    }
+                }
+            }
+            // --------------------------
+
             const invoiceNumber = await this.generateInvoiceNumber();
 
             // Insert invoice
@@ -93,6 +127,42 @@ class SalesRepository {
 
             return invoiceId;
         });
+
+        // Trigger Notifications (Outside Transaction)
+        try {
+            const notifyEnabled = await settingsRepo.getSetting('notify_invoice');
+            if (notifyEnabled === 'true' || notifyEnabled === true) {
+                const customer = await customerRepo.getById(invoiceData.customer_id);
+                const company = await settingsRepo.getCompanyDetails();
+
+                if (customer) {
+                    // Send Email
+                    if (customer.email) {
+                        const emailHtml = notificationService.formatInvoiceEmail({
+                            ...invoiceData,
+                            invoice_number: await this.getInvoiceNumber(result), // Get generated number
+                            customer_name: customer.name
+                        }, company);
+                        await notificationService.sendEmail(customer.email, `Invoice ${invoiceData.invoice_number} from ${company.company_name}`, emailHtml);
+                    }
+
+                    // Send SMS
+                    if (customer.contact) {
+                        const message = `Dear ${customer.name}, your invoice ${invoiceData.invoice_number} for LKR ${parseFloat(invoiceData.net_total).toLocaleString()} is ready. Thank you! - ${company.company_name}`;
+                        await notificationService.sendSMS(customer.contact, message);
+                    }
+                }
+            }
+        } catch (err) {
+            console.error('Notification Error:', err);
+        }
+
+        return result; // Result is invoiceId
+    }
+
+    async getInvoiceNumber(id) {
+        const res = await getQuery('SELECT invoice_number FROM invoices WHERE id = ?', [id]);
+        return res?.invoice_number;
     }
 
     async generateInvoiceNumber() {

@@ -1,0 +1,226 @@
+<div id="demand-forecast-view" class="view-content" style="display: none; background: #f8fafc; min-height: 100%;">
+    <!-- Hero Section -->
+    <div
+        style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; padding: 3rem 2rem 5rem; border-bottom-left-radius: 40px; border-bottom-right-radius: 40px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);">
+        <!-- Ambient Background -->
+        <div
+            style="position: absolute; top: -20%; right: -10%; width: 600px; height: 600px; background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0,0,0,0) 70%); border-radius: 50%; pointer-events: none;">
+        </div>
+        <div
+            style="position: absolute; bottom: 0; left: 0; width: 100%; height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);">
+        </div>
+
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-end; position: relative; z-index: 10;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                    <span
+                        style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 1px; border: 1px solid rgba(59, 130, 246, 0.3);">
+                        <i class="fas fa-brain"></i> AI ANALYTICS
+                    </span>
+                </div>
+                <h2
+                    style="font-size: 2.2rem; font-weight: 900; margin: 0; letter-spacing: -1px; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                    Demand Intelligence
+                </h2>
+                <p style="color: #94a3b8; font-size: 1rem; margin: 10px 0 0; max-width: 500px; line-height: 1.6;">
+                    Predictive modeling for inventory optimization and pre-order fulfillment tracking.
+                </p>
+            </div>
+
+            <div
+                style="background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); padding: 10px; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; gap: 10px;">
+                <div class="input-with-icon-dark" style="position: relative;">
+                    <i class="fas fa-calendar"
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="date" id="df-date-from" class="form-control-dark"
+                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 10px 10px 35px; border-radius: 10px; outline: none;">
+                </div>
+                <span style="color: #64748b;">to</span>
+                <div class="input-with-icon-dark" style="position: relative;">
+                    <i class="fas fa-calendar"
+                        style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8;"></i>
+                    <input type="date" id="df-date-to" class="form-control-dark"
+                        style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 10px 10px 10px 35px; border-radius: 10px; outline: none;">
+                </div>
+                <button class="btn btn-primary" onclick="app.loadDemandForecasting()"
+                    style="background: #3b82f6; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 700; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4); transition: all 0.2s;">
+                    <i class="fas fa-sync-alt" style="margin-right: 8px;"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 0 2rem 2rem; margin-top: -3rem; position: relative; z-index: 20;">
+        <!-- KPI Grid -->
+        <div class="kpi-grid"
+            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 2rem;">
+            <!-- KPI 1 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Fulfillment
+                        Rate</span>
+                    <h3 id="df-fulfillment-rate"
+                        style="font-size: 2rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">0%</h3>
+                    <p id="df-fulfilled-count"
+                        style="font-size: 0.8rem; color: #10b981; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-check-circle"></i> 0 Orders Completed
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #eff6ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #3b82f6; font-size: 1.5rem;">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+            </div>
+
+            <!-- KPI 2 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Backorder
+                        Rate</span>
+                    <h3 id="df-backorder-rate"
+                        style="font-size: 2rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">0%</h3>
+                    <p id="df-backorder-count"
+                        style="font-size: 0.8rem; color: #f59e0b; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-clock"></i> 0 Pending
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #fff7ed; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #f97316; font-size: 1.5rem;">
+                    <i class="fas fa-box-open"></i>
+                </div>
+            </div>
+
+            <!-- KPI 3 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Opportunity
+                        Cost</span>
+                    <h3 id="df-lost-revenue"
+                        style="font-size: 1.8rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">LKR 0</h3>
+                    <p style="font-size: 0.8rem; color: #ef4444; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-arrow-down"></i> Unfulfilled Value
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #fef2f2; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.5rem;">
+                    <i class="fas fa-hand-holding-usd"></i>
+                </div>
+            </div>
+
+            <!-- KPI 4 -->
+            <div class="premium-card"
+                style="background: white; padding: 1.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between;">
+                <div>
+                    <span
+                        style="font-size: 0.75rem; font-weight: 700; color: #64748b; letter-spacing: 0.5px; text-transform: uppercase;">Avg
+                        Lead Time</span>
+                    <h3 id="df-avg-lead" style="font-size: 2rem; font-weight: 800; color: #1e293b; margin: 5px 0 0;">0
+                        Days</h3>
+                    <p style="font-size: 0.8rem; color: #8b5cf6; margin: 4px 0 0; font-weight: 600;">
+                        <i class="fas fa-shipping-fast"></i> Order to Delivery
+                    </p>
+                </div>
+                <div
+                    style="width: 60px; height: 60px; background: #f5f3ff; border-radius: 16px; display: flex; align-items: center; justify-content: center; color: #8b5cf6; font-size: 1.5rem;">
+                    <i class="fas fa-stopwatch"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Layout -->
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 2rem;">
+            <!-- Main Chart -->
+            <div class="premium-card"
+                style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Demand vs
+                            Realization</h4>
+                        <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Pre-order commitments vs actual
+                            fulfilled sales.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <span
+                            style="padding: 4px 10px; background: #eff6ff; border-radius: 8px; color: #3b82f6; font-size: 0.75rem; font-weight: 600;">Monthly
+                            View</span>
+                    </div>
+                </div>
+                <div style="height: 350px;">
+                    <canvas id="preOrderSalesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Side Chart -->
+            <div class="premium-card"
+                style="background: white; padding: 24px; border-radius: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Geographic Hotspots</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Demand concentration by route.</p>
+                </div>
+                <div style="height: 350px; position: relative;">
+                    <canvas id="routeDemandChart"></canvas>
+                    <div
+                        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none;">
+                        <i class="fas fa-map-marked-alt" style="font-size: 2rem; color: rgba(0,0,0,0.05);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Table -->
+        <div class="premium-card"
+            style="background: white; border-radius: 24px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+            <div
+                style="padding: 24px; background: white; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h4 style="font-size: 1.1rem; font-weight: 800; color: #1e293b; margin: 0;">Forecasting Matrix</h4>
+                    <p style="font-size: 0.85rem; color: #64748b; margin: 4px 0 0;">Detailed product-level demand
+                        breakdown.</p>
+                </div>
+                <button class="btn btn-outline" onclick="app.downloadDemandReport()"
+                    style="border-radius: 10px; padding: 8px 16px; font-size: 0.85rem; font-weight: 600;">
+                    <i class="fas fa-download"></i> Export Report
+                </button>
+            </div>
+            <div class="table-container">
+                <table class="data-table">
+                    <thead style="background: #f8fafc;">
+                        <tr>
+                            <th
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Product Model</th>
+                            <th class="text-right"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Forecasted Demand</th>
+                            <th class="text-right"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Fulfilled</th>
+                            <th class="text-right"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Gap (Backorder)</th>
+                            <th class="text-center"
+                                style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; padding: 16px 24px;">
+                                Trend</th>
+                        </tr>
+                    </thead>
+                    <tbody id="df-table-body">
+                        <tr>
+                            <td colspan="5" class="text-center" style="padding: 40px; color: #94a3b8;">
+                                <i class="fas fa-chart-line"
+                                    style="font-size: 2rem; margin-bottom: 15px; display: block; opacity: 0.3;"></i>
+                                Awaiting data synchronization...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

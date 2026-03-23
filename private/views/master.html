@@ -1,0 +1,22 @@
+<div id="master-view" class="view-content" style="display: none;">
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title" id="master-title">Master Data</h3>
+            <button class="btn btn-primary" id="add-master-btn" style="display: inline-flex;"
+                onclick="app.openMasterModal()"><i class="fas fa-plus"></i> Add New</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="master-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

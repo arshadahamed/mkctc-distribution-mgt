@@ -59,8 +59,64 @@ router.put('/key/:key', isAuthenticated, isAdmin, async (req, res) => {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+router.get('/', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const settings = await settingsRepo.getAllSettings();
+        res.json({ success: true, settings });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
-module.exports = router;
+router.post('/', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const { settings } = req.body;
+        for (const [key, value] of Object.entries(settings)) {
+            await settingsRepo.saveSetting(key, value);
+        }
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.post('/test-sms', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const notificationService = require('../services/notificationService');
+        const { phone } = req.body;
+
+        if (!phone) throw new Error('Recipient phone number is required');
+
+        const success = await notificationService.sendSMS(phone, 'MKC System: This is a gateway test pulse. Your communication pipeline is ACTIVE.');
+
+        if (success) {
+            res.json({ success: true });
+        } else {
+            res.status(500).json({ success: false, message: 'Gateway rejected the transmission. Check logs for details.' });
+        }
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.post('/test-email', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+        const nodemailer = require('nodemailer');
+        const { host, port, user, pass } = req.body;
+
+        const transporter = nodemailer.createTransport({
+            host,
+            port: parseInt(port) || 587,
+            secure: port == 465,
+            auth: { user, pass }
+        });
+
+        await transporter.verify();
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
 
 router.post('/run-query', isAuthenticated, isAdmin, async (req, res) => {
     try {
@@ -77,3 +133,5 @@ router.post('/run-query', isAuthenticated, isAdmin, async (req, res) => {
         res.status(500).json({ success: false, error: 'SQL Error: ' + error.message });
     }
 });
+
+module.exports = router;

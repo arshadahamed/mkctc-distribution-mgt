@@ -1,0 +1,42 @@
+<div id="expenses-view" class="view-content" style="display: none;">
+    <div class="card">
+        <div class="card-header">
+            <div style="display: flex; gap: var(--spacing-md); align-items: center;">
+                <h3 class="card-title">Expense Management</h3>
+                <input type="date" id="expense-date-from" class="form-control" style="width: 150px; margin-bottom: 0;"
+                    onchange="app.loadExpenses()">
+                <span style="color:var(--gray-500)">to</span>
+                <input type="date" id="expense-date-to" class="form-control" style="width: 150px; margin-bottom: 0;"
+                    onchange="app.loadExpenses()">
+                <select id="expense-cat-filter" class="form-control" style="width: 150px; margin-bottom: 0;"
+                    onchange="app.loadExpenses()">
+                    <option value="">All Categories</option>
+                    <option value="Fuel">Fuel</option>
+                    <option value="Food">Food</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Salary">Salary</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" id="add-expense-btn" onclick="app.openExpenseModal()"><i
+                    class="fas fa-plus"></i> Add
+                Expense</button>
+        </div>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Reference</th>
+                        <th>Amount</th>
+                        <th>Created By</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>

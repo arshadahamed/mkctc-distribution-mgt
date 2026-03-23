@@ -1,0 +1,88 @@
+<div id="vehicles-view" class="view-content" style="display: none;">
+                <!-- Premium Fleet Header -->
+                <div class="view-header-premium" style="margin-bottom: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div>
+                            <h2
+                                style="font-size: 1.8rem; font-weight: 800; color: var(--gray-800); margin-bottom: 0.5rem;">
+                                Fleet Intelligence</h2>
+                            <p style="color: var(--gray-500);"><i class="fas fa-truck"></i> Manage and track your
+                                logistics assets in real-time.</p>
+                        </div>
+                        <div class="action-btns-premium">
+                            <button class="btn btn-primary btn-lg" onclick="app.openVehicleModal()"
+                                style="padding: 12px 25px; border-radius: 12px; font-weight: 700; box-shadow: 0 10px 20px rgba(46, 125, 50, 0.2);">
+                                <i class="fas fa-plus"></i> Register Vehicle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fleet KPIs -->
+                <div class="visit-stats-row"
+                    style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(46, 125, 50, 0.1); color: var(--primary-green);"><i
+                                class="fas fa-truck-moving"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Fleet</span>
+                            <h4 class="v-value" id="vehicle-stat-total">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(52, 152, 219, 0.1); color: #3498db;"><i
+                                class="fas fa-check-circle"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Active Units</span>
+                            <h4 class="v-value" id="vehicle-stat-active">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(241, 196, 15, 0.1); color: #f1c40f;"><i
+                                class="fas fa-tools"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Maintenance</span>
+                            <h4 class="v-value" id="vehicle-stat-maintenance">0</h4>
+                        </div>
+                    </div>
+                    <div class="visit-mini-card">
+                        <div class="v-icon" style="background: rgba(155, 89, 182, 0.1); color: #9b59b6;"><i
+                                class="fas fa-weight-hanging"></i></div>
+                        <div class="v-details">
+                            <span class="v-label">Total Capacity</span>
+                            <h4 class="v-value" id="vehicle-stat-capacity" style="font-size: 1.2rem;">0 KG</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="card premium-filters"
+                    style="padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; border: 1px solid rgba(0,0,0,0.05);">
+                    <div style="display: flex; gap: 15px; align-items: center;">
+                        <div class="search-input-wrapper" style="flex: 1; position: relative;">
+                            <i class="fas fa-search"
+                                style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
+                            <input type="text" id="vehicle-search" class="form-control"
+                                style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
+                                placeholder="Search by registration number, driver, or model..."
+                                onkeyup="app.loadVehicles(this.value)">
+                        </div>
+                        <button class="btn btn-secondary" onclick="app.loadVehicles()"
+                            style="height: 48px; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vehicle Grid -->
+                <div id="vehicle-grid-container" class="visit-grid">
+                    <!-- Dynamic cards will be injected here -->
+                </div>
+
+                <!-- Fallback Table (Hidden) -->
+                <div class="table-container" style="display: none;">
+                    <table class="data-table">
+                        <tbody id="vehicle-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
