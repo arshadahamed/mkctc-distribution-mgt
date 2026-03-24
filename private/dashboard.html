@@ -1724,81 +1724,106 @@
 
     <!-- Customer Ledger Modal -->
     <div class="modal-overlay" id="ledger-modal">
-        <div class="modal" style="max-width: 900px; width: 95%;">
-            <div class="modal-header">
-                <div>
-                    <h3 class="modal-title" id="ledger-title"
-                        style="color: var(--primary-green); display: flex; align-items: center; gap: 10px;">
-                        <i class="fas fa-file-invoice-dollar"></i> Customer Ledger
-                    </h3>
-                    <p id="ledger-customer-info" style="margin: 0; color: #666; font-size: 0.9rem; font-weight: 500;">
-                    </p>
-                </div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn btn-secondary btn-sm" onclick="window.print()"
-                        style="padding: 6px 12px; font-size: 0.8rem;">
-                        <i class="fas fa-print"></i> Print
-                    </button>
-                    <button class="close-modal"><i class="fas fa-times"></i></button>
-                </div>
-            </div>
-            <div class="modal-body" style="background: #fcfcfc;">
-                <!-- Ledger Summary -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 20px;">
-                    <div
-                        style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <div
-                            style="font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">
-                            Total Sales</div>
-                        <div id="ledger-sum-sales"
-                            style="font-size: 1.2rem; font-weight: 700; color: var(--primary-green-dark);">LKR 0.00
-                        </div>
+        <div class="modal" style="max-width: 960px; width: 96%; border-radius: 16px; overflow: hidden; padding: 0; border: none;">
+
+            <!-- Modal Letterhead Header -->
+            <div style="background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%); padding: 22px 28px 0 28px; position: relative; overflow: hidden;">
+                <!-- Decorative circles -->
+                <div style="position:absolute; width:160px; height:160px; border-radius:50%; background:rgba(255,255,255,0.05); top:-60px; right:-40px; pointer-events:none;"></div>
+                <div style="position:absolute; width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.04); bottom:10px; left:20px; pointer-events:none;"></div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; position: relative; z-index: 1;">
+                    <div>
+                        <div style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,0.65); margin-bottom: 4px;">Account Statement</div>
+                        <h3 style="margin: 0 0 3px 0; color: #ffffff; font-size: 1.3rem; font-weight: 900; display: flex; align-items: center; gap: 9px;">
+                            <i class="fas fa-file-invoice-dollar"></i> Customer Ledger
+                        </h3>
+                        <p id="ledger-customer-info" style="margin: 0; color: rgba(255,255,255,0.8); font-size: 0.82rem; font-weight: 500;"></p>
                     </div>
-                    <div
-                        style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <div
-                            style="font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">
-                            Total Paid</div>
-                        <div id="ledger-sum-paid"
-                            style="font-size: 1.2rem; font-weight: 700; color: var(--primary-green);">LKR 0.00</div>
-                    </div>
-                    <div
-                        style="background: white; padding: 15px; border-radius: 12px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-                        <div
-                            style="font-size: 0.75rem; color: #666; text-transform: uppercase; font-weight: 600; margin-bottom: 5px;">
-                            Outstanding</div>
-                        <div id="ledger-sum-balance" style="font-size: 1.2rem; font-weight: 700; color: var(--error);">
-                            LKR 0.00</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button
+                            onclick="window.open('/print-ledger.html?id=' + (app._currentLedgerCustomerId || ''), '_blank')"
+                            style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 7px 14px; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(4px); transition: all 0.2s;"
+                            onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+                            <i class="fas fa-print"></i> Print Ledger
+                        </button>
+                        <button class="close-modal" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div
-                    style="background: white; border-radius: 12px; border: 1px solid #eee; overflow: hidden; box-shadow: var(--shadow-sm);">
-                    <div style="max-height: 50vh; overflow-y: auto;">
-                        <table class="data-table" style="margin-top: 0; width: 100%;">
-                            <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 1;">
-                                <tr>
-                                    <th style="padding: 12px 15px;">Date</th>
-                                    <th style="padding: 12px 15px;">Reference</th>
-                                    <th style="padding: 12px 15px;">Type</th>
-                                    <th class="text-right" style="padding: 12px 15px;">Debit (Sales)</th>
-                                    <th class="text-right" style="padding: 12px 15px;">Credit (Paid)</th>
-                                    <th class="text-right" style="padding: 12px 15px;">Running Balance</th>
+                <!-- Tab-style sub-title bar -->
+                <div style="margin: 16px -28px 0 -28px; background: rgba(0,0,0,0.18); padding: 7px 28px; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-history" style="font-size:0.65rem;"></i> Full Transaction History &amp; Account Summary
+                </div>
+            </div>
+
+            <!-- Summary Cards -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); background: #f8fafc; border-bottom: 2px solid #e8f5e9;">
+                <div style="padding: 14px 20px; border-right: 1px solid #e5e7eb; border-left: 3px solid #ef4444;">
+                    <div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7280; margin-bottom: 4px;">Total Invoiced</div>
+                    <div id="ledger-sum-sales" style="font-size: 1.1rem; font-weight: 800; color: #dc2626;">LKR 0.00</div>
+                    <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 2px;">All Sales &amp; Credit Notes</div>
+                </div>
+                <div style="padding: 14px 20px; border-right: 1px solid #e5e7eb; border-left: 3px solid #22c55e;">
+                    <div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7280; margin-bottom: 4px;">Total Collected</div>
+                    <div id="ledger-sum-paid" style="font-size: 1.1rem; font-weight: 800; color: #16a34a;">LKR 0.00</div>
+                    <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 2px;">Payments Received</div>
+                </div>
+                <div style="padding: 14px 20px; border-left: 3px solid #f59e0b;">
+                    <div style="font-size: 0.62rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7280; margin-bottom: 4px;">Outstanding Balance</div>
+                    <div id="ledger-sum-balance" style="font-size: 1.1rem; font-weight: 800; color: #d97706;">LKR 0.00</div>
+                    <div style="font-size: 0.7rem; color: #9ca3af; margin-top: 2px;">Payable to Company</div>
+                </div>
+            </div>
+
+            <!-- Transaction Table -->
+            <div class="modal-body" style="background: #fcfcfc; padding: 0;">
+                <div style="background: white; margin: 16px; border-radius: 10px; overflow: hidden; border: 1px solid #e5e7eb; box-shadow: 0 1px 6px rgba(0,0,0,0.04);">
+                    <div style="max-height: 42vh; overflow-y: auto;">
+                        <table class="data-table" style="margin: 0; width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: #1b5e20; position: sticky; top: 0; z-index: 2;">
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: left;">Date</th>
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: left;">Reference</th>
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: left;">Type</th>
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: right;">Debit (Sales)</th>
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: right;">Credit (Paid)</th>
+                                    <th style="padding: 10px 12px; font-size: 0.68rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: white; text-align: right;">Running Balance</th>
                                 </tr>
                             </thead>
                             <tbody id="ledger-body">
-                                <!-- Ledger entries here -->
+                                <!-- Ledger entries injected here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
+
+                <!-- Balance indicator -->
+                <div id="ledger-balance-indicator" style="display:none; margin: 0 16px 12px 16px; padding: 10px 14px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 8px;"></div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary close-modal" style="width: 100%;">Close
-                    Ledger</button>
+
+            <!-- Footer -->
+            <div style="background: #f8fafc; border-top: 1px solid #e5e7eb; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="font-size: 0.72rem; color: #9ca3af; font-style: italic;">
+                    <i class="fas fa-info-circle"></i> Statement generated on <span id="ledger-generated-date"></span>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button
+                        onclick="window.open('/print-ledger.html?id=' + (app._currentLedgerCustomerId || ''), '_blank')"
+                        class="btn btn-primary btn-sm"
+                        style="background: var(--primary-green); border: none; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-print"></i> Print Full Report
+                    </button>
+                    <button type="button" class="btn btn-secondary close-modal btn-sm">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
 
     <!-- Payment Modal -->
     <div class="modal-overlay" id="payment-modal">

@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Account Ledger - M.K.C. TRADE CENTER</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        :root {
+            --green-dark: #1b5e20;
+            --green-mid: #2e7d32;
+            --green-light: #e8f5e9;
+            --green-accent: #4caf50;
+            --ink: #111827;
+            --gray: #6b7280;
+            --gray-light: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #e5e7eb;
+            color: var(--ink);
+            line-height: 1.5;
+        }
+
+        /* No-print controls */
+        .no-print-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: #1f2937;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .no-print-bar h4 {
+            margin: 0;
+            font-size: 0.9rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .btn-print {
+            background: var(--green-mid);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: background 0.2s;
+        }
+
+        .btn-print:hover { background: var(--green-dark); }
+
+        .btn-close {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Main A4 wrapper */
+        .ledger-wrapper {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 55px auto 20px auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* =====================
+           LETTERHEAD / HEADER
+        ===================== */
+        .letterhead {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
+            padding: 28px 35px 0 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Decorative circles */
+        .letterhead::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            top: -80px;
+            right: -60px;
+        }
+
+        .letterhead::after {
+            content: '';
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            bottom: 10px;
+            left: 30px;
+        }
+
+        .lh-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            z-index: 1;
+        }
+
+        .company-brand h1 {
+            font-size: 26px;
+            font-weight: 900;
+            color: #ffffff;
+            margin: 0 0 6px 0;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .company-brand .tagline {
+            font-size: 11px;
+            color: rgba(255,255,255,0.75);
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .company-contact {
+            text-align: right;
+            color: rgba(255,255,255,0.85);
+            font-size: 11.5px;
+            font-weight: 500;
+            line-height: 1.7;
+        }
+
+        .company-contact strong {
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        /* Document title band */
+        .doc-title-band {
+            background: rgba(0,0,0,0.2);
+            margin: 20px -35px 0 -35px;
+            padding: 10px 35px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1;
+        }
+
+        .doc-title-band .doc-label {
+            font-size: 18px;
+            font-weight: 900;
+            color: #ffffff;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .doc-title-band .doc-ref {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+        }
+
+        .doc-title-band .doc-ref span {
+            color: #ffffff;
+            font-weight: 800;
+        }
+
+        /* =====================
+           CUSTOMER & PERIOD INFO
+        ===================== */
+        .info-section {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .customer-block {
+            padding: 20px 25px 18px 35px;
+            border-right: 1px solid var(--border);
+        }
+
+        .customer-block .block-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--green-mid);
+            margin-bottom: 8px;
+        }
+
+        .customer-name {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .customer-meta {
+            font-size: 12px;
+            color: var(--gray);
+            font-weight: 500;
+            line-height: 1.7;
+        }
+
+        .customer-meta strong {
+            color: var(--ink);
+            font-weight: 600;
+        }
+
+        .period-block {
+            padding: 20px 25px 18px 25px;
+        }
+
+        .period-block .block-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--green-mid);
+            margin-bottom: 8px;
+        }
+
+        .period-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            color: var(--gray);
+            font-weight: 500;
+            padding: 3px 0;
+        }
+
+        .period-item span:last-child {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        /* =====================
+           SUMMARY CARDS
+        ===================== */
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            border-bottom: 3px solid var(--green-light);
+        }
+
+        .summary-card {
+            padding: 16px 20px;
+            border-right: 1px solid var(--border);
+            position: relative;
+        }
+
+        .summary-card:last-child { border-right: none; }
+
+        .summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 3px;
+            height: 100%;
+        }
+
+        .summary-card.debit::before { background: #ef4444; }
+        .summary-card.credit::before { background: var(--green-mid); }
+        .summary-card.balance::before { background: #f59e0b; }
+        .summary-card.count::before { background: #6366f1; }
+
+        .summary-card .card-label {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--gray);
+            margin-bottom: 6px;
+        }
+
+        .summary-card .card-value {
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--ink);
+            line-height: 1.2;
+        }
+
+        .summary-card.debit .card-value { color: #dc2626; }
+        .summary-card.credit .card-value { color: var(--green-dark); }
+        .summary-card.balance .card-value { color: #d97706; }
+        .summary-card.count .card-value { color: #4f46e5; }
+
+        .summary-card .card-sub {
+            font-size: 9px;
+            color: var(--gray);
+            font-weight: 500;
+            margin-top: 3px;
+        }
+
+        /* =====================
+           TRANSACTION TABLE
+        ===================== */
+        .table-section {
+            padding: 0 35px 0 35px;
+        }
+
+        .table-section-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 0 10px 0;
+            border-bottom: 2px solid var(--green-mid);
+            margin-bottom: 0;
+        }
+
+        .table-section-title span {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--green-dark);
+        }
+
+        .table-section-title .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--green-mid);
+        }
+
+        .ledger-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .ledger-table thead tr {
+            background: var(--green-dark);
+        }
+
+        .ledger-table th {
+            padding: 9px 10px;
+            text-align: left;
+            font-size: 9.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: white;
+        }
+
+        .ledger-table th.text-right { text-align: right; }
+
+        .ledger-table tbody tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        .ledger-table tbody tr:hover {
+            background: #f0fdf4;
+        }
+
+        .ledger-table td {
+            padding: 8px 10px;
+            font-size: 11px;
+            font-weight: 500;
+            border-bottom: 1px solid #f3f4f6;
+            vertical-align: middle;
+        }
+
+        .ledger-table td.text-right {
+            text-align: right;
+            font-weight: 700;
+            font-size: 11.5px;
+        }
+
+        .ledger-table td.text-center { text-align: center; }
+
+        .ledger-table .ref-code {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            color: var(--green-dark);
+            font-size: 11px;
+        }
+
+        /* Type badges */
+        .type-badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-invoice { background: #dbeafe; color: #1d4ed8; }
+        .badge-invoice-partial { background: #ede9fe; color: #6d28d9; }
+        .badge-receipt { background: #dcfce7; color: #15803d; }
+        .badge-rma { background: #fef3c7; color: #d97706; }
+        .badge-cheque { background: #fee2e2; color: #dc2626; }
+
+        .debit-val { color: #dc2626; font-weight: 700; }
+        .credit-val { color: #16a34a; font-weight: 700; }
+        .balance-pos { color: #dc2626; font-weight: 800; }
+        .balance-zero { color: #16a34a; font-weight: 800; }
+        .balance-neg { color: #059669; font-weight: 800; }
+
+        /* Subtotals row */
+        .subtotals-row {
+            background: var(--green-light) !important;
+            border-top: 2px solid var(--green-mid) !important;
+        }
+
+        .subtotals-row td {
+            font-weight: 800 !important;
+            font-size: 11.5px !important;
+            color: var(--green-dark);
+            border-bottom: none !important;
+            padding: 10px 10px !important;
+        }
+
+        /* No Transactions */
+        .no-data-row td {
+            text-align: center;
+            color: var(--gray);
+            font-style: italic;
+            padding: 30px 10px !important;
+            font-size: 12px;
+        }
+
+        /* =====================
+           RUNNING BALANCE INSIGHT
+        ===================== */
+        .balance-insight {
+            margin: 14px 35px;
+            padding: 14px 18px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .balance-insight.outstanding {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-left: 4px solid #ef4444;
+        }
+
+        .balance-insight.settled {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-left: 4px solid #22c55e;
+        }
+
+        .balance-insight.overpaid {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .bi-icon {
+            font-size: 20px;
+        }
+
+        .bi-content .bi-title {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 2px;
+        }
+
+        .bi-content .bi-desc {
+            font-size: 10.5px;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .bi-amount {
+            margin-left: auto;
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        /* =====================
+           FOOTER
+        ===================== */
+        .signatures {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+            margin: 20px 35px 0 35px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .sig-box { text-align: center; }
+
+        .sig-line {
+            border-bottom: 1.5px solid var(--ink);
+            height: 35px;
+            margin-bottom: 6px;
+        }
+
+        .sig-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--ink);
+        }
+
+        .sig-sub {
+            font-size: 9px;
+            color: var(--gray);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        .doc-footer {
+            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
+            margin-top: 20px;
+            padding: 12px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .doc-footer p {
+            margin: 0;
+            font-size: 9px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 500;
+        }
+
+        .doc-footer p strong {
+            color: white;
+            font-weight: 700;
+        }
+
+        /* =====================
+           PRINT MEDIA
+        ===================== */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .no-print-bar {
+                display: none !important;
+            }
+
+            .ledger-wrapper {
+                margin: 0 auto;
+                width: 100%;
+                max-width: 210mm;
+                box-shadow: none;
+            }
+        }
+
+        @page {
+            size: A4;
+            margin: 8mm;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .loading-state .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid var(--green-light);
+            border-top-color: var(--green-mid);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- No-print toolbar -->
+    <div class="no-print-bar" id="print-bar">
+        <h4>📄 Customer Ledger Report &nbsp;—&nbsp; <span id="toolbar-cust-name">Loading...</span></h4>
+        <button class="btn-print" onclick="window.print()">
+            🖨️ Print / Save as PDF
+        </button>
+        <button class="btn-close" onclick="window.close()">✕ Close</button>
+    </div>
+
+    <div class="ledger-wrapper" id="ledger-doc">
+
+        <!-- ===== LETTERHEAD ===== -->
+        <div class="letterhead">
+            <div class="lh-top">
+                <div class="company-brand">
+                    <h1 id="comp-name">M.K.C. TRADE CENTER</h1>
+                    <div class="tagline" id="comp-tagline">Agricultural &amp; General Distribution</div>
+                </div>
+                <div class="company-contact" id="comp-contact">
+                    <strong>📍</strong> No. 69, Kurunegala Road, Galgamuwa.<br>
+                    <strong>📞</strong> --<br>
+                    <strong>✉️</strong> --
+                </div>
+            </div>
+            <div class="doc-title-band">
+                <span class="doc-label">Customer Account Ledger</span>
+                <div class="doc-ref">
+                    Printed On: <span id="print-date">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== CUSTOMER & PERIOD INFO ===== -->
+        <div class="info-section">
+            <div class="customer-block">
+                <div class="block-label">Account Holder</div>
+                <div class="customer-name" id="cust-name">---</div>
+                <div class="customer-meta">
+                    <strong>Contact:</strong> <span id="cust-contact">N/A</span><br>
+                    <strong>Address:</strong> <span id="cust-address">N/A</span><br>
+                    <strong>Category:</strong> <span id="cust-category">N/A</span>&nbsp;&nbsp;
+                    <strong>Route:</strong> <span id="cust-route">N/A</span>
+                </div>
+            </div>
+            <div class="period-block">
+                <div class="block-label">Ledger Details</div>
+                <div class="period-item"><span>First Transaction:</span> <span id="first-tx">--</span></div>
+                <div class="period-item"><span>Last Transaction:</span> <span id="last-tx">--</span></div>
+                <div class="period-item"><span>Credit Limit:</span> <span id="credit-limit">--</span></div>
+                <div class="period-item"><span>Account Status:</span> <span id="acct-status">--</span></div>
+            </div>
+        </div>
+
+        <!-- ===== SUMMARY CARDS ===== -->
+        <div class="summary-section">
+            <div class="summary-card debit">
+                <div class="card-label">Total Invoiced</div>
+                <div class="card-value" id="sum-debit">LKR 0.00</div>
+                <div class="card-sub">Sales &amp; Credit Notes</div>
+            </div>
+            <div class="summary-card credit">
+                <div class="card-label">Total Collected</div>
+                <div class="card-value" id="sum-credit">LKR 0.00</div>
+                <div class="card-sub">Payments Received</div>
+            </div>
+            <div class="summary-card balance">
+                <div class="card-label">Outstanding Balance</div>
+                <div class="card-value" id="sum-balance">LKR 0.00</div>
+                <div class="card-sub">Payable to Company</div>
+            </div>
+            <div class="summary-card count">
+                <div class="card-label">Transactions</div>
+                <div class="card-value" id="sum-count">0</div>
+                <div class="card-sub">Total Entries</div>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div class="loading-state" id="loading-placeholder">
+            <div class="spinner"></div>
+            <p>Fetching ledger data...</p>
+        </div>
+
+        <!-- ===== TRANSACTION TABLE ===== -->
+        <div class="table-section" id="table-section" style="display:none;">
+            <div class="table-section-title">
+                <div class="dot"></div>
+                <span>Transaction History</span>
+            </div>
+
+            <table class="ledger-table">
+                <thead>
+                    <tr>
+                        <th style="width:30px;">#</th>
+                        <th style="width:82px;">Date</th>
+                        <th style="width:115px;">Reference No.</th>
+                        <th>Type</th>
+                        <th class="text-right" style="width:100px;">Debit (LKR)</th>
+                        <th class="text-right" style="width:100px;">Credit (LKR)</th>
+                        <th class="text-right" style="width:110px;">Balance (LKR)</th>
+                    </tr>
+                </thead>
+                <tbody id="ledger-tbody">
+                    <!-- Rows injected by JS -->
+                </tbody>
+                <tfoot>
+                    <tr class="subtotals-row" id="subtotals-row">
+                        <td colspan="4" style="text-align:right;">TOTALS</td>
+                        <td class="text-right" id="foot-debit">0.00</td>
+                        <td class="text-right" id="foot-credit">0.00</td>
+                        <td class="text-right" id="foot-balance">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- ===== BALANCE INSIGHT BANNER ===== -->
+        <div id="balance-insight-box" style="display:none;"></div>
+
+        <!-- ===== SIGNATURES ===== -->
+        <div class="signatures" id="signatures-block" style="display:none;">
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Customer's Signature</div>
+                <div class="sig-sub">I confirm the above account details are correct.</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Accounts Officer</div>
+                <div class="sig-sub">Verified &amp; Issued By</div>
+            </div>
+            <div class="sig-box">
+                <div class="sig-line"></div>
+                <div class="sig-label">Authorized Signatory</div>
+                <div class="sig-sub" id="sig-comp-name">M.K.C. Trade Center</div>
+            </div>
+        </div>
+
+        <!-- ===== DOCUMENT FOOTER ===== -->
+        <div class="doc-footer">
+            <p>⚠️ This is a computer-generated statement. No physical seal is required for this document.</p>
+            <p><strong>M.K.C. TRADE CENTER</strong> &nbsp;|&nbsp; Ledger Report</p>
+        </div>
+
+    </div>
+
+    <script>
+        const fmt = (n) => n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '--';
+
+        function typeBadge(type) {
+            if (!type) return '';
+            const t = type.toLowerCase();
+            if (t.includes('invoice (partial')) return `<span class="type-badge badge-invoice-partial">Partial Credit</span>`;
+            if (t.includes('invoice')) return `<span class="type-badge badge-invoice">Invoice</span>`;
+            if (t.includes('credit note') || t.includes('rma')) return `<span class="type-badge badge-rma">Credit Note</span>`;
+            if (t.includes('receipt')) return `<span class="type-badge badge-receipt">Receipt</span>`;
+            if (t.includes('chq') || t.includes('cheque') || t.includes('returned')) return `<span class="type-badge badge-cheque">Returned Cheque</span>`;
+            return `<span class="type-badge badge-invoice">${type}</span>`;
+        }
+
+        async function loadAndRender() {
+            const params = new URLSearchParams(window.location.search);
+            const customerId = params.get('id');
+            if (!customerId) {
+                document.getElementById('loading-placeholder').innerHTML = '<p style="color:red; padding: 40px; text-align:center;">⚠️ Missing customer ID. Close this tab.</p>';
+                return;
+            }
+
+            try {
+                // Fetch company settings
+                let compData = null;
+                try {
+                    const cr = await fetch('/api/settings/company');
+                    const cj = await cr.json();
+                    if (cj.success) compData = cj.data;
+                } catch (e) { console.warn('No company settings'); }
+
+                if (compData) {
+                    if (compData.company_name) document.getElementById('comp-name').textContent = compData.company_name;
+                    if (compData.address) {
+                        document.getElementById('comp-contact').innerHTML = `
+                            <strong>📍</strong> ${compData.address}<br>
+                            <strong>📞</strong> ${compData.contact_numbers || '--'}<br>
+                            <strong>✉️</strong> ${compData.email || '--'}
+                        `;
+                    }
+                    if (compData.company_name) {
+                        document.getElementById('sig-comp-name').textContent = compData.company_name;
+                        document.title = `Customer Ledger - ${compData.company_name}`;
+                    }
+                }
+
+                // Fetch ledger
+                const lr = await fetch(`/api/customers/${customerId}/ledger`);
+                const lj = await lr.json();
+                if (!lj.success) throw new Error(lj.error || 'Failed to load ledger');
+
+                const { customer, ledger } = lj.data;
+
+                // Populate customer info
+                document.getElementById('cust-name').textContent = customer.name;
+                document.getElementById('cust-contact').textContent = customer.contact || 'N/A';
+                document.getElementById('cust-address').textContent = customer.address || 'Not Provided';
+                document.getElementById('cust-category').textContent = customer.category || 'N/A';
+                document.getElementById('cust-route').textContent = customer.route_name || 'N/A';
+                document.getElementById('credit-limit').textContent = `LKR ${fmt(customer.credit_limit || 0)}`;
+                document.getElementById('acct-status').textContent = (customer.status || 'active').toUpperCase();
+                document.getElementById('toolbar-cust-name').textContent = customer.name;
+                document.getElementById('print-date').textContent = fmtDate(new Date().toISOString());
+
+                // First & last transaction dates
+                if (ledger.length > 0) {
+                    const sorted = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
+                    document.getElementById('first-tx').textContent = fmtDate(sorted[0].date);
+                    document.getElementById('last-tx').textContent = fmtDate(sorted[sorted.length - 1].date);
+                } else {
+                    document.getElementById('first-tx').textContent = 'No Transactions';
+                    document.getElementById('last-tx').textContent = 'No Transactions';
+                }
+
+                // Build table rows
+                let totalDebit = 0, totalCredit = 0, runningBalance = 0;
+                const rows = ledger.map((entry, idx) => {
+                    runningBalance += ((entry.debit || 0) - (entry.credit || 0));
+                    totalDebit += (entry.debit || 0);
+                    totalCredit += (entry.credit || 0);
+
+                    const debitCell = entry.debit > 0
+                        ? `<span class="debit-val">${fmt(entry.debit)}</span>`
+                        : `<span style="color:#d1d5db;">—</span>`;
+
+                    const creditCell = entry.credit > 0
+                        ? `<span class="credit-val">${fmt(entry.credit)}</span>`
+                        : `<span style="color:#d1d5db;">—</span>`;
+
+                    const balClass = runningBalance > 0 ? 'balance-pos' : runningBalance < 0 ? 'balance-neg' : 'balance-zero';
+
+                    return `<tr>
+                        <td style="color:#9ca3af; font-size:10px;">${idx + 1}</td>
+                        <td style="font-size:10.5px; white-space:nowrap;">${fmtDate(entry.date)}</td>
+                        <td><span class="ref-code">${entry.reference || '—'}</span></td>
+                        <td>${typeBadge(entry.type)}</td>
+                        <td class="text-right">${debitCell}</td>
+                        <td class="text-right">${creditCell}</td>
+                        <td class="text-right"><span class="${balClass}">${fmt(Math.abs(runningBalance))}${runningBalance < 0 ? ' Cr' : ''}</span></td>
+                    </tr>`;
+                });
+
+                // Populate summary
+                document.getElementById('sum-debit').textContent = `LKR ${fmt(totalDebit)}`;
+                document.getElementById('sum-credit').textContent = `LKR ${fmt(totalCredit)}`;
+                document.getElementById('sum-balance').textContent = `LKR ${fmt(Math.abs(runningBalance))}`;
+                document.getElementById('sum-count').textContent = ledger.length;
+
+                // Foot totals
+                document.getElementById('foot-debit').textContent = fmt(totalDebit);
+                document.getElementById('foot-credit').textContent = fmt(totalCredit);
+                document.getElementById('foot-balance').textContent = fmt(Math.abs(runningBalance)) + (runningBalance < 0 ? ' Cr' : ' Dr');
+
+                // Table body
+                const tbody = document.getElementById('ledger-tbody');
+                if (rows.length === 0) {
+                    tbody.innerHTML = `<tr class="no-data-row"><td colspan="7">No transactions found for this customer.</td></tr>`;
+                } else {
+                    tbody.innerHTML = rows.join('');
+                }
+
+                // Balance insight box
+                const insightBox = document.getElementById('balance-insight-box');
+                insightBox.style.display = 'block';
+                let insightClass, insightIcon, insightTitle, insightDesc, insightAmt;
+
+                if (runningBalance > 0) {
+                    insightClass = 'outstanding';
+                    insightIcon = '⚠️';
+                    insightTitle = 'Outstanding Amount Due';
+                    insightDesc = `${customer.name} has an outstanding balance of LKR ${fmt(runningBalance)} payable to the company.`;
+                    insightAmt = `<span style="color:#dc2626;">LKR ${fmt(runningBalance)}</span>`;
+                } else if (runningBalance < 0) {
+                    insightClass = 'overpaid';
+                    insightIcon = '💙';
+                    insightTitle = 'Account in Credit';
+                    insightDesc = `${customer.name} has overpaid by LKR ${fmt(Math.abs(runningBalance))}. A credit note or refund may apply.`;
+                    insightAmt = `<span style="color:#2563eb;">LKR ${fmt(Math.abs(runningBalance))} Cr</span>`;
+                } else {
+                    insightClass = 'settled';
+                    insightIcon = '✅';
+                    insightTitle = 'Account Fully Settled';
+                    insightDesc = `${customer.name}'s account is fully settled with no outstanding amount.`;
+                    insightAmt = `<span style="color:#16a34a;">LKR 0.00</span>`;
+                }
+
+                insightBox.innerHTML = `
+                    <div class="balance-insight ${insightClass}">
+                        <div class="bi-icon">${insightIcon}</div>
+                        <div class="bi-content">
+                            <div class="bi-title">${insightTitle}</div>
+                            <div class="bi-desc">${insightDesc}</div>
+                        </div>
+                        <div class="bi-amount">${insightAmt}</div>
+                    </div>`;
+
+                // Show table & hide loader
+                document.getElementById('loading-placeholder').style.display = 'none';
+                document.getElementById('table-section').style.display = 'block';
+                document.getElementById('signatures-block').style.display = 'grid';
+
+                // Auto-print if requested
+                if (params.get('autoprint') === 'true') {
+                    setTimeout(() => window.print(), 800);
+                }
+
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading-placeholder').innerHTML = `
+                    <p style="color:red; padding: 40px; text-align:center;">
+                        ⚠️ Failed to load ledger data.<br><small>${err.message}</small>
+                    </p>`;
+            }
+        }
+
+        loadAndRender();
+    </script>
+
+</body>
+</html>

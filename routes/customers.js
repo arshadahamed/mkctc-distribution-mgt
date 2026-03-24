@@ -4,7 +4,11 @@ const customerRepo = require('../repositories/customerRepo');
 const { logEvent, logError } = require('../lib/logger');
 const { checkPermission } = require('../middleware/auth');
 
-// Get all customers with filters
+// ─────────────────────────────────────────────
+// STATIC ROUTES (must be before /:id wildcards)
+// ─────────────────────────────────────────────
+
+// Get all customers
 router.get('/', checkPermission('customers', 'view'), async (req, res) => {
     try {
         const filters = {
@@ -22,6 +26,36 @@ router.get('/', checkPermission('customers', 'view'), async (req, res) => {
     }
 });
 
+// Create customer
+router.post('/', async (req, res) => {
+    try {
+        const customerId = await customerRepo.create(req.body);
+        const userId = req.user?.id || 0;
+        await logEvent(userId, 'CREATE_CUSTOMER', 'customers', customerId, `Customer ${req.body.name} created`);
+        res.status(201).json({ success: true, data: { id: customerId } });
+    } catch (error) {
+        await logError(req.user?.id || 0, 'CREATE_CUSTOMER', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Reconcile ALL customer balances (bulk) — MUST be before /:id routes
+router.post('/reconcile-all-balances', checkPermission('admin', 'manage_settings'), async (req, res) => {
+    try {
+        const result = await customerRepo.reconcileAllBalances();
+        const userId = req.user?.id || 0;
+        await logEvent(userId, 'RECONCILE_ALL_BALANCES', 'customers', 0, `Bulk balance reconciliation completed. ${result.updated} customers updated.`);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        await logError(req.user?.id || 0, 'RECONCILE_ALL_BALANCES', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ─────────────────────────────────────────────
+// WILDCARD /:id ROUTES
+// ─────────────────────────────────────────────
+
 // Get by ID
 router.get('/:id', async (req, res) => {
     try {
@@ -33,19 +67,6 @@ router.get('/:id', async (req, res) => {
         }
     } catch (error) {
         await logError(req.user?.id || 0, 'GET_CUSTOMER_BY_ID', error);
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// Create customer
-router.post('/', async (req, res) => {
-    try {
-        const customerId = await customerRepo.create(req.body);
-        const userId = req.user?.id || 0;
-        await logEvent(userId, 'CREATE_CUSTOMER', 'customers', customerId, `Customer ${req.body.name} created`);
-        res.status(201).json({ success: true, data: { id: customerId } });
-    } catch (error) {
-        await logError(req.user?.id || 0, 'CREATE_CUSTOMER', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });
@@ -68,7 +89,6 @@ router.delete('/:id', async (req, res) => {
     try {
         const id = req.params.id;
         const permanent = req.query.permanent === 'true';
-
         if (permanent) {
             await customerRepo.deletePermanent(id);
             const userId = req.user?.id || 0;
@@ -107,13 +127,24 @@ router.get('/:id/ledger', async (req, res) => {
         const ledger = await customerRepo.getLedger(req.params.id);
         res.json({
             success: true,
-            data: {
-                customer,
-                ledger
-            }
+            data: { customer, ledger }
         });
     } catch (error) {
         await logError(0, 'GET_CUSTOMER_LEDGER', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Reconcile balance for a single customer
+router.post('/:id/reconcile-balance', checkPermission('customers', 'edit'), async (req, res) => {
+    try {
+        const id = req.params.id;
+        const trueBalance = await customerRepo.reconcileBalance(id);
+        const userId = req.user?.id || 0;
+        await logEvent(userId, 'RECONCILE_BALANCE', 'customers', id, `Balance reconciled to LKR ${trueBalance} for customer ID ${id}`);
+        res.json({ success: true, data: { trueBalance } });
+    } catch (error) {
+        await logError(req.user?.id || 0, 'RECONCILE_BALANCE', error);
         res.status(500).json({ success: false, error: error.message });
     }
 });

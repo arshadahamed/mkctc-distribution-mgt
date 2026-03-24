@@ -164,6 +164,74 @@ class CustomerRepository {
         `;
         return await allQuery(sql, [customerId, customerId, customerId]);
     }
+
+    /**
+     * Recomputes the true outstanding balance for a customer from the actual
+     * transaction records (invoices, receipts, returned cheques) and writes
+     * the correct value back to customers.account_balance.
+     * Returns the recalculated balance.
+     */
+    async reconcileBalance(customerId) {
+        const sql = `
+            SELECT 
+                COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) as true_balance
+            FROM (
+                SELECT 
+                    CASE 
+                        WHEN payment_method = 'split' THEN 
+                            CAST(json_extract(payment_details, '$.credit') AS REAL)
+                        ELSE net_total 
+                    END as debit,
+                    0 as credit
+                FROM invoices 
+                WHERE customer_id = ? 
+                  AND (payment_method = 'account' OR (payment_method = 'split' AND CAST(json_extract(payment_details, '$.credit') AS REAL) > 0))
+
+                UNION ALL
+
+                SELECT 
+                    0 as debit,
+                    amount as credit
+                FROM receipts 
+                WHERE customer_id = ?
+
+                UNION ALL
+
+                SELECT 
+                    cd.amount as debit,
+                    0 as credit
+                FROM cheque_details cd
+                LEFT JOIN receipts r ON cd.receipt_id = r.id
+                LEFT JOIN invoices i ON cd.invoice_id = i.id
+                WHERE COALESCE(r.customer_id, i.customer_id) = ? AND cd.status = 'Returned'
+            )
+        `;
+        const result = await getQuery(sql, [customerId, customerId, customerId]);
+        const trueBalance = result?.true_balance ?? 0;
+
+        // Write the correct value back to the cached column
+        await runQuery('UPDATE customers SET account_balance = ? WHERE id = ?', [trueBalance, customerId]);
+
+        return trueBalance;
+    }
+
+    /**
+     * Reconciles account_balance for ALL non-deleted customers.
+     * Returns { updated: number, customers: [{id, name, oldBalance, newBalance}] }
+     */
+    async reconcileAllBalances() {
+        const customers = await allQuery('SELECT id, name, account_balance FROM customers WHERE is_deleted = 0', []);
+        const report = [];
+
+        for (const c of customers) {
+            const newBalance = await this.reconcileBalance(c.id);
+            if (Math.abs(newBalance - c.account_balance) > 0.001) {
+                report.push({ id: c.id, name: c.name, oldBalance: c.account_balance, newBalance });
+            }
+        }
+
+        return { updated: report.length, customers: report };
+    }
 }
 
 module.exports = new CustomerRepository();

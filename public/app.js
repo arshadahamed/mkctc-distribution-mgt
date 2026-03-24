@@ -2080,29 +2080,52 @@ class AgroDistributionApp {
         const result = await res.json();
         if (result.success) {
             const { customer, ledger } = result.data;
+            // Store customer ID for the print button
+            this._currentLedgerCustomerId = customerId;
             document.getElementById('ledger-customer-info').textContent = `${customer.name} | ${customer.contact || 'No Contact'}`;
+
+            // Set generated date
+            const genDateEl = document.getElementById('ledger-generated-date');
+            if (genDateEl) genDateEl.textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
             let runningBalance = 0;
             let totalSales = 0;
             let totalPaid = 0;
+
+            const typeBadge = (type) => {
+                if (!type) return '';
+                const t = type.toLowerCase();
+                if (t.includes('partial')) return `<span style="background:#ede9fe;color:#6d28d9;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Partial</span>`;
+                if (t.includes('invoice')) return `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Invoice</span>`;
+                if (t.includes('credit note') || t.includes('rma')) return `<span style="background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Credit Note</span>`;
+                if (t.includes('receipt')) return `<span style="background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Receipt</span>`;
+                if (t.includes('cheque') || t.includes('returned')) return `<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Returned Chq</span>`;
+                return `<span style="background:#f3f4f6;color:#374151;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">${type}</span>`;
+            };
 
             const rows = ledger.map(entry => {
                 runningBalance += (entry.debit - entry.credit);
                 totalSales += (entry.debit || 0);
                 totalPaid += (entry.credit || 0);
 
+                const debitCell = entry.debit > 0
+                    ? `<span style="color:#dc2626;font-weight:700;">${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
+                    : `<span style="color:#d1d5db;">—</span>`;
+
+                const creditCell = entry.credit > 0
+                    ? `<span style="color:#16a34a;font-weight:700;">${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
+                    : `<span style="color:#d1d5db;">—</span>`;
+
+                const balColor = runningBalance > 0 ? '#dc2626' : '#16a34a';
+
                 return `
-                    <tr>
-                        <td style="padding: 12px 15px;">${new Date(entry.date).toLocaleDateString()}</td>
-                        <td style="padding: 12px 15px;"><span style="font-family: monospace; font-weight: bold; color: var(--primary-green-dark);">${entry.reference}</span></td>
-                        <td style="padding: 12px 15px;"><span class="badge ${entry.type === 'Invoice' ? 'badge-primary' : 'badge-success'}" style="font-size: 0.7rem; border-radius: 4px;">${entry.type.toUpperCase()}</span></td>
-                        <td class="text-right" style="padding: 12px 15px; color: ${entry.debit > 0 ? 'var(--error)' : '#ccc'}; font-weight: ${entry.debit > 0 ? '600' : '400'}; transition: color 0.3s;">
-                            ${entry.debit > 0 ? entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}
-                        </td>
-                        <td class="text-right" style="padding: 12px 15px; color: ${entry.credit > 0 ? 'var(--primary-green)' : '#ccc'}; font-weight: ${entry.credit > 0 ? '600' : '400'};">
-                            ${entry.credit > 0 ? entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '-'}
-                        </td>
-                        <td class="text-right" style="padding: 12px 15px; font-weight: 700; color: ${runningBalance > 0 ? 'var(--error)' : 'var(--primary-green)'};">
+                    <tr style="border-bottom:1px solid #f3f4f6;">
+                        <td style="padding: 9px 12px; font-size:0.77rem;">${new Date(entry.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}</td>
+                        <td style="padding: 9px 12px;"><span style="font-family: monospace; font-weight: 700; font-size:0.8rem; color: #065f46;">${entry.reference}</span></td>
+                        <td style="padding: 9px 12px;">${typeBadge(entry.type)}</td>
+                        <td style="padding: 9px 12px; text-align:right;">${debitCell}</td>
+                        <td style="padding: 9px 12px; text-align:right;">${creditCell}</td>
+                        <td style="padding: 9px 12px; text-align:right; font-weight: 800; font-size:0.82rem; color:${balColor};">
                             ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </td>
                     </tr>
@@ -2114,11 +2137,27 @@ class AgroDistributionApp {
             // Populate Summary Cards
             document.getElementById('ledger-sum-sales').textContent = `LKR ${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
             document.getElementById('ledger-sum-paid').textContent = `LKR ${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-            document.getElementById('ledger-sum-balance').textContent = `LKR ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+            document.getElementById('ledger-sum-balance').textContent = `LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+            // Balance indicator banner
+            const indicator = document.getElementById('ledger-balance-indicator');
+            if (indicator) {
+                if (runningBalance > 0) {
+                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #ef4444; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                    indicator.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Outstanding balance of <strong style="color:#dc2626; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> is payable to the company.`;
+                } else if (runningBalance < 0) {
+                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                    indicator.innerHTML = `<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Account is in credit by <strong style="color:#2563eb; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.`;
+                } else {
+                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #22c55e; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                    indicator.innerHTML = `<i class="fas fa-check-circle" style="color:#22c55e;"></i> Account is <strong style="color:#16a34a; margin: 0 4px;">fully settled</strong> with no outstanding balance.`;
+                }
+            }
 
             document.getElementById('ledger-modal').classList.add('active');
         }
     }
+
 
     // --- GRN LOGIC ---
     async loadGrnData() {
@@ -2300,6 +2339,7 @@ class AgroDistributionApp {
                             ` : `
                                 ${this.hasPermission('payments', 'create') ? `<button class="btn btn-secondary btn-sm" onclick="app.openPaymentModal(${c.id})"><i class="fas fa-money-bill-wave"></i> Collect</button>` : ''}
                                 ${this.hasPermission('payments', 'view') ? `<button class="btn btn-secondary btn-sm" onclick="app.openLedger(${c.id})"><i class="fas fa-history"></i> History</button>` : ''}
+                                ${this.hasPermission('customers', 'edit') ? `<button class="btn btn-secondary btn-sm" style="background:#f59e0b; color:white;" onclick="app.syncCustomerBalance(${c.id}, this)" title="Recalculate balance from actual transactions"><i class="fas fa-sync-alt"></i></button>` : ''}
                                 ${this.hasPermission('customers', 'edit') ? `<button class="btn-icon btn-edit" onclick="app.openCustomerModal(${JSON.stringify(c).replace(/"/g, '&quot;')})"><i class="fas fa-edit"></i></button>` : ''}
                                 ${this.hasPermission('customers', 'delete') ? `<button class="btn-icon btn-delete" onclick="app.handleDelete('customers', ${c.id}, '${c.name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>` : ''}
                             `}
@@ -2322,6 +2362,30 @@ class AgroDistributionApp {
     goToCustomerPage(page) {
         this.customerPage = page;
         this.loadCustomers();
+    }
+
+    async syncCustomerBalance(id, btn) {
+        // Visual feedback
+        const original = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+        try {
+            const res = await this.apiCall(`/api/customers/${id}/reconcile-balance`, { method: 'POST' });
+            if (!res) throw new Error('No response');
+            const data = await res.json();
+            if (data.success) {
+                const fmt = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+                this.showNotification(`✅ Balance synced → LKR ${fmt(data.data.trueBalance)}`, 'success');
+                this.loadCustomers();
+            } else {
+                throw new Error(data.error || 'Sync failed');
+            }
+        } catch (err) {
+            this.showNotification('Sync failed: ' + err.message, 'error');
+            btn.disabled = false;
+            btn.innerHTML = original;
+        }
     }
 
     async handleRestoreCustomer(id, name) {
