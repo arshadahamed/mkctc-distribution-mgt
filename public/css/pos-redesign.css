@@ -437,3 +437,23 @@
   margin-top: var(--spacing-sm);
   padding-left: var(--spacing-md);
 }
+
+/* Focus states for keyboard accessibility */
+.qty-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.qty-btn:focus {
+  outline: none;
+  background: var(--color-primary);
+  color: #ffffff;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+
+.cart-item-delete:focus {
+  outline: none;
+  background: rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
+}
