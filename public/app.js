@@ -42,6 +42,9 @@ class AgroDistributionApp {
         this.productPage = 1;
         this.customerPage = 1;
         this.supplierPage = 1;
+        this.paymentPage = 1;
+        this.paymentPageSize = 15;
+        this.paymentTotalPages = 1;
         this.logoutProcessing = false;
         this.dashboardEditMode = false;
         this.dragSource = null;
@@ -1140,6 +1143,7 @@ class AgroDistributionApp {
         document.getElementById('expense-form')?.addEventListener('submit', (e) => this.handleExpenseSubmit(e));
         document.getElementById('rma-form')?.addEventListener('submit', (e) => this.handleRmaSubmit(e));
         document.getElementById('rma-status-form')?.addEventListener('submit', (e) => this.handleRmaStatusUpdate(e));
+        document.getElementById('cheque-status-form')?.addEventListener('submit', (e) => this.handleChequeStatusUpdate(e));
 
 
 
@@ -2075,87 +2079,180 @@ class AgroDistributionApp {
     }
 
     async openLedger(customerId) {
-        const res = await this.apiCall(`/api/customers/${customerId}/ledger`);
+        this._currentLedgerCustomerId = customerId;
+        this._currentLedgerCustomer = null;
+        this._fullLedgerData = [];
+
+        // Reset filter controls
+        const filterMode = document.getElementById('ledger-filter-mode');
+        const monthGroup = document.getElementById('ledger-month-group');
+        const rangeGroup = document.getElementById('ledger-range-group');
+        const sortMode = document.getElementById('ledger-sort-mode');
+        if (filterMode) filterMode.value = 'all';
+        if (monthGroup) monthGroup.style.display = 'none';
+        if (rangeGroup) rangeGroup.style.display = 'none';
+        if (sortMode) sortMode.value = 'date-asc';
+        const fMonth = document.getElementById('ledger-filter-month');
+        const fFrom = document.getElementById('ledger-filter-from');
+        const fTo = document.getElementById('ledger-filter-to');
+        if (fMonth) fMonth.value = '';
+        if (fFrom) fFrom.value = '';
+        if (fTo) fTo.value = '';
+
+        await this._fetchAndRenderLedger(customerId);
+        document.getElementById('ledger-modal').classList.add('active');
+    }
+
+    async _fetchAndRenderLedger(customerId, dateFrom, dateTo) {
+        let url = `/api/customers/${customerId}/ledger`;
+        const qp = [];
+        if (dateFrom) qp.push(`dateFrom=${dateFrom}`);
+        if (dateTo) qp.push(`dateTo=${dateTo}`);
+        if (qp.length > 0) url += '?' + qp.join('&');
+
+        const res = await this.apiCall(url);
         if (!res) return;
         const result = await res.json();
         if (result.success) {
             const { customer, ledger } = result.data;
-            // Store customer ID for the print button
-            this._currentLedgerCustomerId = customerId;
+            this._currentLedgerCustomer = customer;
+            this._fullLedgerData = ledger;
+
             document.getElementById('ledger-customer-info').textContent = `${customer.name} | ${customer.contact || 'No Contact'}`;
 
-            // Set generated date
             const genDateEl = document.getElementById('ledger-generated-date');
             if (genDateEl) genDateEl.textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 
-            let runningBalance = 0;
-            let totalSales = 0;
-            let totalPaid = 0;
-
-            const typeBadge = (type) => {
-                if (!type) return '';
-                const t = type.toLowerCase();
-                if (t.includes('partial')) return `<span style="background:#ede9fe;color:#6d28d9;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Partial</span>`;
-                if (t.includes('invoice')) return `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Invoice</span>`;
-                if (t.includes('credit note') || t.includes('rma')) return `<span style="background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Credit Note</span>`;
-                if (t.includes('receipt')) return `<span style="background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Receipt</span>`;
-                if (t.includes('cheque') || t.includes('returned')) return `<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Returned Chq</span>`;
-                return `<span style="background:#f3f4f6;color:#374151;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">${type}</span>`;
-            };
-
-            const rows = ledger.map(entry => {
-                runningBalance += (entry.debit - entry.credit);
-                totalSales += (entry.debit || 0);
-                totalPaid += (entry.credit || 0);
-
-                const debitCell = entry.debit > 0
-                    ? `<span style="color:#dc2626;font-weight:700;">${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
-                    : `<span style="color:#d1d5db;">—</span>`;
-
-                const creditCell = entry.credit > 0
-                    ? `<span style="color:#16a34a;font-weight:700;">${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
-                    : `<span style="color:#d1d5db;">—</span>`;
-
-                const balColor = runningBalance > 0 ? '#dc2626' : '#16a34a';
-
-                return `
-                    <tr style="border-bottom:1px solid #f3f4f6;">
-                        <td style="padding: 9px 12px; font-size:0.77rem;">${new Date(entry.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}</td>
-                        <td style="padding: 9px 12px;"><span style="font-family: monospace; font-weight: 700; font-size:0.8rem; color: #065f46;">${entry.reference}</span></td>
-                        <td style="padding: 9px 12px;">${typeBadge(entry.type)}</td>
-                        <td style="padding: 9px 12px; text-align:right;">${debitCell}</td>
-                        <td style="padding: 9px 12px; text-align:right;">${creditCell}</td>
-                        <td style="padding: 9px 12px; text-align:right; font-weight: 800; font-size:0.82rem; color:${balColor};">
-                            ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                        </td>
-                    </tr>
-                `;
-            });
-
-            document.getElementById('ledger-body').innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center" style="padding: 30px; color: #999;">No transactions found for this customer</td></tr>';
-
-            // Populate Summary Cards
-            document.getElementById('ledger-sum-sales').textContent = `LKR ${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-            document.getElementById('ledger-sum-paid').textContent = `LKR ${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-            document.getElementById('ledger-sum-balance').textContent = `LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-
-            // Balance indicator banner
-            const indicator = document.getElementById('ledger-balance-indicator');
-            if (indicator) {
-                if (runningBalance > 0) {
-                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #ef4444; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
-                    indicator.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Outstanding balance of <strong style="color:#dc2626; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> is payable to the company.`;
-                } else if (runningBalance < 0) {
-                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
-                    indicator.innerHTML = `<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Account is in credit by <strong style="color:#2563eb; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.`;
-                } else {
-                    indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #22c55e; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
-                    indicator.innerHTML = `<i class="fas fa-check-circle" style="color:#22c55e;"></i> Account is <strong style="color:#16a34a; margin: 0 4px;">fully settled</strong> with no outstanding balance.`;
-                }
-            }
-
-            document.getElementById('ledger-modal').classList.add('active');
+            this.renderLedgerTable(ledger, customer);
         }
+    }
+
+    renderLedgerTable(ledger, customer) {
+        // Sort
+        const sortMode = document.getElementById('ledger-sort-mode')?.value || 'date-asc';
+        const sorted = [...ledger];
+        switch (sortMode) {
+            case 'date-asc': sorted.sort((a, b) => new Date(a.date) - new Date(b.date)); break;
+            case 'date-desc': sorted.sort((a, b) => new Date(b.date) - new Date(a.date)); break;
+            case 'amount-desc': sorted.sort((a, b) => ((b.debit||0)+(b.credit||0)) - ((a.debit||0)+(a.credit||0))); break;
+            case 'amount-asc': sorted.sort((a, b) => ((a.debit||0)+(a.credit||0)) - ((b.debit||0)+(b.credit||0))); break;
+        }
+
+        let runningBalance = 0;
+        let totalSales = 0;
+        let totalPaid = 0;
+
+        const typeBadge = (type) => {
+            if (!type) return '';
+            const t = type.toLowerCase();
+            if (t.includes('partial')) return `<span style="background:#ede9fe;color:#6d28d9;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Partial</span>`;
+            if (t.includes('invoice')) return `<span style="background:#dbeafe;color:#1d4ed8;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Invoice</span>`;
+            if (t.includes('credit note') || t.includes('rma')) return `<span style="background:#fef3c7;color:#d97706;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Credit Note</span>`;
+            if (t.includes('receipt')) return `<span style="background:#dcfce7;color:#15803d;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Receipt</span>`;
+            if (t.includes('cheque') || t.includes('returned')) return `<span style="background:#fee2e2;color:#dc2626;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">Returned Chq</span>`;
+            return `<span style="background:#f3f4f6;color:#374151;padding:2px 7px;border-radius:3px;font-size:0.65rem;font-weight:800;text-transform:uppercase;">${type}</span>`;
+        };
+
+        const rows = sorted.map(entry => {
+            runningBalance += (entry.debit - entry.credit);
+            totalSales += (entry.debit || 0);
+            totalPaid += (entry.credit || 0);
+
+            const debitCell = entry.debit > 0
+                ? `<span style="color:#dc2626;font-weight:700;">${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
+                : `<span style="color:#d1d5db;">—</span>`;
+
+            const creditCell = entry.credit > 0
+                ? `<span style="color:#16a34a;font-weight:700;">${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
+                : `<span style="color:#d1d5db;">—</span>`;
+
+            const balColor = runningBalance > 0 ? '#dc2626' : '#16a34a';
+
+            return `
+                <tr style="border-bottom:1px solid #f3f4f6;">
+                    <td style="padding: 9px 12px; font-size:0.77rem;">${new Date(entry.date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}</td>
+                    <td style="padding: 9px 12px;"><span style="font-family: monospace; font-weight: 700; font-size:0.8rem; color: #065f46;">${entry.reference}</span></td>
+                    <td style="padding: 9px 12px;">${typeBadge(entry.type)}</td>
+                    <td style="padding: 9px 12px; text-align:right;">${debitCell}</td>
+                    <td style="padding: 9px 12px; text-align:right;">${creditCell}</td>
+                    <td style="padding: 9px 12px; text-align:right; font-weight: 800; font-size:0.82rem; color:${balColor};">
+                        ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('ledger-body').innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center" style="padding: 30px; color: #999;">No transactions found for the selected period</td></tr>';
+
+        // Populate Summary Cards
+        document.getElementById('ledger-sum-sales').textContent = `LKR ${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        document.getElementById('ledger-sum-paid').textContent = `LKR ${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        document.getElementById('ledger-sum-balance').textContent = `LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+
+        // Balance indicator banner
+        const indicator = document.getElementById('ledger-balance-indicator');
+        if (indicator) {
+            if (runningBalance > 0) {
+                indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #ef4444; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                indicator.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Outstanding balance of <strong style="color:#dc2626; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> is payable to the company.`;
+            } else if (runningBalance < 0) {
+                indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                indicator.innerHTML = `<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Account is in credit by <strong style="color:#2563eb; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.`;
+            } else {
+                indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #22c55e; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
+                indicator.innerHTML = `<i class="fas fa-check-circle" style="color:#22c55e;"></i> Account is <strong style="color:#16a34a; margin: 0 4px;">fully settled</strong> with no outstanding balance.`;
+            }
+        }
+    }
+
+    // ===== Ledger Filter Helpers =====
+    toggleLedgerFilterMode() {
+        const mode = document.getElementById('ledger-filter-mode')?.value || 'all';
+        const monthGroup = document.getElementById('ledger-month-group');
+        const rangeGroup = document.getElementById('ledger-range-group');
+        if (monthGroup) monthGroup.style.display = mode === 'month' ? 'flex' : 'none';
+        if (rangeGroup) rangeGroup.style.display = mode === 'range' ? 'flex' : 'none';
+    }
+
+    getLedgerFilterDates() {
+        const mode = document.getElementById('ledger-filter-mode')?.value || 'all';
+        let dateFrom = null, dateTo = null;
+
+        if (mode === 'month') {
+            const monthVal = document.getElementById('ledger-filter-month')?.value;
+            if (monthVal) {
+                const [y, m] = monthVal.split('-').map(Number);
+                dateFrom = `${y}-${String(m).padStart(2, '0')}-01`;
+                const lastDay = new Date(y, m, 0).getDate();
+                dateTo = `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+            }
+        } else if (mode === 'range') {
+            dateFrom = document.getElementById('ledger-filter-from')?.value || null;
+            dateTo = document.getElementById('ledger-filter-to')?.value || null;
+        }
+
+        return { dateFrom, dateTo };
+    }
+
+    async applyLedgerFilter() {
+        if (!this._currentLedgerCustomerId) return;
+        const { dateFrom, dateTo } = this.getLedgerFilterDates();
+        await this._fetchAndRenderLedger(this._currentLedgerCustomerId, dateFrom, dateTo);
+    }
+
+    async resetLedgerFilter() {
+        const filterMode = document.getElementById('ledger-filter-mode');
+        const sortMode = document.getElementById('ledger-sort-mode');
+        if (filterMode) filterMode.value = 'all';
+        if (sortMode) sortMode.value = 'date-asc';
+        this.toggleLedgerFilterMode();
+        const fMonth = document.getElementById('ledger-filter-month');
+        const fFrom = document.getElementById('ledger-filter-from');
+        const fTo = document.getElementById('ledger-filter-to');
+        if (fMonth) fMonth.value = '';
+        if (fFrom) fFrom.value = '';
+        if (fTo) fTo.value = '';
+        await this._fetchAndRenderLedger(this._currentLedgerCustomerId);
     }
 
 
@@ -4025,7 +4122,10 @@ class AgroDistributionApp {
         const method = document.getElementById('payment-method-filter')?.value || '';
         const cat = document.getElementById('payment-cat-filter')?.value || '';
 
-        let url = `/api/payments?1=1`;
+        // Reset to page 1 when filters change
+        this.paymentPage = 1;
+
+        let url = `/api/payments?page=${this.paymentPage}&limit=${this.paymentPageSize}`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (method) url += `&payment_method=${method}`;
         if (cat) url += `&receipt_category=${cat}`;
@@ -4065,7 +4165,7 @@ class AgroDistributionApp {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #f1f5f9;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <div style="width: 32px; height: 32px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
@@ -4110,11 +4210,172 @@ class AgroDistributionApp {
                     }
                 }
 
+                // Update pagination controls
+                if (data.pagination) {
+                    this.paymentTotalPages = data.pagination.totalPages;
+                    this.updatePaymentPaginationControls(data.pagination);
+                }
+
                 // Update Stats
                 this.updatePaymentStats(data.data);
             }
         } catch (err) {
             console.error('LoadPayments Error:', err);
+        }
+    }
+
+    updatePaymentPaginationControls(pagination) {
+        const paginationContainer = document.getElementById('payment-pagination');
+        const prevBtn = document.getElementById('btn-prev-page');
+        const nextBtn = document.getElementById('btn-next-page');
+        const pageInput = document.getElementById('payment-page-input');
+        const totalPagesSpan = document.getElementById('payment-total-pages');
+        const recordCountSpan = document.getElementById('payment-record-count');
+
+        if (paginationContainer) {
+            // Show pagination only if there are multiple pages
+            paginationContainer.style.display = pagination.totalPages > 1 ? 'flex' : 'none';
+
+            if (prevBtn) prevBtn.disabled = !pagination.hasPrev;
+            if (nextBtn) nextBtn.disabled = !pagination.hasNext;
+            if (pageInput) {
+                pageInput.value = pagination.page;
+                pageInput.max = pagination.totalPages;
+            }
+            if (totalPagesSpan) totalPagesSpan.textContent = `of ${pagination.totalPages}`;
+            if (recordCountSpan) {
+                const start = (pagination.page - 1) * pagination.limit + 1;
+                const end = Math.min(pagination.page * pagination.limit, pagination.total);
+                recordCountSpan.textContent = `Showing ${start}-${end} of ${pagination.total} records`;
+            }
+        }
+    }
+
+    async nextPaymentPage() {
+        if (this.paymentPage < this.paymentTotalPages) {
+            this.paymentPage++;
+            await this.loadPaymentsPage(this.paymentPage);
+        }
+    }
+
+    async prevPaymentPage() {
+        if (this.paymentPage > 1) {
+            this.paymentPage--;
+            await this.loadPaymentsPage(this.paymentPage);
+        }
+    }
+
+    async goToPaymentPage() {
+        const pageInput = document.getElementById('payment-page-input');
+        const page = parseInt(pageInput.value) || 1;
+        if (page >= 1 && page <= this.paymentTotalPages) {
+            this.paymentPage = page;
+            await this.loadPaymentsPage(page);
+        }
+    }
+
+    async loadPaymentsPage(page) {
+        const search = document.getElementById('payment-search')?.value || '';
+        const method = document.getElementById('payment-method-filter')?.value || '';
+        const cat = document.getElementById('payment-cat-filter')?.value || '';
+
+        let url = `/api/payments?page=${page}&limit=${this.paymentPageSize}`;
+        if (search) url += `&search=${encodeURIComponent(search)}`;
+        if (method) url += `&payment_method=${method}`;
+        if (cat) url += `&receipt_category=${cat}`;
+
+        try {
+            const res = await this.apiCall(url);
+            if (!res) return;
+            const data = await res.json();
+            if (data.success) {
+                const container = document.getElementById('payment-grid-container');
+                if (container) {
+                    if (data.data.length === 0) {
+                        container.innerHTML = `
+                            <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
+                                <i class="fas fa-receipt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
+                                <p>No financial records found matching your selection.</p>
+                            </div>
+                        `;
+                    } else {
+                        container.innerHTML = data.data.map(p => {
+                            const isReturn = p.receipt_category === 'return';
+                            const displayDate = this.parseDBDate(p.receipt_date).toLocaleDateString();
+
+                            return `
+                                <div class="log-card payment-premium-card" data-id="${p.id}">
+                                    <div class="status-strip ${isReturn ? 'closed' : 'open'}"></div>
+                                    <div class="log-card-header" style="margin-bottom: 0.8rem;">
+                                        <div>
+                                            <div class="log-customer-name" style="font-size: 1.05rem;">${p.customer_name}</div>
+                                            <div class="log-date"><i class="far fa-calendar-alt"></i> ${displayDate}</div>
+                                        </div>
+                                        <div class="payment-amount-badge ${isReturn ? 'neg' : 'pos'}" style="text-align: right;">
+                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Amount</div>
+                                            <div style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px;">
+                                                ${isReturn ? '-' : ''}LKR ${p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #f1f5f9;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                                <i class="fas ${p.payment_type === 'cash' ? 'fa-wallet' : 'fa-money-check-alt'}" style="color: ${p.payment_type === 'cash' ? '#2ecc71' : '#3498db'}"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Method</div>
+                                                <div style="font-size: 0.85rem; font-weight: 700; color: #475569;">${p.payment_type.toUpperCase()}</div>
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Receipt #</div>
+                                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-green-dark); font-family: monospace;">${p.receipt_number}</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="log-footer" style="padding-top: 0.8rem; border-top: 1px dashed #e2e8f0;">
+                                        <div class="log-user" style="font-size: 0.75rem;">
+                                            <div class="log-user-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">${(p.receiver_name || 'S')[0].toUpperCase()}</div>
+                                            <span>Staff: <strong>${p.receiver_name || 'System'}</strong></span>
+                                        </div>
+                                        <div class="action-btns">
+                                            ${this.hasPermission('payments', 'view') ? `<button class="btn-icon" title="Print Receipt" onclick="app.printReceipt(${p.id})"><i class="fas fa-print"></i></button>` : ''}
+                                            ${this.hasPermission('payments', 'edit') ? `<button class="btn-icon" title="Edit Record" onclick='app.openPaymentModal(null, ${JSON.stringify(p).replace(/"/g, '&quot;')})'><i class="fas fa-edit"></i></button>` : ''}
+                                            ${this.hasPermission('payments', 'delete') ? `<button class="btn-icon text-danger" title="Void Payment" onclick="app.handleDeletePayment(${p.id})"><i class="fas fa-trash"></i></button>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+
+                        // GSAP Animation
+                        if (window.gsap) {
+                            gsap.from("#payment-grid-container .log-card", {
+                                duration: 0.6,
+                                opacity: 0,
+                                y: 30,
+                                stagger: 0.05,
+                                ease: "power3.out"
+                            });
+                        }
+                    }
+                }
+
+                // Update pagination controls
+                if (data.pagination) {
+                    this.updatePaymentPaginationControls(data.pagination);
+                }
+
+                // Update Stats
+                this.updatePaymentStats(data.data);
+
+                // Scroll to top of payment grid
+                container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        } catch (err) {
+            console.error('LoadPaymentsPage Error:', err);
         }
     }
 
@@ -7087,14 +7348,7 @@ class AgroDistributionApp {
                     if (leveledPrice) {
                         item.msrp = leveledPrice.price;
                         item.batch_number = leveledPrice.batch_number; // Sync batch number if it changed or was missing
-                        item.allowed_discount = leveledPrice.supplier_discount || 0;
                         item.selected_price_id = leveledPrice.id;
-
-                        // Re-cap existing discount
-                        if (item.discount_percentage > item.allowed_discount) {
-                            item.discount_percentage = item.allowed_discount;
-                        }
-
                         this.recalculateLineTotal(item);
                         updatedCount++;
                     }
@@ -7146,14 +7400,7 @@ class AgroDistributionApp {
                 const disc = (this.posState.customerDiscounts || {})[specKey] || (this.posState.customerDiscounts || {})[item.product_id];
 
                 if (disc && !item.is_free) {
-                    let appliedDisc = disc.percentage;
-                    const allowed = item.allowed_discount || 0;
-
-                    if (appliedDisc > allowed) {
-                        appliedDisc = allowed;
-                    }
-
-                    item.discount_percentage = appliedDisc;
+                    item.discount_percentage = disc.percentage;
                     this.recalculateLineTotal(item);
                 }
             });
@@ -7490,14 +7737,9 @@ class AgroDistributionApp {
         } else {
             // Fallback to basic product fields if no prices found
             const msrp = targetPrice ? targetPrice.price : product.msrp;
-            const allowed = targetPrice ? (targetPrice.supplier_discount || 0) : (product.supplier_discount || 0);
             // const priceId = targetPrice ? targetPrice.id : null; (already defined above)
 
-            let appliedDisc = isFree ? 0 : (disc ? disc.percentage : 0);
-
-            if (!isFree && appliedDisc > allowed) {
-                appliedDisc = allowed;
-            }
+            const appliedDisc = isFree ? 0 : (disc ? disc.percentage : 0);
 
             this.posState.cart.push({
                 product_id: product.id,
@@ -7511,16 +7753,11 @@ class AgroDistributionApp {
                 line_total: isFree ? 0 : msrp * (1 - (appliedDisc / 100)),
                 weighted: product.weighted,
                 allow_free_issue: product.allow_free_issue,
-                allowed_discount: allowed,
                 selected_price_id: priceId
             });
 
             if (!isFree && disc && disc.percentage > 0) {
-                if (disc.percentage > allowed) {
-                    this.showNotification(`Applied capped discount: ${allowed}% (Supplier limit for primary price)`, 'info');
-                } else {
-                    this.showNotification(`Applied last discount: ${disc.percentage}% for this customer`, 'info');
-                }
+                this.showNotification(`Applied last discount: ${disc.percentage}% for this customer`, 'info');
             }
         }
 
@@ -7606,14 +7843,8 @@ class AgroDistributionApp {
                 } else {
                     item.msrp = priceLevel.price;
                     item.batch_number = priceLevel.batch_number;
-                    item.allowed_discount = priceLevel.supplier_discount || 0;
                     item.selected_price_id = priceLevel.id;
                     item.is_custom_price = false;
-
-                    if (item.discount_percentage > item.allowed_discount) {
-                        this.showNotification(`Discount capped at ${item.allowed_discount}% for this price level`, 'info');
-                        item.discount_percentage = item.allowed_discount;
-                    }
                     this.recalculateLineTotal(item);
                 }
 
@@ -7625,15 +7856,8 @@ class AgroDistributionApp {
     updateCartDiscount(index, newDisc) {
         const item = this.posState.cart[index];
         if (item) {
-            let disc = parseFloat(newDisc) || 0;
-            const allowed = item.allowed_discount || 0;
-
-            if (disc > allowed) {
-                this.showNotification(`Maximum allowed discount for this price level is ${allowed}%`, 'warning');
-                disc = allowed;
-            }
-
-            item.discount_percentage = Math.min(Math.max(disc, 0), 100);
+            const disc = Math.min(Math.max(parseFloat(newDisc) || 0, 0), 100);
+            item.discount_percentage = disc;
             this.recalculateLineTotal(item);
             this.updateCartUI();
         }
@@ -7808,6 +8032,33 @@ class AgroDistributionApp {
             this.posState.cart = [];
             this.posState.currentInvoiceId = null;
             this.updateCartUI();
+        }
+    }
+
+    switchPOSTab(tab) {
+        const productsSection = document.querySelector('.pos-products');
+        const cartSection = document.querySelector('.pos-cart');
+        const productsTabs = document.querySelectorAll('.pos-tab');
+
+        // Update active states
+        productsTabs.forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+
+        // Show/hide sections
+        if (tab === 'products') {
+            productsSection?.classList.add('active');
+            cartSection?.classList.remove('active');
+        } else {
+            cartSection?.classList.add('active');
+            productsSection?.classList.remove('active');
+        }
+
+        // Update cart badge count
+        const cartBadge = document.getElementById('pos-cart-badge-count');
+        if (cartBadge) {
+            const count = this.posState.cart.length;
+            cartBadge.style.display = count > 0 ? 'flex' : 'none';
+            cartBadge.textContent = count;
         }
     }
 
@@ -8072,6 +8323,7 @@ class AgroDistributionApp {
         }
         // -------------------------------------
 
+        const cashChange = Math.max(0, cash + chequeAmountTotal - total);
         const paymentData = {
             method: (cash > 0 && chequeAmountTotal === 0 && credit === 0) ? 'cash' :
                 (cash === 0 && chequeAmountTotal > 0 && credit === 0) ? 'cheque' :
@@ -8080,7 +8332,9 @@ class AgroDistributionApp {
                 cash: cash,
                 cheque: chequeAmountTotal,
                 credit: credit,
-                cheques: this.posState.tempCheques // Send the array!
+                cheques: this.posState.tempCheques, // Send the array!
+                cash_tendered: cash,
+                cash_change: cashChange
             }
         };
 
@@ -9350,7 +9604,9 @@ class AgroDistributionApp {
         document.getElementById('cs-current-status').value = cheque.status || 'Pending';
         document.getElementById('cs-new-status').value = cheque.status || 'Pending';
         document.getElementById('cs-remarks').value = cheque.remarks || '';
-        document.getElementById('cheque-status-modal').classList.add('active');
+        const modal = document.getElementById('cheque-status-modal');
+        modal.style.display = 'flex';
+        modal.classList.add('active');
     }
 
     async handleChequeStatusUpdate(e) {
@@ -9365,10 +9621,20 @@ class AgroDistributionApp {
             body: JSON.stringify({ status, remarks })
         });
 
-        if (res) {
-            this.showNotification('Cheque status updated', 'success');
-            document.getElementById('cheque-status-modal').classList.remove('active');
+        if (!res || !res.ok) {
+            this.showNotification('Failed to update cheque status', 'error');
+            return;
+        }
+
+        const data = await res.json();
+        if (data.success) {
+            this.showNotification('Cheque status updated successfully', 'success');
+            const modal = document.getElementById('cheque-status-modal');
+            modal.classList.remove('active');
+            modal.style.display = 'none';
             this.loadBankingCheques();
+        } else {
+            this.showNotification(data.error || 'Failed to update cheque status', 'error');
         }
     }
 
