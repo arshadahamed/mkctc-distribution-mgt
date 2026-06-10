@@ -8035,33 +8035,6 @@ class AgroDistributionApp {
         }
     }
 
-    switchPOSTab(tab) {
-        const productsSection = document.querySelector('.pos-products');
-        const cartSection = document.querySelector('.pos-cart');
-        const productsTabs = document.querySelectorAll('.pos-tab');
-
-        // Update active states
-        productsTabs.forEach(t => t.classList.remove('active'));
-        event.target.classList.add('active');
-
-        // Show/hide sections
-        if (tab === 'products') {
-            productsSection?.classList.add('active');
-            cartSection?.classList.remove('active');
-        } else {
-            cartSection?.classList.add('active');
-            productsSection?.classList.remove('active');
-        }
-
-        // Update cart badge count
-        const cartBadge = document.getElementById('pos-cart-badge-count');
-        if (cartBadge) {
-            const count = this.posState.cart.length;
-            cartBadge.style.display = count > 0 ? 'flex' : 'none';
-            cartBadge.textContent = count;
-        }
-    }
-
     async holdInvoice() {
         if (this.posState.cart.length === 0) return;
 
