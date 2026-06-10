@@ -203,6 +203,7 @@
 .product-card:active:not(.disabled) {
   transform: scale(0.98);
   box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast) var(--easing-standard);
 }
 
 .product-card.disabled {
@@ -255,31 +256,6 @@
 .product-price-currency {
   font-size: 0.75rem;
   color: var(--color-primary);
-}
-
-.product-stock {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-
-.product-stock.in-stock {
-  background: rgba(16, 185, 129, 0.1);
-  color: var(--color-primary);
-}
-
-.product-stock.low-stock {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
-}
-
-.product-stock.out-of-stock {
-  background: rgba(239, 68, 68, 0.1);
-  color: var(--color-error);
 }
 
 .pos-empty-state {
