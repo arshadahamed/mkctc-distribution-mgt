@@ -1069,3 +1069,127 @@
     font-size: 0.8rem;
   }
 }
+
+/* ========================================
+   ANIMATIONS & TRANSITIONS
+   ======================================== */
+
+/* Smooth transitions for all interactive elements */
+button,
+input,
+select,
+textarea,
+.product-card,
+.pos-cart-item,
+.cart-item-qty-section .qty-btn,
+.btn-icon {
+  transition: all var(--transition-base) var(--easing-standard);
+}
+
+/* Product card animations */
+.product-card {
+  animation: slideIn 0.4s var(--easing-standard);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cart item entry animation */
+.pos-cart-item {
+  animation: cartItemEnter 0.3s var(--easing-standard);
+}
+
+@keyframes cartItemEnter {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Cart item removal animation (applied via class) */
+.pos-cart-item.removing {
+  animation: cartItemRemove 0.2s var(--easing-standard) forwards;
+}
+
+@keyframes cartItemRemove {
+  to {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+}
+
+/* Mobile tab slide animation */
+.pos-products.active,
+.pos-cart.active {
+  animation: tabSlideIn 0.15s var(--easing-standard);
+}
+
+@keyframes tabSlideIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Quantity pulse effect */
+.qty-input:focus {
+  border-color: var(--color-primary);
+  background: rgba(16, 185, 129, 0.05);
+  outline: none;
+}
+
+/* Focus states */
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+/* Button active/pressed state */
+button:active {
+  transform: scale(0.98);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}
+
+.btn-pay-animated:active {
+  transform: scale(0.98);
+}
+
+/* Smooth color transitions */
+.product-card,
+.btn-icon,
+.pos-cart-item,
+.qty-btn,
+.cart-item-delete {
+  color-transition: color var(--transition-fast);
+  background-transition: background var(--transition-fast);
+  border-transition: border var(--transition-fast);
+}
+
+/* Disable animations for reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
