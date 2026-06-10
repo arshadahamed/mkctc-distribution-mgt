@@ -945,7 +945,6 @@
   }
 
   .pos-tab-badge {
-    display: inline-block;
     background: var(--color-error);
     color: white;
     border-radius: 50%;
@@ -1180,9 +1179,9 @@ button:active {
 .pos-cart-item,
 .qty-btn,
 .cart-item-delete {
-  color-transition: color var(--transition-fast);
-  background-transition: background var(--transition-fast);
-  border-transition: border var(--transition-fast);
+  transition: color var(--transition-fast),
+              background var(--transition-fast),
+              border var(--transition-fast);
 }
 
 /* Disable animations for reduced-motion preference */
