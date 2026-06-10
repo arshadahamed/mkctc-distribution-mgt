@@ -572,3 +572,172 @@
   color: var(--color-text-dark);
   letter-spacing: -1px;
 }
+
+/* ========================================
+   CUSTOMER SELECTION
+   ======================================== */
+
+.pos-customer-search-mode {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  background: var(--color-bg-light);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#pos-customer-search {
+  border: none;
+  padding: 0;
+  background: transparent;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--color-text-dark);
+  flex: 1;
+  outline: none;
+}
+
+#pos-customer-search::placeholder {
+  color: var(--color-text-lighter);
+}
+
+.btn-add-customer-icon {
+  background: #ecfdf5 !important;
+  border: none !important;
+  color: var(--color-primary) !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: var(--radius-sm) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all var(--transition-fast) !important;
+  box-shadow: 0 2px 5px rgba(16, 185, 129, 0.1) !important;
+  padding: 0 !important;
+}
+
+.btn-add-customer-icon:hover {
+  background: #d1fae5 !important;
+  box-shadow: 0 4px 8px rgba(16, 185, 129, 0.15) !important;
+}
+
+.search-results-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+.search-result-item {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-lighter);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item:hover {
+  background: var(--color-bg-light);
+}
+
+#pos-selected-customer {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  border-radius: var(--radius-lg);
+  color: white;
+  box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.3);
+}
+
+#pos-selected-customer.active {
+  display: flex;
+}
+
+.pos-cust-avatar {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: var(--spacing-md);
+}
+
+.pos-cust-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--spacing-md);
+}
+
+.pos-cust-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.pos-cust-detail {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.pos-cust-balance {
+  text-align: right;
+  margin-right: var(--spacing-md);
+  flex-shrink: 0;
+}
+
+.pos-cust-balance-label {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.pos-cust-balance-value {
+  font-weight: 800;
+  font-size: 1rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.pos-cust-reset-btn {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: var(--radius-sm) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all var(--transition-fast) cubic-bezier(0.4, 0, 0.2, 1) !important;
+  padding: 0 !important;
+}
+
+.pos-cust-reset-btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
