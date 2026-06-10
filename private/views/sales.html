@@ -1,5 +1,14 @@
 <div id="sales-view" class="view-content" style="display: none;">
     <div class="pos-container">
+        <!-- Mobile Tab Interface (hidden on desktop/tablet) -->
+        <div class="pos-mobile-tabs" style="display: none;">
+            <button class="pos-tab active" onclick="app.switchPOSTab('products')">
+                Products
+            </button>
+            <button class="pos-tab" onclick="app.switchPOSTab('cart')">
+                Cart <span class="pos-tab-badge" id="pos-cart-badge-count" style="display: none;">0</span>
+            </button>
+        </div>
         <!-- Left: Product Selection -->
         <div class="pos-products">
             <div class="card" style="height: 100%; display: flex; flex-direction: column;">
