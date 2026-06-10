@@ -14,6 +14,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="/app.js"></script>
     <script src="/user-management.js"></script>
+    <link rel="stylesheet" href="/css/pos-redesign.css">
     <style>
         /* Modal Body Scrolling */
         .modal-body {
@@ -1753,9 +1754,32 @@
                     </div>
                 </div>
 
-                <!-- Tab-style sub-title bar -->
-                <div style="margin: 16px -28px 0 -28px; background: rgba(0,0,0,0.18); padding: 7px 28px; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px;">
-                    <i class="fas fa-history" style="font-size:0.65rem;"></i> Full Transaction History &amp; Account Summary
+                <!-- Tab-style sub-title bar with filters -->
+                <div style="margin: 16px -28px 0 -28px; background: rgba(0,0,0,0.18); padding: 7px 28px; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.6); letter-spacing: 0.5px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                    <i class="fas fa-history" style="font-size:0.65rem;"></i> Transaction History
+                    <span style="flex:1;"></span>
+                    <select id="ledger-filter-mode" onchange="app.toggleLedgerFilterMode()" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; outline: none;">
+                        <option value="all">All Transactions</option>
+                        <option value="month">By Month</option>
+                        <option value="range">Date Range</option>
+                    </select>
+                    <div id="ledger-month-group" style="display:none; align-items:center; gap:4px;">
+                        <input type="month" id="ledger-filter-month" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 6px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; outline: none;">
+                    </div>
+                    <div id="ledger-range-group" style="display:none; align-items:center; gap:4px;">
+                        <input type="date" id="ledger-filter-from" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 6px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; outline: none;">
+                        <span style="color: rgba(255,255,255,0.5); font-size: 0.7rem;">to</span>
+                        <input type="date" id="ledger-filter-to" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 6px; border-radius: 5px; font-size: 0.72rem; font-weight: 600; outline: none;">
+                    </div>
+                    <button onclick="app.applyLedgerFilter()" style="background: rgba(76,175,80,0.8); color: white; border: none; padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; cursor: pointer;">⚡ Go</button>
+                    <button onclick="app.resetLedgerFilter()" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">↻</button>
+                    <span style="width:1px; height:20px; background: rgba(255,255,255,0.15);"></span>
+                    <select id="ledger-sort-mode" onchange="app.applyLedgerFilter()" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; outline: none;">
+                        <option value="date-asc">Date ↑</option>
+                        <option value="date-desc">Date ↓</option>
+                        <option value="amount-desc">Amount ↓</option>
+                        <option value="amount-asc">Amount ↑</option>
+                    </select>
                 </div>
             </div>
 
