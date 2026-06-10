@@ -741,3 +741,100 @@
 .pos-cust-reset-btn:hover {
   background: rgba(255, 255, 255, 0.3) !important;
 }
+
+/* ========================================
+   ACTION BUTTONS
+   ======================================== */
+
+.card-actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-recall {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.btn-recall:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.btn-hold {
+  background: rgba(251, 191, 36, 0.1);
+  border-color: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+}
+
+.btn-hold:hover {
+  background: rgba(251, 191, 36, 0.2);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.btn-clear {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+}
+
+.btn-clear:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* ========================================
+   PRIMARY ACTION BUTTON
+   ======================================== */
+
+.btn-pay-animated {
+  width: 100%;
+  height: 48px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-pay-animated:hover {
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4);
+  transform: none;
+}
+
+.btn-pay-animated:active {
+  transform: scale(0.98);
+}
+
+.btn-pay-animated i {
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-pay-animated:hover i {
+  transform: translateX(6px);
+}
