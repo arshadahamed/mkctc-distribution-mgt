@@ -838,3 +838,28 @@
 .btn-pay-animated:hover i {
   transform: translateX(6px);
 }
+
+/* Focus states for keyboard accessibility */
+.btn-recall:focus,
+.btn-hold:focus,
+.btn-clear:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+.btn-pay-animated:focus {
+  outline: none;
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.4), 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Disabled states */
+.btn-icon:disabled,
+.btn-pay-animated:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-pay-animated:disabled {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
