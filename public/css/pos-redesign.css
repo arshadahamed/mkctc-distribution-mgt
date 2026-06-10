@@ -457,3 +457,118 @@
   background: rgba(239, 68, 68, 0.15);
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2);
 }
+
+/* ========================================
+   SUMMARY SECTION
+   ======================================== */
+
+.pos-summary {
+  background: transparent;
+  border-top: 1px solid var(--color-border-light);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+}
+
+.summary-card {
+  background: var(--color-bg-light);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-lighter);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-card-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xs);
+}
+
+.summary-card-value {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--color-text-dark);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.summary-card-currency {
+  font-size: 0.6rem;
+  opacity: 0.6;
+  color: var(--color-text-light);
+}
+
+.summary-card.discount {
+  background: #fff1f2;
+  border: 1px solid rgba(225, 29, 72, 0.05);
+}
+
+.summary-card.discount .summary-card-value {
+  color: #e11d48;
+}
+
+.summary-card.discount .summary-card-label {
+  color: #fda4af;
+}
+
+.total-payable-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--spacing-md);
+  background: rgba(248, 250, 252, 0.6);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid var(--color-border-lighter);
+}
+
+.total-payable-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.total-payable-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xs);
+}
+
+.total-payable-subtext {
+  font-size: 0.6rem;
+  color: var(--color-text-lighter);
+  font-weight: 600;
+}
+
+.total-payable-amount {
+  text-align: right;
+  line-height: 1;
+}
+
+.total-payable-currency {
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  font-weight: 800;
+  margin-right: 4px;
+}
+
+.total-payable-value {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--color-text-dark);
+  letter-spacing: -1px;
+}
