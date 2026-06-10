@@ -61,33 +61,24 @@
         <div class="pos-cart">
             <div class="card"
                 style="height: 100%; display: flex; flex-direction: column; background: var(--white); border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-radius: 20px; overflow: hidden;">
-                <div class="card-header"
-                    style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 20px 24px; border-bottom: none; display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 15px;">
-                        <div
-                            style="width: 48px; height: 48px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 0.05) 100%); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 14px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
-                            <i class="fas fa-shopping-cart" style="color: #4ade80; font-size: 1.3rem;"></i>
+                <div class="card-header">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; background: linear-gradient(135deg, rgba(74, 222, 128, 0.2) 0%, rgba(74, 222, 128, 0.05) 100%); border: 1px solid rgba(74, 222, 128, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+                            <i class="fas fa-shopping-cart" style="color: var(--color-primary-light); font-size: 1.2rem;"></i>
                         </div>
                         <div>
-                            <h3 class="card-title"
-                                style="color: #fff; font-size: 1.3rem; margin: 0; font-weight: 800; letter-spacing: -0.5px;">
-                                Current Checkout</h3>
-                            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 500; margin-top: 2px;">Invoice
-                                <span id="pos-invoice-number" style="color: #4ade80; font-weight: 800;">#...</span>
-                            </div>
+                            <h3 class="card-title">Checkout</h3>
+                            <div style="font-size: 0.75rem; color: #94a3b8; font-weight: 500; margin-top: 2px;">Invoice <span id="pos-invoice-number" style="color: var(--color-primary-light); font-weight: 800;">#...</span></div>
                         </div>
                     </div>
-                    <div class="card-actions" style="display: flex; gap: 10px;">
-                        <button class="btn btn-sm" onclick="app.recallInvoiceModal()" title="Recall Held Invoice"
-                            style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                    <div class="card-actions">
+                        <button class="btn btn-icon btn-recall" onclick="app.recallInvoiceModal()" title="Recall Held Invoice">
                             <i class="fas fa-history"></i>
                         </button>
-                        <button class="btn btn-sm" onclick="app.holdInvoice()" title="Hold Invoice"
-                            style="background: rgba(251, 191, 36, 0.1); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                        <button class="btn btn-icon btn-hold" onclick="app.holdInvoice()" title="Hold Invoice">
                             <i class="fas fa-pause"></i>
                         </button>
-                        <button class="btn btn-sm" onclick="app.clearCart()" title="Clear Cart"
-                            style="background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center; transition: all 0.2s;">
+                        <button class="btn btn-icon btn-clear" onclick="app.clearCart()" title="Clear Cart">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
