@@ -1,0 +1,106 @@
+/* ========================================
+   POS REDESIGN - CSS CUSTOM PROPERTIES
+   ======================================== */
+
+:root {
+  /* Colors */
+  --color-primary: #10b981;
+  --color-primary-dark: #059669;
+  --color-primary-light: #4ade80;
+
+  --color-text-dark: #0f172a;
+  --color-text-mid: #475569;
+  --color-text-light: #64748b;
+  --color-text-lighter: #94a3b8;
+
+  --color-bg-light: #f8fafc;
+  --color-bg-lighter: #f1f5f9;
+  --color-bg-lightest: #ffffff;
+
+  --color-header-start: #0f172a;
+  --color-header-end: #1e293b;
+
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-light: rgba(0, 0, 0, 0.05);
+  --color-border-lighter: rgba(0, 0, 0, 0.02);
+
+  --color-error: #ef4444;
+  --color-warning: #fbbf24;
+  --color-success: #22c55e;
+
+  /* Typography */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+  --font-family-mono: 'Courier New', monospace;
+
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-2xl: 24px;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.12);
+
+  /* Transitions */
+  --transition-fast: 0.15s;
+  --transition-base: 0.2s;
+  --transition-slow: 0.3s;
+  --easing-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+.pos-container {
+  display: grid;
+  grid-template-columns: 60fr 40fr;
+  gap: var(--spacing-lg);
+  padding: var(--spacing-lg);
+  height: calc(100vh - 80px);
+  background: transparent;
+}
+
+.pos-container .card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ========================================
+   CARD HEADER
+   ======================================== */
+
+.card-header {
+  background: linear-gradient(135deg, var(--color-header-start) 0%, var(--color-header-end) 100%);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  color: #ffffff;
+  border-bottom: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #ffffff;
+}
