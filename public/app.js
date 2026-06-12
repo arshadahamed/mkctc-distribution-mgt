@@ -2099,36 +2099,63 @@ class AgroDistributionApp {
         if (fFrom) fFrom.value = '';
         if (fTo) fTo.value = '';
 
-        await this._fetchAndRenderLedger(customerId);
+        // Only open the modal once data actually loaded, otherwise it would
+        // display the previously viewed customer's ledger.
+        const loaded = await this._fetchAndRenderLedger(customerId);
+        if (!loaded) {
+            this.showNotification('Failed to load customer ledger', 'error');
+            return;
+        }
         document.getElementById('ledger-modal').classList.add('active');
     }
 
     async _fetchAndRenderLedger(customerId, dateFrom, dateTo) {
         let url = `/api/customers/${customerId}/ledger`;
         const qp = [];
-        if (dateFrom) qp.push(`dateFrom=${dateFrom}`);
-        if (dateTo) qp.push(`dateTo=${dateTo}`);
+        if (dateFrom) qp.push(`dateFrom=${encodeURIComponent(dateFrom)}`);
+        if (dateTo) qp.push(`dateTo=${encodeURIComponent(dateTo)}`);
         if (qp.length > 0) url += '?' + qp.join('&');
 
         const res = await this.apiCall(url);
-        if (!res) return;
+        if (!res) return false;
         const result = await res.json();
-        if (result.success) {
-            const { customer, ledger } = result.data;
-            this._currentLedgerCustomer = customer;
-            this._fullLedgerData = ledger;
+        if (!result.success) return false;
 
-            document.getElementById('ledger-customer-info').textContent = `${customer.name} | ${customer.contact || 'No Contact'}`;
+        const { customer, ledger, openingBalance } = result.data;
+        this._currentLedgerCustomer = customer;
+        this._fullLedgerData = ledger;
+        this._ledgerOpeningBalance = dateFrom ? (parseFloat(openingBalance) || 0) : 0;
+        this._ledgerFilterActive = !!dateFrom;
 
-            const genDateEl = document.getElementById('ledger-generated-date');
-            if (genDateEl) genDateEl.textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        document.getElementById('ledger-customer-info').textContent = `${customer.name} | ${customer.contact || 'No Contact'}`;
 
-            this.renderLedgerTable(ledger, customer);
-        }
+        const genDateEl = document.getElementById('ledger-generated-date');
+        if (genDateEl) genDateEl.textContent = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+
+        this.renderLedgerTable(ledger, customer);
+        return true;
     }
 
     renderLedgerTable(ledger, customer) {
-        // Sort
+        const openingBalance = this._ledgerOpeningBalance || 0;
+
+        // Compute each entry's running balance in CHRONOLOGICAL order first,
+        // so the balance column stays historically correct no matter which
+        // display sort is selected.
+        const chrono = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
+        const balances = new Map();
+        let runningBalance = openingBalance;
+        let totalSales = 0;
+        let totalPaid = 0;
+        chrono.forEach(entry => {
+            runningBalance += ((entry.debit || 0) - (entry.credit || 0));
+            totalSales += (entry.debit || 0);
+            totalPaid += (entry.credit || 0);
+            balances.set(entry, runningBalance);
+        });
+        const finalBalance = runningBalance;
+
+        // Display sort
         const sortMode = document.getElementById('ledger-sort-mode')?.value || 'date-asc';
         const sorted = [...ledger];
         switch (sortMode) {
@@ -2137,10 +2164,6 @@ class AgroDistributionApp {
             case 'amount-desc': sorted.sort((a, b) => ((b.debit||0)+(b.credit||0)) - ((a.debit||0)+(a.credit||0))); break;
             case 'amount-asc': sorted.sort((a, b) => ((a.debit||0)+(a.credit||0)) - ((b.debit||0)+(b.credit||0))); break;
         }
-
-        let runningBalance = 0;
-        let totalSales = 0;
-        let totalPaid = 0;
 
         const typeBadge = (type) => {
             if (!type) return '';
@@ -2154,9 +2177,7 @@ class AgroDistributionApp {
         };
 
         const rows = sorted.map(entry => {
-            runningBalance += (entry.debit - entry.credit);
-            totalSales += (entry.debit || 0);
-            totalPaid += (entry.credit || 0);
+            const entryBalance = balances.get(entry);
 
             const debitCell = entry.debit > 0
                 ? `<span style="color:#dc2626;font-weight:700;">${entry.debit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
@@ -2166,7 +2187,7 @@ class AgroDistributionApp {
                 ? `<span style="color:#16a34a;font-weight:700;">${entry.credit.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>`
                 : `<span style="color:#d1d5db;">—</span>`;
 
-            const balColor = runningBalance > 0 ? '#dc2626' : '#16a34a';
+            const balColor = entryBalance > 0 ? '#dc2626' : '#16a34a';
 
             return `
                 <tr style="border-bottom:1px solid #f3f4f6;">
@@ -2176,28 +2197,43 @@ class AgroDistributionApp {
                     <td style="padding: 9px 12px; text-align:right;">${debitCell}</td>
                     <td style="padding: 9px 12px; text-align:right;">${creditCell}</td>
                     <td style="padding: 9px 12px; text-align:right; font-weight: 800; font-size:0.82rem; color:${balColor};">
-                        ${runningBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        ${entryBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                     </td>
                 </tr>
             `;
         });
 
+        // Opening balance carried forward (shown when a from-date filter is active)
+        if (this._ledgerFilterActive) {
+            const obColor = openingBalance > 0 ? '#dc2626' : '#16a34a';
+            rows.unshift(`
+                <tr style="border-bottom:1px solid #f3f4f6; background:#f8fafc;">
+                    <td style="padding: 9px 12px; font-size:0.77rem;" colspan="3"><em style="color:#64748b; font-weight:600;">Opening Balance b/f</em></td>
+                    <td style="padding: 9px 12px;"></td>
+                    <td style="padding: 9px 12px;"></td>
+                    <td style="padding: 9px 12px; text-align:right; font-weight: 800; font-size:0.82rem; color:${obColor};">
+                        ${openingBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </td>
+                </tr>
+            `);
+        }
+
         document.getElementById('ledger-body').innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center" style="padding: 30px; color: #999;">No transactions found for the selected period</td></tr>';
 
-        // Populate Summary Cards
+        // Populate Summary Cards (balance includes any opening balance b/f)
         document.getElementById('ledger-sum-sales').textContent = `LKR ${totalSales.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
         document.getElementById('ledger-sum-paid').textContent = `LKR ${totalPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
-        document.getElementById('ledger-sum-balance').textContent = `LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+        document.getElementById('ledger-sum-balance').textContent = `LKR ${Math.abs(finalBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
 
         // Balance indicator banner
         const indicator = document.getElementById('ledger-balance-indicator');
         if (indicator) {
-            if (runningBalance > 0) {
+            if (finalBalance > 0) {
                 indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#fef2f2; border:1px solid #fecaca; border-left:4px solid #ef4444; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
-                indicator.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Outstanding balance of <strong style="color:#dc2626; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> is payable to the company.`;
-            } else if (runningBalance < 0) {
+                indicator.innerHTML = `<i class="fas fa-exclamation-circle" style="color:#ef4444;"></i> Outstanding balance of <strong style="color:#dc2626; margin: 0 4px;">LKR ${Math.abs(finalBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> is payable to the company.`;
+            } else if (finalBalance < 0) {
                 indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#eff6ff; border:1px solid #bfdbfe; border-left:4px solid #3b82f6; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
-                indicator.innerHTML = `<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Account is in credit by <strong style="color:#2563eb; margin: 0 4px;">LKR ${Math.abs(runningBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.`;
+                indicator.innerHTML = `<i class="fas fa-info-circle" style="color:#3b82f6;"></i> Account is in credit by <strong style="color:#2563eb; margin: 0 4px;">LKR ${Math.abs(finalBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.`;
             } else {
                 indicator.style.cssText = 'display:flex; margin:0 16px 12px 16px; padding:10px 14px; border-radius:8px; background:#f0fdf4; border:1px solid #bbf7d0; border-left:4px solid #22c55e; font-size:0.8rem; font-weight:600; align-items:center; gap:8px;';
                 indicator.innerHTML = `<i class="fas fa-check-circle" style="color:#22c55e;"></i> Account is <strong style="color:#16a34a; margin: 0 4px;">fully settled</strong> with no outstanding balance.`;
@@ -2241,6 +2277,7 @@ class AgroDistributionApp {
     }
 
     async resetLedgerFilter() {
+        if (!this._currentLedgerCustomerId) return;
         const filterMode = document.getElementById('ledger-filter-mode');
         const sortMode = document.getElementById('ledger-sort-mode');
         if (filterMode) filterMode.value = 'all';
@@ -4217,7 +4254,7 @@ class AgroDistributionApp {
                 }
 
                 // Update Stats
-                this.updatePaymentStats(data.data);
+                this.updatePaymentStats(data.data, data.stats);
             }
         } catch (err) {
             console.error('LoadPayments Error:', err);
@@ -4253,15 +4290,17 @@ class AgroDistributionApp {
 
     async nextPaymentPage() {
         if (this.paymentPage < this.paymentTotalPages) {
-            this.paymentPage++;
-            await this.loadPaymentsPage(this.paymentPage);
+            // Commit the page only after a successful load so a failed
+            // request can't drift the counter away from what's displayed.
+            const ok = await this.loadPaymentsPage(this.paymentPage + 1);
+            if (ok) this.paymentPage++;
         }
     }
 
     async prevPaymentPage() {
         if (this.paymentPage > 1) {
-            this.paymentPage--;
-            await this.loadPaymentsPage(this.paymentPage);
+            const ok = await this.loadPaymentsPage(this.paymentPage - 1);
+            if (ok) this.paymentPage--;
         }
     }
 
@@ -4269,8 +4308,11 @@ class AgroDistributionApp {
         const pageInput = document.getElementById('payment-page-input');
         const page = parseInt(pageInput.value) || 1;
         if (page >= 1 && page <= this.paymentTotalPages) {
-            this.paymentPage = page;
-            await this.loadPaymentsPage(page);
+            const ok = await this.loadPaymentsPage(page);
+            if (ok) this.paymentPage = page;
+        } else if (pageInput) {
+            // Out-of-range input: snap back to the current page
+            pageInput.value = this.paymentPage;
         }
     }
 
@@ -4369,25 +4411,34 @@ class AgroDistributionApp {
                 }
 
                 // Update Stats
-                this.updatePaymentStats(data.data);
+                this.updatePaymentStats(data.data, data.stats);
 
                 // Scroll to top of payment grid
                 container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return true;
             }
         } catch (err) {
             console.error('LoadPaymentsPage Error:', err);
         }
+        return false;
     }
 
-    updatePaymentStats(payments) {
-        const stats = {
+    updatePaymentStats(payments, serverStats) {
+        // Prefer the server aggregate (totals over ALL matching receipts).
+        // Computing from `payments` alone only covers the current page.
+        const stats = serverStats ? {
+            total: parseFloat(serverStats.total) || 0,
+            returns: parseFloat(serverStats.returns) || 0,
+            cash: parseFloat(serverStats.cash) || 0,
+            cheque: parseFloat(serverStats.cheque) || 0
+        } : {
             total: 0,
             returns: 0,
             cash: 0,
             cheque: 0
         };
 
-        payments.forEach(p => {
+        if (!serverStats) payments.forEach(p => {
             const amt = parseFloat(p.amount) || 0;
             const isReturn = p.receipt_category === 'return';
 
