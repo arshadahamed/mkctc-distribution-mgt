@@ -63,11 +63,13 @@ class BankingRepository {
 
     async getChequeStats() {
         const query = `
-            SELECT 
+            SELECT
                 SUM(CASE WHEN status = 'Pending' THEN amount ELSE 0 END) as pending_total,
                 COUNT(CASE WHEN status = 'Pending' THEN 1 END) as pending_count,
                 SUM(CASE WHEN status = 'Deposited' THEN amount ELSE 0 END) as deposited_total,
                 COUNT(CASE WHEN status = 'Deposited' THEN 1 END) as deposited_count,
+                SUM(CASE WHEN status = 'Cleared' THEN amount ELSE 0 END) as cleared_total,
+                COUNT(CASE WHEN status = 'Cleared' THEN 1 END) as cleared_count,
                 SUM(CASE WHEN status = 'Returned' THEN amount ELSE 0 END) as returned_total,
                 COUNT(CASE WHEN status = 'Returned' THEN 1 END) as returned_count
             FROM cheque_details
