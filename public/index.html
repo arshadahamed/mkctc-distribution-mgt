@@ -1,734 +1,2015 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MKC TRADE CENTER | Agro Distribution Reimagined</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Animation & 3D Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollToPlugin.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.155.0/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.155.0/examples/js/loaders/GLTFLoader.js"></script>
-    <style>
-        :root {
-            --primary: #2E7D32;
-            --primary-light: #4CAF50;
-            --primary-dark: #1B5E20;
-            --accent: #FFD600;
-            --bg-dark: #0F172A;
-            --text-dark: #1E293B;
-            --text-light: #64748B;
-            --white: #FFFFFF;
-            --glass: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.1);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M.K.C. Trade Center — Premium Agricultural Solutions, Sri Lanka</title>
+  <meta name="description" content="Your trusted agricultural partner in Sri Lanka. Agrochemicals, fertilizers, seeds, machinery, irrigation equipment and home gardening products. Located in Galgamuwa.">
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,300;1,9..144,600;1,9..144,700&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw==" crossorigin="anonymous">
 
-        body {
-            background-color: var(--bg-dark);
-            color: var(--white);
-            overflow-x: hidden;
-            line-height: 1.6;
-        }
+  <style>
+  /* ── TOKENS ──────────────────────────────────────────── */
+  :root {
+    --forest:   #1A3D2B;
+    --green:    #2D6A4F;
+    --leaf:     #52B788;
+    --mint:     #95D5B2;
+    --gold:     #E9A818;
+    --gold-lt:  #F5C842;
+    --cream:    #F9F5EE;
+    --cream-dk: #EDE7D9;
+    --earth:    #7C4A1E;
+    --dark:     #0D1A10;
+    --charcoal: #1C2B1E;
+    --text:     #1E3020;
+    --muted:    #5A7060;
+    --white:    #FFFFFF;
+    --font-h:   'Fraunces', Georgia, serif;
+    --font-b:   'Figtree', sans-serif;
+    --ease:     cubic-bezier(0.25,0.46,0.45,0.94);
+    --spring:   cubic-bezier(0.175,0.885,0.32,1.275);
+  }
 
-        /* Abstract Background Elements */
-        .bg-blobs {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            overflow: hidden;
-        }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--cream); color:var(--text); font-family:var(--font-b); overflow-x:hidden; }
+  img { max-width:100%; display:block; }
+  a { text-decoration:none; color:inherit; }
 
-        .blob {
-            position: absolute;
-            filter: blur(80px);
-            border-radius: 50%;
-            opacity: 0.15;
-            animation: move 20s infinite alternate;
-        }
+  /* ── SCROLLBAR ───────────────────────────────────────── */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:var(--cream-dk); }
+  ::-webkit-scrollbar-thumb { background:var(--green); border-radius:2px; }
 
-        .blob-1 {
-            width: 500px;
-            height: 500px;
-            background: var(--primary);
-            top: -100px;
-            right: -100px;
-        }
+  /* ── PROGRESS BAR ────────────────────────────────────── */
+  #pg-bar { position:fixed; top:0; left:0; height:3px; background:var(--gold); z-index:9999; width:0; box-shadow:0 0 8px rgba(233,168,24,.5); transition:width .1s linear; }
 
-        .blob-2 {
-            width: 400px;
-            height: 400px;
-            background: var(--primary-light);
-            bottom: -50px;
-            left: -50px;
-            animation-delay: -5s;
-        }
+  /* ── NAV ─────────────────────────────────────────────── */
+  nav {
+    position:fixed; top:0; left:0; right:0; z-index:1000;
+    padding:0 5%; height:76px;
+    display:flex; align-items:center; justify-content:space-between;
+    transition:all .4s var(--ease);
+    background:rgba(255,255,255,.93); backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(45,106,79,.07);
+  }
+  nav.solid {
+    background:rgba(255,255,255,.97);
+    border-bottom:1px solid rgba(45,106,79,.1);
+    box-shadow:0 2px 20px rgba(0,0,0,.06);
+    height:64px;
+  }
+  .nav-logo {
+    display:flex; align-items:center; gap:10px;
+    font-family:var(--font-h); font-weight:700; font-size:1.1rem;
+    color:var(--forest); transition:color .3s;
+  }
+  nav.solid .nav-logo { color:var(--forest); }
+  .nav-logo-img {
+    width:42px; height:42px; border-radius:10px;
+    background:var(--green);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; color:var(--white);
+    box-shadow:0 4px 12px rgba(45,106,79,.35);
+  }
+  .nav-logo span { letter-spacing:.02em; }
 
-        @keyframes move {
-            from {
-                transform: translate(0, 0) scale(1);
-            }
+  .nav-links { display:flex; align-items:center; gap:2.2rem; list-style:none; }
+  .nav-links a {
+    font-size:.875rem; font-weight:600;
+    color:var(--muted); transition:color .25s;
+    position:relative;
+  }
+  nav.solid .nav-links a { color:var(--muted); }
+  .nav-links a::after {
+    content:''; position:absolute; bottom:-4px; left:0;
+    width:0; height:2px; background:var(--gold); border-radius:1px;
+    transition:width .3s var(--ease);
+  }
+  .nav-links a:hover { color:var(--forest); }
+  nav.solid .nav-links a:hover { color:var(--forest); }
+  .nav-links a:hover::after { width:100%; }
 
-            to {
-                transform: translate(100px, 100px) scale(1.1);
-            }
-        }
+  .nav-cta-wrap { display:flex; gap:.75rem; align-items:center; }
+  .nav-call {
+    display:flex; align-items:center; gap:6px;
+    font-size:.8rem; font-weight:700; color:var(--green);
+    transition:color .3s;
+  }
+  nav.solid .nav-call { color:var(--green); }
+  .btn-gold {
+    background:var(--gold); color:var(--dark);
+    padding:.6rem 1.4rem; border-radius:8px;
+    font-weight:700; font-size:.875rem;
+    transition:all .3s var(--spring);
+  }
+  .btn-gold:hover { background:var(--gold-lt); transform:translateY(-2px); box-shadow:0 8px 24px rgba(233,168,24,.4); }
 
-        /* Navigation */
-        nav {
-            padding: 2rem 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            width: 100%;
-            z-index: 100;
-            background: rgba(15, 23, 42, 0.8);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--glass-border);
-        }
+  .nav-login-btn {
+    display:inline-flex; align-items:center; gap:7px;
+    background:transparent; color:var(--forest);
+    padding:.6rem 1.3rem; border-radius:8px;
+    font-weight:700; font-size:.875rem;
+    border:1.5px solid rgba(26,61,43,.22);
+    transition:all .3s var(--spring);
+  }
+  nav.solid .nav-login-btn { color:var(--forest); border-color:rgba(45,106,79,.35); }
+  .nav-login-btn:hover {
+    background:var(--forest); color:var(--white);
+    border-color:var(--forest); transform:translateY(-2px);
+    box-shadow:0 6px 20px rgba(26,61,43,.25);
+  }
+  nav.solid .nav-login-btn:hover { background:var(--forest); color:var(--white); border-color:var(--forest); }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 800;
-            font-size: 1.5rem;
-            color: var(--white);
-            text-decoration: none;
-        }
+  .nav-ham { display:none; flex-direction:column; gap:5px; cursor:pointer; padding:4px; }
+  .nav-ham span { display:block; width:24px; height:2px; background:var(--forest); border-radius:2px; transition:all .3s; }
+  nav.solid .nav-ham span { background:var(--forest); }
 
-        .logo i {
-            color: var(--primary-light);
-            font-size: 2rem;
-        }
+  /* ── MOBILE NAV ──────────────────────────────────────── */
+  .mob-nav {
+    position:fixed; inset:0; z-index:900;
+    background:rgba(13,26,16,.97); backdrop-filter:blur(20px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:2rem; transform:translateX(100%); transition:transform .4s var(--ease);
+  }
+  .mob-nav.open { transform:translateX(0); }
+  .mob-nav a { font-family:var(--font-h); font-size:1.8rem; font-weight:700; color:var(--white); transition:color .2s; }
+  .mob-nav a:hover { color:var(--gold); }
+  .mob-close {
+    position:absolute; top:1.5rem; right:5%;
+    width:44px; height:44px; border-radius:10px;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.15);
+    display:flex; align-items:center; justify-content:center;
+    color:var(--white); cursor:pointer; font-size:1rem;
+  }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
+  /* ── HERO (LIGHT MODE) ──────────────────────────────── */
+  #hero {
+    position:relative; min-height:100vh;
+    display:flex; flex-direction:column;
+    background:#FAF8F2; overflow:hidden;
+    padding-top:76px;
+  }
+  #hero::before {
+    content:''; position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(ellipse 90% 60% at 18% 95%, rgba(82,183,136,.08) 0%, transparent 65%),
+      radial-gradient(ellipse 65% 55% at 82% 8%, rgba(233,168,24,.07) 0%, transparent 58%);
+  }
+  .hero-grain {
+    position:absolute; inset:0; z-index:2; pointer-events:none; opacity:.016;
+    background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:180px;
+  }
 
-        .nav-links a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
+  /* Split grid: 55% text | 45% canvas */
+  .hero-wrap {
+    position:relative; z-index:5;
+    flex:1; display:grid; grid-template-columns:55fr 45fr;
+    width:100%;
+  }
 
-        .nav-links a:hover {
-            color: var(--white);
-        }
+  /* LEFT: text panel */
+  .hero-text {
+    display:flex; flex-direction:column; justify-content:center;
+    padding:4.5rem max(2.5rem, 5%) 4.5rem max(3rem, 6%);
+  }
 
-        .btn-login {
-            background: var(--primary);
-            color: white !important;
-            padding: 0.8rem 1.8rem;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+  /* Eyebrow */
+  .hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--forest); color:var(--white);
+    border-radius:100px; padding:7px 18px 7px 12px;
+    font-size:.68rem; font-weight:700; letter-spacing:.15em;
+    text-transform:uppercase; width:fit-content;
+    margin-bottom:2rem; opacity:0; transform:translateY(14px);
+  }
+  .hero-eyebrow-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); animation:pulse-dot 2s infinite; }
+  @keyframes pulse-dot { 0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(233,168,24,.5)} 50%{opacity:.7;box-shadow:0 0 0 8px rgba(233,168,24,0)} }
 
-        .btn-login:hover {
-            transform: translateY(-2px);
-            background: var(--primary-light);
-            box-shadow: 0 8px 25px rgba(46, 125, 50, 0.5);
-        }
+  /* Headline */
+  .hero-h1 {
+    font-family:var(--font-h); font-weight:900;
+    font-size:clamp(2.8rem, 4.2vw, 5rem);
+    line-height:1.04; letter-spacing:-.03em; color:var(--forest);
+    margin-bottom:.9rem;
+  }
+  .hero-h1 .hl { display:block; overflow:hidden; }
+  .hero-h1 .hli { display:block; transform:translateY(108%); }
+  .hero-h1 .hli.up { transform:translateY(0); transition:transform .9s cubic-bezier(.25,.46,.45,.94); }
+  .hero-h1 .hli.d1 { transition-delay:.1s; }
+  .hero-h1 .hli.d2 { transition-delay:.26s; }
+  .hero-h1 .hli.d3 { transition-delay:.42s; }
 
-        /* Cinematic Hero Section */
-        .hero {
-            position: relative;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            overflow: hidden;
-            background: #000;
-        }
+  /* Word cycle */
+  .h-cyc-wrap {
+    display:inline-block; overflow:hidden; vertical-align:bottom;
+    height:1.06em; line-height:1.06em;
+  }
+  .h-cyc-list { display:flex; flex-direction:column; transition:transform .55s cubic-bezier(.25,.46,.45,.94); }
+  .h-cyc-item {
+    color:var(--green); white-space:nowrap;
+    display:block; height:1.06em; line-height:1.06em;
+    flex-shrink:0;
+  }
+  .h-cyc-item.italic { font-style:italic; font-weight:300; }
 
-        .hero-video-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            overflow: hidden;
-        }
+  /* Divider */
+  .hero-divider {
+    display:flex; align-items:center; gap:12px;
+    margin:1.6rem 0 1.8rem; opacity:0;
+  }
+  .hd-line { width:40px; height:2px; background:var(--gold); border-radius:1px; }
+  .hd-text { font-size:.68rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
 
-        .hero-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.6;
-            filter: grayscale(30%) contrast(1.2);
-        }
+  .hero-sub {
+    font-size:clamp(.88rem, 1.25vw, 1rem); color:var(--muted);
+    max-width:480px; line-height:1.9; margin-bottom:2.2rem; opacity:0;
+  }
+  .hero-btns { display:flex; gap:.85rem; flex-wrap:wrap; opacity:0; }
 
-        #bg-canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: none;
-        }
+  .btn-primary {
+    display:inline-flex; align-items:center; gap:9px;
+    background:var(--forest); color:var(--white);
+    padding:.95rem 2.1rem; border-radius:10px;
+    font-weight:700; font-size:.95rem;
+    transition:all .3s var(--spring);
+    box-shadow:0 4px 20px rgba(26,61,43,.18);
+  }
+  .btn-primary:hover { background:var(--green); transform:translateY(-3px); box-shadow:0 12px 32px rgba(45,106,79,.28); }
+  .btn-primary i { transition:transform .3s; }
+  .btn-primary:hover i { transform:translateX(4px); }
 
-        .hero-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, transparent 0%, rgba(15, 23, 42, 0.4) 60%, rgba(15, 23, 42, 0.9) 100%);
-            z-index: 3;
-        }
+  .btn-outline {
+    display:inline-flex; align-items:center; gap:9px;
+    background:transparent; color:var(--forest);
+    padding:.95rem 2.1rem; border-radius:10px;
+    font-weight:600; font-size:.95rem;
+    border:1.5px solid rgba(26,61,43,.22);
+    transition:all .3s var(--ease);
+  }
+  .btn-outline:hover { background:rgba(26,61,43,.05); border-color:rgba(26,61,43,.4); transform:translateY(-2px); }
 
-        .hero-content {
-            position: relative;
-            z-index: 10;
-            max-width: 1000px;
-            padding: 2rem;
-            opacity: 0;
-            transform: translateY(50px);
-        }
+  .btn-whatsapp {
+    display:inline-flex; align-items:center; gap:9px;
+    background:#25D366; color:var(--white);
+    padding:.95rem 2.1rem; border-radius:10px;
+    font-weight:700; font-size:.95rem;
+    transition:all .3s var(--spring);
+  }
+  .btn-whatsapp:hover { background:#1ebe5d; transform:translateY(-3px); box-shadow:0 12px 32px rgba(37,211,102,.32); }
 
-        .hero-tag {
-            background: rgba(76, 175, 80, 0.15);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #81C784;
-            padding: 0.8rem 1.8rem;
-            border-radius: 100px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 2.5rem;
-            text-transform: uppercase;
-            letter-spacing: 3px;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
+  /* Trust items */
+  .hero-trust {
+    display:flex; align-items:center; gap:2rem; flex-wrap:wrap;
+    margin-top:2.2rem; opacity:0;
+  }
+  .htrust-item { display:flex; align-items:center; gap:7px; font-size:.78rem; color:var(--muted); font-weight:600; }
+  .htrust-item i { color:var(--green); font-size:.82rem; }
 
-        .hero-tag i {
-            animation: pulse 2s infinite;
-        }
+  /* RIGHT: canvas visual panel */
+  .hero-visual { position:relative; /* NO overflow:hidden — panel shadow must not be clipped */ }
 
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-                opacity: 1;
-            }
+  /* Inner clip wrapper: only canvases + fades are clipped */
+  .hv-clip {
+    position:absolute; inset:0; overflow:hidden; z-index:1;
+    pointer-events:none;
+  }
 
-            50% {
-                transform: scale(1.2);
-                opacity: 0.7;
-            }
+  /* Canvases fill .hv-clip */
+  #hero-sky-c {
+    position:absolute; inset:0; width:100%; height:100%;
+    z-index:1; will-change:transform;
+  }
+  #hero-pollen-c {
+    position:absolute; inset:0; z-index:3;
+    pointer-events:none; will-change:transform;
+  }
 
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+  /* Blend canvas left edge into cream bg */
+  .hero-canvas-fade {
+    position:absolute; top:0; bottom:0; left:0; width:90px;
+    z-index:4; pointer-events:none;
+    background:linear-gradient(to right, #FAF8F2 0%, rgba(250,248,242,.55) 50%, transparent 100%);
+  }
+  .hero-canvas-fade-b {
+    position:absolute; bottom:0; left:0; right:0; height:160px;
+    z-index:4; pointer-events:none;
+    background:linear-gradient(to top, rgba(250,248,242,.82), transparent);
+  }
 
-        .hero h1 {
-            font-size: 6rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 2rem;
-            color: #FFFFFF;
-            letter-spacing: -2px;
-        }
+  /* Floating product panel — z-index above .hv-clip so shadow is fully visible */
+  .hero-panel {
+    position:absolute; bottom:2.2rem; left:50%; transform:translateX(-50%);
+    z-index:6; width:338px; max-width:calc(100% - 2.5rem);
+    background:rgba(255,255,255,.96); border:1px solid rgba(45,106,79,.1);
+    border-radius:20px; overflow:hidden;
+    backdrop-filter:blur(24px) saturate(1.4);
+    box-shadow:0 20px 64px rgba(26,61,43,.1), 0 0 0 1px rgba(255,255,255,.9);
+  }
+  .hp-bar {
+    padding:.8rem 1.2rem;
+    display:flex; justify-content:space-between; align-items:center;
+    border-bottom:1px solid rgba(45,106,79,.07);
+    background:rgba(26,61,43,.025);
+  }
+  .hp-dots { display:flex; gap:5px; }
+  .hp-dot { width:9px; height:9px; border-radius:50%; }
+  .hp-dot:nth-child(1){background:#FF5F56} .hp-dot:nth-child(2){background:#FEBC2E} .hp-dot:nth-child(3){background:#27C93F}
+  .hp-bar-title { font-size:.65rem; font-weight:700; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; }
+  .hp-live {
+    display:flex; align-items:center; gap:5px;
+    background:rgba(37,211,102,.08); border:1px solid rgba(37,211,102,.2);
+    border-radius:100px; padding:3px 10px;
+    font-size:.63rem; font-weight:700; color:#1A9A4A; letter-spacing:.06em;
+  }
+  .hp-live-dot { width:5px; height:5px; border-radius:50%; background:#1A9A4A; animation:pulse-dot 2s infinite; }
+  .hp-cats { display:grid; grid-template-columns:1fr 1fr; gap:1px; background:rgba(45,106,79,.06); }
+  .hp-cat {
+    background:var(--white); padding:.9rem 1rem;
+    display:flex; align-items:center; gap:9px; transition:background .25s;
+  }
+  .hp-cat:hover { background:rgba(45,106,79,.04); }
+  .hp-cat-icon { font-size:1.2rem; }
+  .hp-cat-name { font-size:.76rem; font-weight:700; color:var(--forest); }
+  .hp-cat-qty { font-size:.62rem; color:var(--muted); margin-top:1px; }
 
-        .hero h1 span {
-            display: block;
-            background: linear-gradient(135deg, #fff 0%, #4CAF50 50%, #1B5E20 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-style: italic;
-        }
+  /* Floating badges */
+  .hb {
+    position:absolute; z-index:6;
+    background:rgba(255,255,255,.96); border:1px solid rgba(45,106,79,.1);
+    border-radius:14px; padding:.65rem 1rem;
+    display:flex; align-items:center; gap:9px;
+    backdrop-filter:blur(12px);
+    box-shadow:0 8px 28px rgba(26,61,43,.09);
+    white-space:nowrap; pointer-events:none;
+  }
+  .hb-icon { font-size:1.1rem; }
+  .hb-main { font-size:.76rem; font-weight:700; color:var(--forest); }
+  .hb-sub { font-size:.62rem; color:var(--muted); margin-top:1px; }
+  .hb1 { top:16%; right:1.5rem; animation:hbf 5s ease-in-out infinite; }
+  .hb2 { top:40%; left:1.2rem; animation:hbf 6.5s ease-in-out infinite 1.6s; }
+  @keyframes hbf { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
 
-        .hero p {
-            font-size: 1.5rem;
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 3.5rem;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.8;
-            font-weight: 400;
-        }
+  /* Scroll cue */
+  .hero-scroll-cue {
+    position:absolute; bottom:calc(80px + 1.8rem); left:max(3rem, 6%);
+    z-index:10; display:flex; align-items:center; gap:12px;
+  }
+  .scroll-mouse {
+    width:24px; height:38px; border:2px solid rgba(26,61,43,.18);
+    border-radius:12px; display:flex; justify-content:center; padding-top:5px;
+  }
+  .scroll-wheel { width:3px; height:7px; border-radius:2px; background:var(--gold); animation:wheel-fall 2s ease-in-out infinite; }
+  @keyframes wheel-fall {
+    0%,20%{transform:translateY(0);opacity:1}
+    80%{transform:translateY(14px);opacity:0}
+    81%{transform:translateY(0);opacity:0}
+    100%{transform:translateY(0);opacity:1}
+  }
+  .scroll-cue-lbl { font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:rgba(26,61,43,.28); }
 
-        .hero-btns {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-        }
+  /* Stats strip — light, natural flow at bottom of hero */
+  .hero-stats-strip {
+    display:grid; grid-template-columns:repeat(4,1fr);
+    background:var(--white);
+    border-top:1px solid rgba(45,106,79,.1);
+    box-shadow:0 -2px 14px rgba(26,61,43,.04);
+    position:relative; z-index:6;
+  }
+  .hss {
+    padding:1.2rem 1.5rem; border-right:1px solid rgba(45,106,79,.08);
+    display:flex; align-items:center; gap:.9rem;
+  }
+  .hss:last-child { border-right:none; }
+  .hss-icon { font-size:1.3rem; flex-shrink:0; }
+  .hss-num { font-family:var(--font-h); font-size:1.35rem; font-weight:900; color:var(--forest); line-height:1; }
+  .hss-lbl { font-size:.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-top:2px; }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            padding: 1.5rem 3.5rem;
-            border-radius: 100px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.2rem;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            box-shadow: 0 15px 45px rgba(46, 125, 50, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+  @media(max-width:1100px){
+    .hero-wrap { grid-template-columns:1fr; }
+    .hero-text { padding:3.5rem 5% 3rem; }
+    .hero-visual { height:48vw; min-height:280px; max-height:450px; }
+    .hero-h1 { font-size:clamp(2.6rem,7vw,4rem); }
+  }
+  @media(max-width:768px){
+    .hero-stats-strip { grid-template-columns:1fr 1fr; }
+    .hss:nth-child(2) { border-right:none; }
+    .hero-btns { flex-direction:column; align-items:flex-start; }
+    .hero-scroll-cue { display:none; }
+  }
+  @media(max-width:480px){
+    .hero-h1 { font-size:2.3rem; }
+    .hero-visual { height:58vw; min-height:220px; }
+    .hero-panel { width:calc(100% - 2rem); bottom:.8rem; }
+    .hb { display:none; }
+  }
 
-        .btn-primary:hover {
-            transform: translateY(-8px) scale(1.05);
-            background: var(--primary-light);
-            box-shadow: 0 25px 65px rgba(46, 125, 50, 0.6);
-            letter-spacing: 1px;
-        }
+  /* ── SECTION BASE ─────────────────────────────────────── */
+  section { padding:7rem 5%; }
+  .sec-label {
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:.7rem; font-weight:700; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--green);
+    margin-bottom:1rem;
+  }
+  .sec-label::before { content:''; width:20px; height:2px; background:var(--gold); border-radius:1px; }
+  .sec-h2 {
+    font-family:var(--font-h); font-weight:700;
+    font-size:clamp(1.9rem, 3.5vw, 3.2rem);
+    line-height:1.15; letter-spacing:-.025em;
+    color:var(--forest); margin-bottom:1rem;
+  }
+  .sec-h2 em { font-style:italic; font-weight:300; color:var(--green); }
+  .sec-h2.light { color:var(--cream); }
+  .sec-h2.light em { color:var(--gold-lt); }
+  .sec-p { font-size:1rem; color:var(--muted); line-height:1.8; max-width:560px; }
+  .sec-p.light { color:rgba(249,245,238,.65); }
 
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            color: white;
-            padding: 1.5rem 3.5rem;
-            border-radius: 100px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 1.2rem;
-            transition: all 0.5s ease;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+  /* ── REVEAL ──────────────────────────────────────────── */
+  .rv { opacity:0; transform:translateY(36px); transition:opacity .8s var(--ease),transform .8s var(--ease); }
+  .rv.in { opacity:1; transform:translateY(0); }
+  .rv.d1 { transition-delay:.1s; } .rv.d2 { transition-delay:.2s; }
+  .rv.d3 { transition-delay:.3s; } .rv.d4 { transition-delay:.4s; }
+  .rv.d5 { transition-delay:.5s; }
 
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.15);
-            transform: translateY(-8px);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
+  /* ── TRUST BAR ───────────────────────────────────────── */
+  .trust-bar {
+    background:var(--forest); padding:1.8rem 5%;
+    display:flex; align-items:center; justify-content:center;
+    gap:3rem; flex-wrap:wrap;
+  }
+  .trust-item { display:flex; align-items:center; gap:10px; }
+  .trust-item i { color:var(--gold); font-size:1.2rem; }
+  .trust-item span { font-size:.875rem; font-weight:600; color:rgba(255,255,255,.85); white-space:nowrap; }
 
-        /* Subtle Water Shimmer Overlay */
-        .hero-shimmer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.03) 50%, rgba(255, 255, 255, 0) 70%);
-            background-size: 200% 100%;
-            animation: shimmer 10s infinite linear;
-            z-index: 1;
-            pointer-events: none;
-        }
+  /* ── CATEGORIES ──────────────────────────────────────── */
+  .categories-section { background:var(--cream); }
+  .cat-header { text-align:center; margin-bottom:4rem; }
+  .cat-header .sec-label { justify-content:center; }
+  .cat-header .sec-label::before { display:none; }
+  .cat-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem;
+    max-width:1300px; margin:0 auto;
+  }
+  .cat-card {
+    background:var(--white); border-radius:20px;
+    border:1.5px solid rgba(45,106,79,.1);
+    padding:2rem 1.8rem;
+    transition:all .4s var(--ease);
+    cursor:pointer; position:relative; overflow:hidden;
+    transform-style:preserve-3d;
+    will-change:transform;
+  }
+  .cat-card::before {
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(135deg, rgba(45,106,79,.05), transparent);
+    opacity:0; transition:opacity .4s;
+  }
+  .cat-card::after {
+    content:''; position:absolute;
+    bottom:-3px; left:10%; right:10%; height:20px;
+    background:rgba(45,106,79,.12); filter:blur(12px);
+    opacity:0; transition:opacity .4s; border-radius:50%;
+  }
+  .cat-card:hover { border-color:rgba(45,106,79,.3); transform:translateY(-8px); box-shadow:0 24px 48px rgba(26,61,43,.1); }
+  .cat-card:hover::before { opacity:1; }
+  .cat-card:hover::after { opacity:1; }
+  .cat-icon {
+    width:58px; height:58px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.6rem; margin-bottom:1.4rem;
+    transition:all .3s;
+  }
+  .cat-card:hover .cat-icon { transform:scale(1.1) rotate(-5deg); }
+  .cat-card h3 { font-family:var(--font-h); font-size:1.1rem; font-weight:700; color:var(--forest); margin-bottom:.5rem; }
+  .cat-card p { font-size:.85rem; color:var(--muted); line-height:1.6; }
+  .cat-link {
+    display:inline-flex; align-items:center; gap:6px;
+    font-size:.8rem; font-weight:700; color:var(--green);
+    margin-top:1rem; transition:gap .25s;
+  }
+  .cat-card:hover .cat-link { gap:10px; }
 
-        @keyframes shimmer {
-            0% {
-                background-position: -200% 0;
-            }
+  /* category icon bg colors */
+  .ci-1{background:rgba(82,183,136,.12);color:#2D6A4F}
+  .ci-2{background:rgba(233,168,24,.12);color:#C07A00}
+  .ci-3{background:rgba(82,183,136,.1);color:#1A3D2B}
+  .ci-4{background:rgba(45,106,79,.12);color:#1A3D2B}
+  .ci-5{background:rgba(82,183,136,.12);color:#2D6A4F}
+  .ci-6{background:rgba(233,168,24,.1);color:#A06810}
+  .ci-7{background:rgba(149,213,178,.2);color:#2D6A4F}
+  .ci-8{background:rgba(124,74,30,.1);color:#7C4A1E}
 
-            100% {
-                background-position: 200% 0;
-            }
-        }
+  /* ── ECOSYSTEM SECTION ───────────────────────────────── */
+  .ecosystem-section { background:var(--dark); overflow:hidden; }
+  .eco-header { text-align:center; margin-bottom:3.5rem; }
+  #eco-canvas { display:block; width:100%; max-width:1000px; margin:0 auto; border-radius:24px; }
 
-        /* Features Section */
-        .features {
-            padding: 8rem 5%;
-        }
+  /* ── HORIZONTAL SHOWCASE ─────────────────────────────── */
+  .showcase-section { background:var(--forest); padding:7rem 0; overflow:hidden; }
+  .showcase-head { padding:0 5%; margin-bottom:3rem; }
+  .showcase-scroll {
+    display:flex; gap:1.5rem; padding:0 5% 1.5rem;
+    overflow-x:auto; scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch; scrollbar-width:none;
+  }
+  .showcase-scroll::-webkit-scrollbar { display:none; }
+  .sh-card {
+    flex:0 0 320px; scroll-snap-align:start;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    border-radius:20px; overflow:hidden;
+    transition:all .4s var(--ease);
+  }
+  .sh-card:hover { background:rgba(255,255,255,.1); transform:translateY(-6px); border-color:rgba(233,168,24,.35); }
+  .sh-img {
+    height:190px; display:flex; align-items:center; justify-content:center;
+    font-size:4rem; position:relative; overflow:hidden;
+  }
+  .sh-i1{background:linear-gradient(135deg,#0D2B1A,#1A4A28)}
+  .sh-i2{background:linear-gradient(135deg,#1A280D,#2A4018)}
+  .sh-i3{background:linear-gradient(135deg,#0A1A2A,#0D2A3A)}
+  .sh-i4{background:linear-gradient(135deg,#1A180A,#2A2810)}
+  .sh-i5{background:linear-gradient(135deg,#0D1A2A,#182840)}
+  .sh-body { padding:1.5rem; }
+  .sh-tag { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.12em; color:var(--gold); margin-bottom:6px; }
+  .sh-card h3 { font-family:var(--font-h); font-size:1.05rem; font-weight:700; color:var(--white); margin-bottom:.5rem; }
+  .sh-card p { font-size:.85rem; color:rgba(255,255,255,.55); line-height:1.6; }
 
-        .section-header {
-            text-align: center;
-            margin-bottom: 5rem;
-        }
+  /* ── FEATURED PRODUCTS ───────────────────────────────── */
+  .products-section { background:var(--cream); }
+  .prod-header {
+    display:flex; align-items:flex-end; justify-content:space-between;
+    margin-bottom:3rem; flex-wrap:wrap; gap:1.5rem;
+  }
+  .prod-filter { display:flex; gap:.6rem; flex-wrap:wrap; }
+  .filter-btn {
+    padding:.45rem 1.1rem; border-radius:100px;
+    border:1.5px solid rgba(45,106,79,.25);
+    font-size:.8rem; font-weight:600; color:var(--muted);
+    background:transparent; cursor:pointer; transition:all .25s;
+    font-family:var(--font-b);
+  }
+  .filter-btn.active, .filter-btn:hover {
+    background:var(--green); color:var(--white); border-color:var(--green);
+  }
+  .prod-grid {
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem;
+    max-width:1300px; margin:0 auto;
+  }
+  .prod-card {
+    background:var(--white); border-radius:18px; overflow:hidden;
+    border:1.5px solid rgba(45,106,79,.08);
+    transition:all .4s var(--ease); cursor:pointer;
+  }
+  .prod-card:hover { transform:translateY(-6px); box-shadow:0 20px 48px rgba(26,61,43,.12); border-color:rgba(45,106,79,.25); }
+  .prod-img {
+    height:180px; display:flex; align-items:center; justify-content:center;
+    font-size:3.5rem; position:relative;
+    transition:transform .4s var(--ease);
+  }
+  .prod-card:hover .prod-img img, .prod-card:hover .prod-img span { transform:scale(1.08); }
+  .prod-img span { transition:transform .4s var(--ease); display:block; }
+  .pi-1{background:linear-gradient(135deg,#e8f5e9,#c8e6c9)}
+  .pi-2{background:linear-gradient(135deg,#fff8e1,#ffecb3)}
+  .pi-3{background:linear-gradient(135deg,#e0f2f1,#b2dfdb)}
+  .pi-4{background:linear-gradient(135deg,#f9fbe7,#f0f4c3)}
+  .pi-5{background:linear-gradient(135deg,#e8f5e9,#dcedc8)}
+  .pi-6{background:linear-gradient(135deg,#fff3e0,#ffe0b2)}
+  .prod-badge {
+    position:absolute; top:.75rem; left:.75rem;
+    background:var(--gold); color:var(--dark);
+    font-size:.65rem; font-weight:800; padding:3px 9px; border-radius:6px;
+    text-transform:uppercase; letter-spacing:.05em;
+  }
+  .prod-body { padding:1.2rem 1.4rem; }
+  .prod-cat { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:var(--leaf); margin-bottom:4px; }
+  .prod-card h4 { font-family:var(--font-h); font-size:1rem; font-weight:700; color:var(--forest); margin-bottom:.3rem; }
+  .prod-desc { font-size:.82rem; color:var(--muted); line-height:1.6; }
+  .prod-footer { display:flex; justify-content:space-between; align-items:center; margin-top:1rem; padding-top:.75rem; border-top:1px solid rgba(45,106,79,.08); }
+  .prod-brand { font-size:.75rem; color:var(--muted); font-weight:500; }
+  .prod-btn {
+    display:inline-flex; align-items:center; gap:5px;
+    background:rgba(45,106,79,.1); color:var(--green);
+    padding:.4rem .9rem; border-radius:8px;
+    font-size:.78rem; font-weight:700; border:none; cursor:pointer;
+    font-family:var(--font-b); transition:all .25s;
+  }
+  .prod-card:hover .prod-btn { background:var(--green); color:var(--white); }
 
-        .section-header h2 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-        }
+  /* ── WHY MKC ─────────────────────────────────────────── */
+  .why-section { background:var(--forest); }
+  .why-header { text-align:center; margin-bottom:4rem; }
+  .why-header .sec-label { justify-content:center; }
+  .why-header .sec-label::before { display:none; }
+  .why-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; max-width:1100px; margin:0 auto; }
+  .why-card {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+    border-radius:20px; padding:2rem;
+    transition:all .4s var(--ease);
+  }
+  .why-card:hover { background:rgba(255,255,255,.09); transform:translateY(-4px); border-color:rgba(233,168,24,.3); }
+  .why-icon {
+    width:52px; height:52px; border-radius:14px;
+    background:rgba(233,168,24,.12); border:1px solid rgba(233,168,24,.25);
+    display:flex; align-items:center; justify-content:center;
+    font-size:1.3rem; color:var(--gold); margin-bottom:1.5rem;
+    transition:all .3s;
+  }
+  .why-card:hover .why-icon { background:var(--gold); color:var(--dark); }
+  .why-card h3 { font-family:var(--font-h); font-size:1.1rem; font-weight:700; color:var(--white); margin-bottom:.6rem; }
+  .why-card p { font-size:.88rem; color:rgba(255,255,255,.55); line-height:1.7; }
 
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
+  /* ── STATS ───────────────────────────────────────────── */
+  .stats-section { background:var(--cream-dk); border-top:1px solid rgba(45,106,79,.1); border-bottom:1px solid rgba(45,106,79,.1); padding:5rem 5%; }
+  .stats-inner { display:grid; grid-template-columns:repeat(4,1fr); gap:0; max-width:1100px; margin:0 auto; }
+  .stat-b { padding:2rem 2rem; border-right:1px solid rgba(45,106,79,.15); text-align:center; }
+  .stat-b:last-child { border-right:none; }
+  .stat-b-num { font-family:var(--font-h); font-size:clamp(2.2rem,4vw,3.5rem); font-weight:900; color:var(--forest); line-height:1; margin-bottom:.4rem; }
+  .stat-b-num .u { color:var(--gold); }
+  .stat-b-label { font-size:.85rem; color:var(--muted); line-height:1.5; }
+  .stat-bar { height:3px; background:rgba(45,106,79,.12); border-radius:2px; margin-top:1rem; overflow:hidden; }
+  .stat-fill { height:100%; background:var(--green); border-radius:2px; width:0; transition:width 1.6s var(--ease); }
 
-        .feature-card {
-            background: var(--glass);
-            padding: 3rem;
-            border-radius: 32px;
-            border: 1px solid var(--glass-border);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
+  /* ── TESTIMONIALS ────────────────────────────────────── */
+  .testi-section { background:var(--dark); }
+  .testi-header { text-align:center; margin-bottom:4rem; }
+  .testi-header .sec-label { justify-content:center; }
+  .testi-header .sec-label::before { display:none; }
+  .testi-track { position:relative; max-width:900px; margin:0 auto; }
+  .testi-slide { display:none; }
+  .testi-slide.active { display:block; }
+  .testi-card {
+    background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.1);
+    border-radius:24px; padding:3rem; text-align:center;
+    position:relative;
+  }
+  .testi-card::before { content:'"'; font-family:var(--font-h); font-size:8rem; font-weight:900; color:rgba(233,168,24,.08); position:absolute; top:-1rem; left:2rem; line-height:1; }
+  .testi-text { font-size:1.05rem; color:rgba(255,255,255,.8); line-height:1.9; margin-bottom:2rem; font-style:italic; }
+  .testi-author { display:flex; align-items:center; justify-content:center; gap:14px; }
+  .testi-av { width:52px; height:52px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-h); font-weight:700; font-size:1.2rem; color:var(--dark); }
+  .testi-name { font-weight:700; color:var(--white); font-size:.95rem; }
+  .testi-role { font-size:.78rem; color:rgba(255,255,255,.4); }
+  .testi-stars { color:var(--gold); font-size:.75rem; margin-top:3px; }
+  .testi-dots { display:flex; justify-content:center; gap:.6rem; margin-top:2rem; }
+  .t-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:rgba(255,255,255,.2); cursor:pointer; transition:all .3s;
+  }
+  .t-dot.active { background:var(--gold); width:24px; border-radius:4px; }
 
-        .feature-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(76, 175, 80, 0.5);
-        }
+  /* ── BRAND PARTNERS ──────────────────────────────────── */
+  .brands-section { background:var(--cream); padding:4rem 0; border-top:1px solid rgba(45,106,79,.1); border-bottom:1px solid rgba(45,106,79,.1); }
+  .brands-label { text-align:center; font-size:.72rem; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); margin-bottom:2rem; }
+  .brands-track { display:flex; animation:scroll-brands 28s linear infinite; width:max-content; }
+  .brands-track:hover { animation-play-state:paused; }
+  .brand-chip {
+    display:inline-flex; align-items:center; gap:8px;
+    padding:0 2.5rem; font-family:var(--font-h); font-size:.9rem;
+    font-weight:700; color:var(--muted); white-space:nowrap;
+    transition:color .25s;
+  }
+  .brand-chip:hover { color:var(--forest); }
+  .brand-sep { color:var(--gold); opacity:.5; font-size:.6rem; }
+  @keyframes scroll-brands { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
 
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            background: rgba(76, 175, 80, 0.1);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: var(--primary-light);
-            margin-bottom: 2rem;
-        }
+  /* ── GARDEN SECTION ──────────────────────────────────── */
+  .garden-section { background:var(--cream); padding:7rem 5%; }
+  .garden-layout { display:grid; grid-template-columns:1fr 1fr; gap:6rem; align-items:center; }
+  .garden-vis {
+    display:grid; grid-template-columns:1fr 1fr; gap:1rem;
+    position:relative;
+  }
+  .g-card {
+    background:var(--white); border-radius:20px; overflow:hidden;
+    border:1.5px solid rgba(45,106,79,.1);
+    transition:all .4s var(--ease);
+  }
+  .g-card:hover { transform:translateY(-6px); box-shadow:0 20px 40px rgba(26,61,43,.1); }
+  .g-card:nth-child(1) { grid-row:span 2; }
+  .g-img {
+    display:flex; align-items:center; justify-content:center;
+    font-size:3.5rem;
+  }
+  .gi-1{height:240px;background:linear-gradient(135deg,#e8f5e9,#c8e6c9)}
+  .gi-2{height:110px;background:linear-gradient(135deg,#f1f8e9,#dcedc8)}
+  .gi-3{height:110px;background:linear-gradient(135deg,#fff8e1,#ffecb3)}
+  .gi-4{height:140px;background:linear-gradient(135deg,#e0f7fa,#b2ebf2)}
+  .gi-5{height:140px;background:linear-gradient(135deg,#f3e5f5,#e1bee7)}
+  .g-card-body { padding:1rem 1.2rem; }
+  .g-card-body h4 { font-family:var(--font-h); font-size:.95rem; font-weight:700; color:var(--forest); margin-bottom:2px; }
+  .g-card-body p { font-size:.78rem; color:var(--muted); }
 
-        .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-        }
+  /* ── CONTACT SECTION ─────────────────────────────────── */
+  .contact-section { background:var(--forest); }
+  .contact-layout { display:grid; grid-template-columns:1fr 1fr; gap:5rem; align-items:start; }
+  .contact-info { }
+  .c-detail { display:flex; align-items:flex-start; gap:1rem; margin-bottom:1.5rem; }
+  .c-icon { width:44px; height:44px; border-radius:12px; background:rgba(233,168,24,.15); display:flex; align-items:center; justify-content:center; color:var(--gold); flex-shrink:0; }
+  .c-label { font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.1em; color:rgba(255,255,255,.4); margin-bottom:4px; }
+  .c-val { font-size:.95rem; font-weight:600; color:var(--white); line-height:1.5; }
+  .wa-cta {
+    display:flex; align-items:center; gap:12px;
+    background:#25D366; color:var(--white);
+    padding:1.2rem 2rem; border-radius:14px; margin-top:2rem;
+    transition:all .3s var(--spring); font-weight:700; font-size:1rem;
+  }
+  .wa-cta:hover { background:#1ebe5d; transform:translateY(-3px); box-shadow:0 16px 40px rgba(37,211,102,.4); }
+  .wa-cta i { font-size:1.5rem; }
 
-        .feature-card p {
-            color: var(--text-light);
-        }
+  .contact-form-wrap {
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
+    border-radius:24px; padding:2.5rem;
+  }
+  .contact-form-wrap h3 { font-family:var(--font-h); font-size:1.5rem; font-weight:700; color:var(--white); margin-bottom:.5rem; }
+  .contact-form-wrap p { font-size:.88rem; color:rgba(255,255,255,.5); margin-bottom:2rem; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem; }
+  .form-group { display:flex; flex-direction:column; gap:.5rem; margin-bottom:1rem; }
+  .form-group label { font-size:.78rem; font-weight:700; color:rgba(255,255,255,.6); text-transform:uppercase; letter-spacing:.08em; }
+  .form-group input, .form-group select, .form-group textarea {
+    background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.12);
+    border-radius:10px; padding:.85rem 1rem;
+    color:var(--white); font-size:.9rem; font-family:var(--font-b);
+    transition:border-color .25s;
+    outline:none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:rgba(233,168,24,.5); }
+  .form-group input::placeholder, .form-group textarea::placeholder { color:rgba(255,255,255,.25); }
+  .form-group select option { background:var(--forest); color:var(--white); }
+  .form-group textarea { resize:vertical; min-height:100px; }
+  .btn-form-submit {
+    width:100%; background:var(--gold); color:var(--dark);
+    padding:1rem; border-radius:10px; border:none;
+    font-size:1rem; font-weight:700; font-family:var(--font-b);
+    cursor:pointer; transition:all .3s var(--spring);
+    display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-form-submit:hover { background:var(--gold-lt); transform:translateY(-2px); box-shadow:0 10px 28px rgba(233,168,24,.4); }
 
-        /* Floating Stats */
-        .stats {
-            margin-top: 4rem;
-            display: flex;
-            gap: 3rem;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            width: fit-content;
-        }
+  /* ── MAP ─────────────────────────────────────────────── */
+  .map-section { height:400px; background:var(--charcoal); position:relative; overflow:hidden; }
+  .map-section iframe { width:100%; height:100%; border:none; filter:grayscale(.3) contrast(1.05); }
 
-        .stat-item h4 {
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--primary-light);
-        }
+  /* ── FOOTER ──────────────────────────────────────────── */
+  footer { background:var(--dark); border-top:1px solid rgba(255,255,255,.06); padding:4.5rem 5% 2.5rem; }
+  .ft-top { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:4rem; margin-bottom:3.5rem; }
+  .ft-brand-text { font-size:.875rem; color:rgba(255,255,255,.45); margin-top:1rem; line-height:1.8; max-width:320px; }
+  .ft-col h5 { font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.14em; color:rgba(255,255,255,.3); margin-bottom:1.2rem; }
+  .ft-col ul { list-style:none; }
+  .ft-col ul li { margin-bottom:.6rem; }
+  .ft-col ul a { font-size:.875rem; color:rgba(255,255,255,.45); transition:color .2s; }
+  .ft-col ul a:hover { color:rgba(255,255,255,.9); }
+  .ft-bottom { border-top:1px solid rgba(255,255,255,.06); padding-top:2rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+  .ft-bottom p { font-size:.8rem; color:rgba(255,255,255,.3); }
+  .ft-socials { display:flex; gap:.75rem; }
+  .ft-soc {
+    width:36px; height:36px; border-radius:8px;
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1);
+    display:flex; align-items:center; justify-content:center;
+    color:rgba(255,255,255,.4); font-size:.85rem; transition:all .25s;
+  }
+  .ft-soc:hover { background:var(--gold); color:var(--dark); border-color:var(--gold); }
 
-        .stat-item span {
-            font-size: 0.9rem;
-            color: var(--text-light);
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        /* Footer */
-        footer {
-            padding: 4rem 5%;
-            border-top: 1px solid var(--glass-border);
-            text-align: center;
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .hero h1 {
-                font-size: 3.5rem;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.8rem;
-            }
-
-            .hero-btns {
-                flex-direction: column;
-            }
-
-            nav {
-                padding: 1.5rem 5%;
-            }
-
-            .nav-links {
-                display: none;
-            }
-        }
-    </style>
+  /* ── RESPONSIVE ──────────────────────────────────────── */
+  @media(max-width:1100px){
+    .cat-grid { grid-template-columns:repeat(3,1fr); }
+    .prod-grid { grid-template-columns:repeat(3,1fr); }
+    .why-grid { grid-template-columns:repeat(2,1fr); }
+    .ft-top { grid-template-columns:1fr 1fr; gap:2.5rem; }
+    .contact-layout { grid-template-columns:1fr; gap:3rem; }
+    .garden-layout { grid-template-columns:1fr; gap:3rem; }
+  }
+  @media(max-width:768px){
+    section { padding:5rem 5%; }
+    .cat-grid { grid-template-columns:repeat(2,1fr); }
+    .prod-grid { grid-template-columns:repeat(2,1fr); }
+    .why-grid { grid-template-columns:1fr; }
+    .stats-inner { grid-template-columns:1fr 1fr; }
+    .stat-b { border-right:none; border-bottom:1px solid rgba(45,106,79,.15); }
+    .stat-b:nth-child(odd) { border-right:1px solid rgba(45,106,79,.15); }
+    .ft-top { grid-template-columns:1fr; gap:2rem; }
+    .ft-bottom { flex-direction:column; text-align:center; }
+    .nav-links,.nav-cta-wrap { display:none; }
+    .nav-ham { display:flex; }
+    .hero-bottom-strip { display:none; }
+    .form-row { grid-template-columns:1fr; }
+  }
+  @media(max-width:480px){
+    .cat-grid { grid-template-columns:1fr; }
+    .prod-grid { grid-template-columns:1fr; }
+    .stats-inner { grid-template-columns:1fr; }
+    .stat-b { border-right:none; }
+    .trust-bar { gap:1.5rem; }
+    .hero-h1 { font-size:2.5rem; }
+    .hero-btns { flex-direction:column; align-items:center; }
+    .garden-vis { grid-template-columns:1fr; }
+    .g-card:nth-child(1) { grid-row:auto; }
+  }
+  </style>
 </head>
-
 <body>
-    <div class="bg-blobs">
-        <div class="blob blob-1"></div>
-        <div class="blob blob-2"></div>
+  <div id="pg-bar"></div>
+
+  <!-- Mobile Nav -->
+  <div class="mob-nav" id="mobNav">
+    <div class="mob-close" id="mobClose"><i class="fas fa-times"></i></div>
+    <a href="#categories" onclick="closeMob()">Products</a>
+    <a href="#why" onclick="closeMob()">Why MKC</a>
+    <a href="#garden" onclick="closeMob()">Garden</a>
+    <a href="#contact" onclick="closeMob()">Contact</a>
+    <a href="tel:+94000000000" class="btn-gold" style="padding:.9rem 2rem; border-radius:10px; font-family:var(--font-b);">
+      <i class="fas fa-phone"></i> Call Now
+    </a>
+    <a href="/login" style="display:inline-flex;align-items:center;gap:8px;border:1.5px solid rgba(255,255,255,.25);color:rgba(255,255,255,.8);padding:.9rem 2rem;border-radius:10px;font-family:var(--font-b);font-weight:700;font-size:1rem;" onclick="closeMob()">
+      <i class="fas fa-right-to-bracket"></i> Staff Login
+    </a>
+  </div>
+
+  <!-- NAV -->
+  <nav id="mainNav">
+    <a href="/" class="nav-logo">
+      <div class="nav-logo-img">🌿</div>
+      <span>M.K.C. Trade</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="#categories">Products</a></li>
+      <li><a href="#showcase">Innovations</a></li>
+      <li><a href="#why">Why MKC</a></li>
+      <li><a href="#garden">Home Garden</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-cta-wrap">
+      <a href="tel:+94000000000" class="nav-call"><i class="fas fa-phone"></i>&nbsp;Call Us</a>
+      <a href="#contact" class="btn-gold">Get Advice</a>
+      <a href="/login" class="nav-login-btn"><i class="fas fa-right-to-bracket"></i> Login</a>
+    </div>
+    <div class="nav-ham" id="navHam" onclick="openMob()"><span></span><span></span><span></span></div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════════
+       HERO (LIGHT MODE)
+  ═══════════════════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-grain"></div>
+
+    <!-- Split grid: text left | animated field canvas right -->
+    <div class="hero-wrap">
+
+      <!-- LEFT: Text content -->
+      <div class="hero-text">
+        <div class="hero-eyebrow">
+          <div class="hero-eyebrow-dot"></div>
+          Sri Lanka's #1 Agricultural Partner
+        </div>
+
+        <h1 class="hero-h1">
+          <span class="hl"><span class="hli d1">Your Trusted</span></span>
+          <span class="hl">
+            <span class="hli d2">Agricultural
+              <span class="h-cyc-wrap">
+                <span class="h-cyc-list" id="heroCyc">
+                  <span class="h-cyc-item">Partner.</span>
+                  <span class="h-cyc-item">Supplier.</span>
+                  <span class="h-cyc-item italic">Advisor.</span>
+                  <span class="h-cyc-item">Partner.</span>
+                </span>
+              </span>
+            </span>
+          </span>
+          <span class="hl">
+            <span class="hli d3" style="font-style:italic;font-weight:300;color:var(--leaf);font-size:.8em;">for Better Harvests</span>
+          </span>
+        </h1>
+
+        <div class="hero-divider">
+          <div class="hd-line"></div>
+          <span class="hd-text">Galgamuwa, Sri Lanka</span>
+          <div class="hd-line" style="opacity:.38"></div>
+        </div>
+
+        <p class="hero-sub">
+          Certified agrochemicals, fertilizers, seeds, irrigation equipment,
+          agricultural machinery and home gardening products — backed by
+          two decades of agronomy expertise and trusted by 5,000+ farmers island-wide.
+        </p>
+
+        <div class="hero-btns">
+          <a href="#categories" class="btn-primary">
+            Explore Products <i class="fas fa-arrow-right"></i>
+          </a>
+          <a href="https://wa.me/94000000000?text=Hello%20MKC%20Trade%20Center%2C%20I%20need%20agricultural%20advice" class="btn-whatsapp" target="_blank" rel="noopener">
+            <i class="fab fa-whatsapp"></i> WhatsApp Us
+          </a>
+          <a href="#contact" class="btn-outline">
+            <i class="fas fa-headset"></i> Expert Advice
+          </a>
+        </div>
+
+        <div class="hero-trust">
+          <div class="htrust-item"><i class="fas fa-certificate"></i> DOA Certified</div>
+          <div class="htrust-item"><i class="fas fa-truck-fast"></i> Island-Wide Delivery</div>
+          <div class="htrust-item"><i class="fas fa-star"></i> 5,000+ Farmers Served</div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Animated field canvas -->
+      <div class="hero-visual">
+
+        <!-- Canvas clip wrapper — overflow:hidden scoped only to canvases -->
+        <div class="hv-clip">
+          <canvas id="hero-sky-c"></canvas>
+          <canvas id="hero-pollen-c"></canvas>
+          <div class="hero-canvas-fade"></div>
+          <div class="hero-canvas-fade-b"></div>
+        </div>
+
+        <!-- Floating product panel (outside clip so shadow renders fully) -->
+        <div class="hero-panel">
+          <div class="hp-bar">
+            <div class="hp-dots">
+              <div class="hp-dot"></div><div class="hp-dot"></div><div class="hp-dot"></div>
+            </div>
+            <span class="hp-bar-title">MKC Product Hub</span>
+            <div class="hp-live"><div class="hp-live-dot"></div> In Season</div>
+          </div>
+          <div class="hp-cats">
+            <div class="hp-cat"><span class="hp-cat-icon">🧴</span><div><div class="hp-cat-name">Agrochemicals</div><div class="hp-cat-qty">200+ products</div></div></div>
+            <div class="hp-cat"><span class="hp-cat-icon">🌿</span><div><div class="hp-cat-name">Fertilizers</div><div class="hp-cat-qty">All crop types</div></div></div>
+            <div class="hp-cat"><span class="hp-cat-icon">🌾</span><div><div class="hp-cat-name">Seeds</div><div class="hp-cat-qty">Certified varieties</div></div></div>
+            <div class="hp-cat"><span class="hp-cat-icon">🚜</span><div><div class="hp-cat-name">Machinery</div><div class="hp-cat-qty">Sales &amp; service</div></div></div>
+          </div>
+        </div>
+
+        <!-- Floating trust badges -->
+        <div class="hb hb1"><span class="hb-icon">✅</span><div><div class="hb-main">DOA Certified</div><div class="hb-sub">All products verified</div></div></div>
+        <div class="hb hb2"><span class="hb-icon">🌿</span><div><div class="hb-main">20+ Years</div><div class="hb-sub">Trusted expertise</div></div></div>
+      </div>
     </div>
 
-    <nav>
-        <a href="/" class="logo">
-            <i class="fas fa-leaf"></i>
-            <span>MKC TRADE</span>
-        </a>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#solutions">Solutions</a>
-            <a href="#company">Company</a>
-            <a href="/login" class="btn-login">Client Portal</a>
+    <!-- Scroll cue -->
+    <div class="hero-scroll-cue">
+      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
+      <span class="scroll-cue-lbl">Scroll to explore</span>
+    </div>
+
+    <!-- Stats strip (natural flow at bottom) -->
+    <div class="hero-stats-strip">
+      <div class="hss"><span class="hss-icon">🏆</span><div><div class="hss-num">20+</div><div class="hss-lbl">Years Experience</div></div></div>
+      <div class="hss"><span class="hss-icon">📦</span><div><div class="hss-num">500+</div><div class="hss-lbl">Products Stocked</div></div></div>
+      <div class="hss"><span class="hss-icon">👨‍🌾</span><div><div class="hss-num">5,000+</div><div class="hss-lbl">Happy Farmers</div></div></div>
+      <div class="hss"><span class="hss-icon">🤝</span><div><div class="hss-num">50+</div><div class="hss-lbl">Trusted Brands</div></div></div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trust-bar">
+    <div class="trust-item"><i class="fas fa-award"></i><span>Authorised Agrochemical Dealer</span></div>
+    <div class="trust-item"><i class="fas fa-truck-fast"></i><span>Island-Wide Distribution</span></div>
+    <div class="trust-item"><i class="fas fa-flask"></i><span>Certified Agricultural Inputs</span></div>
+    <div class="trust-item"><i class="fas fa-headset"></i><span>Free Farming Consultation</span></div>
+    <div class="trust-item"><i class="fas fa-shield-halved"></i><span>Quality Guaranteed Products</span></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       PRODUCT CATEGORIES
+  ═══════════════════════════════════════════════ -->
+  <section id="categories" class="categories-section">
+    <div class="cat-header">
+      <div class="sec-label rv">Our Product Range</div>
+      <h2 class="sec-h2 rv d1">Everything your farm needs,<br><em>all in one place</em></h2>
+      <p class="sec-p rv d2" style="margin:0 auto; text-align:center;">
+        From soil preparation to post-harvest, we supply every input a modern agricultural operation requires.
+      </p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card rv d1">
+        <div class="cat-icon ci-1"><i class="fas fa-flask"></i></div>
+        <h3>Agrochemicals</h3>
+        <p>Herbicides, fungicides, insecticides, and plant growth regulators from leading certified manufacturers.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d2">
+        <div class="cat-icon ci-2"><i class="fas fa-bag-seedling"></i></div>
+        <h3>Fertilizers</h3>
+        <p>Granular, foliar, and organic fertilizers — NPK blends, micronutrients, and soil conditioners.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d3">
+        <div class="cat-icon ci-3"><i class="fas fa-seedling"></i></div>
+        <h3>Seeds</h3>
+        <p>High-yielding certified rice, vegetable, field crop, and hybrid seeds for Sri Lankan conditions.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d4">
+        <div class="cat-icon ci-4"><i class="fas fa-tractor"></i></div>
+        <h3>Agricultural Machinery</h3>
+        <p>Power tillers, water pumps, harvesters, and precision farming equipment for all scales.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d1">
+        <div class="cat-icon ci-5"><i class="fas fa-droplet"></i></div>
+        <h3>Irrigation Equipment</h3>
+        <p>Drip systems, sprinkler heads, pipes, pumps, and complete irrigation solutions for all crops.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d2">
+        <div class="cat-icon ci-6"><i class="fas fa-spray-can"></i></div>
+        <h3>Sprayers</h3>
+        <p>Knapsack, motorized, and battery-powered sprayers with accessories and spare parts.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d3">
+        <div class="cat-icon ci-7"><i class="fas fa-leaf"></i></div>
+        <h3>Home Gardening</h3>
+        <p>Garden tools, potting soil, flower seeds, organic fertilizers, and decorative plant accessories.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+      <div class="cat-card rv d4">
+        <div class="cat-icon ci-8"><i class="fas fa-toolbox"></i></div>
+        <h3>Farm Accessories</h3>
+        <p>Safety equipment, measuring instruments, storage solutions, and farm management tools.</p>
+        <div class="cat-link">Browse Range <i class="fas fa-arrow-right"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       ECOSYSTEM ANIMATION
+  ═══════════════════════════════════════════════ -->
+  <section class="ecosystem-section">
+    <div class="eco-header">
+      <div class="sec-label rv" style="justify-content:center;"><span style="--x:0"></span>The Farming Cycle</div>
+      <h2 class="sec-h2 light rv d1" style="text-align:center;">From soil to <em>harvest</em></h2>
+      <p class="sec-p light rv d2" style="text-align:center;margin:0 auto;">
+        We support every stage of agricultural production — with the right product at the right time.
+      </p>
+    </div>
+    <canvas id="eco-canvas" height="360" class="rv d2"></canvas>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       HORIZONTAL SHOWCASE
+  ═══════════════════════════════════════════════ -->
+  <div id="showcase" class="showcase-section">
+    <div class="showcase-head">
+      <div class="sec-label rv" style="color:rgba(149,213,178,.7);">Agriculture Technology</div>
+      <h2 class="sec-h2 light rv d1">Smart farming for<br><em>better yields</em></h2>
+    </div>
+    <div class="showcase-scroll">
+      <div class="sh-card">
+        <div class="sh-img sh-i1"><span>🛰️</span></div>
+        <div class="sh-body">
+          <div class="sh-tag">Precision Agriculture</div>
+          <h3>Smart Crop Monitoring</h3>
+          <p>Modern tools to monitor crop health, track soil moisture, and optimize input application per plot.</p>
         </div>
-    </nav>
+      </div>
+      <div class="sh-card">
+        <div class="sh-img sh-i2"><span>💧</span></div>
+        <div class="sh-body">
+          <div class="sh-tag">Modern Irrigation</div>
+          <h3>Drip & Sprinkler Systems</h3>
+          <p>Reduce water usage by up to 50% with precision drip irrigation systems suited to Sri Lankan crops.</p>
+        </div>
+      </div>
+      <div class="sh-card">
+        <div class="sh-img sh-i3"><span>🌾</span></div>
+        <div class="sh-body">
+          <div class="sh-tag">Crop Management</div>
+          <h3>Integrated Pest Management</h3>
+          <p>Comprehensive IPM solutions combining biological, chemical, and cultural control strategies.</p>
+        </div>
+      </div>
+      <div class="sh-card">
+        <div class="sh-img sh-i4"><span>🚜</span></div>
+        <div class="sh-body">
+          <div class="sh-tag">Farm Mechanization</div>
+          <h3>Modern Farm Equipment</h3>
+          <p>Increase productivity and reduce labour costs with mechanized solutions for all farm scales.</p>
+        </div>
+      </div>
+      <div class="sh-card">
+        <div class="sh-img sh-i5"><span>🌱</span></div>
+        <div class="sh-body">
+          <div class="sh-tag">Soil Health</div>
+          <h3>Soil Nutrition Programs</h3>
+          <p>Balanced fertilization programs based on soil testing to maximize crop nutrition and yield potential.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-    <main>
-        <section class="hero">
-            <!-- Background Elements -->
-            <div class="hero-video-container">
-                <video autoplay muted loop playsinline class="hero-video">
-                    <source
-                        src="https://assets.mixkit.co/videos/preview/mixkit-delivery-truck-driving-on-the-highway-34531-large.mp4"
-                        type="video/mp4">
-                </video>
+  <!-- ══════════════════════════════════════════════
+       FEATURED PRODUCTS
+  ═══════════════════════════════════════════════ -->
+  <section class="products-section">
+    <div class="prod-header">
+      <div>
+        <div class="sec-label rv">Popular Products</div>
+        <h2 class="sec-h2 rv d1">Farmer favourites</h2>
+      </div>
+      <div class="prod-filter rv d2">
+        <button class="filter-btn active" data-cat="all">All</button>
+        <button class="filter-btn" data-cat="agro">Agrochemicals</button>
+        <button class="filter-btn" data-cat="fert">Fertilizers</button>
+        <button class="filter-btn" data-cat="seed">Seeds</button>
+        <button class="filter-btn" data-cat="mach">Machinery</button>
+      </div>
+    </div>
+    <div class="prod-grid" id="prodGrid">
+      <div class="prod-card rv" data-cat="agro">
+        <div class="prod-img pi-1"><span>🧴</span><span class="prod-badge">Best Seller</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Agrochemicals</div>
+          <h4>Glyphosate 48% SL Herbicide</h4>
+          <p class="prod-desc">Broad-spectrum systemic herbicide for total weed control in paddy and upland crops.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">Syngenta</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-card rv d1" data-cat="fert">
+        <div class="prod-img pi-2"><span>🌿</span><span class="prod-badge">Popular</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Fertilizers</div>
+          <h4>MOP 60% Potassium Chloride</h4>
+          <p class="prod-desc">Premium muriate of potash for improved fruit quality, disease resistance, and drought tolerance.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">Haifa Group</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-card rv d2" data-cat="seed">
+        <div class="prod-img pi-3"><span>🌾</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Seeds</div>
+          <h4>AT 308 Hybrid Paddy Seed</h4>
+          <p class="prod-desc">High-yielding hybrid rice variety adapted to Sri Lankan maha and yala seasons. 7-8 mt/ha potential.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">DOA Certified</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-card rv d3" data-cat="mach">
+        <div class="prod-img pi-4"><span>⚙️</span><span class="prod-badge">New</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Machinery</div>
+          <h4>Honda F800 Power Tiller</h4>
+          <p class="prod-desc">7HP 4-stroke engine power tiller with multiple attachments for paddy and highland cultivation.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">Honda</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-card rv d1" data-cat="agro">
+        <div class="prod-img pi-5"><span>🦟</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Agrochemicals</div>
+          <h4>Carbofuran 3G Granules</h4>
+          <p class="prod-desc">Soil-applied insecticide-nematicide for paddy BPH, whorl maggot, and root nematode control.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">FMC</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="prod-card rv d2" data-cat="fert">
+        <div class="prod-img pi-6"><span>💊</span></div>
+        <div class="prod-body">
+          <div class="prod-cat">Fertilizers</div>
+          <h4>Ypsilon Foliar Nutrition Pack</h4>
+          <p class="prod-desc">Complete micronutrient foliar fertilizer with chelated Fe, Mn, Zn, Cu, B, Mo for all crops.</p>
+          <div class="prod-footer">
+            <span class="prod-brand">Haifa Group</span>
+            <button class="prod-btn">Enquire <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       WHY MKC
+  ═══════════════════════════════════════════════ -->
+  <section id="why" class="why-section">
+    <div class="why-header">
+      <div class="sec-label rv" style="color:rgba(149,213,178,.7); justify-content:center;"><span></span>Why Choose Us</div>
+      <h2 class="sec-h2 light rv d1" style="text-align:center;">Your trusted agricultural<br><em>partner in Sri Lanka</em></h2>
+      <p class="sec-p light rv d2" style="text-align:center;margin:0 auto;">
+        For over two decades, M.K.C. Trade Center has been the partner farmers trust for quality, expertise, and reliability.
+      </p>
+    </div>
+    <div class="why-grid">
+      <div class="why-card rv d1">
+        <div class="why-icon"><i class="fas fa-medal"></i></div>
+        <h3>Trusted Expertise</h3>
+        <p>Over 20 years of agricultural distribution experience with deep knowledge of Sri Lankan farming conditions, seasons, and crop requirements.</p>
+      </div>
+      <div class="why-card rv d2">
+        <div class="why-icon"><i class="fas fa-certificate"></i></div>
+        <h3>Certified Quality Products</h3>
+        <p>All agrochemicals and fertilizers are DOA-certified and sourced from internationally recognized manufacturers with proven field performance.</p>
+      </div>
+      <div class="why-card rv d3">
+        <div class="why-icon"><i class="fas fa-truck-fast"></i></div>
+        <h3>Reliable Distribution</h3>
+        <p>Fast and dependable supply chain across the North Western and North Central Provinces — products arrive when your farm needs them.</p>
+      </div>
+      <div class="why-card rv d1">
+        <div class="why-icon"><i class="fas fa-coins"></i></div>
+        <h3>Competitive Pricing</h3>
+        <p>Direct relationships with manufacturers enable competitive pricing without compromising on quality — maximizing your ROI per acre.</p>
+      </div>
+      <div class="why-card rv d2">
+        <div class="why-icon"><i class="fas fa-user-tie"></i></div>
+        <h3>Expert Technical Support</h3>
+        <p>Free agronomic consultation, crop protection advice, and soil nutrition guidance from our experienced technical team.</p>
+      </div>
+      <div class="why-card rv d3">
+        <div class="why-icon"><i class="fas fa-handshake"></i></div>
+        <h3>Farmer-Focused Service</h3>
+        <p>We understand the unique challenges Sri Lankan farmers face — seasonal requirements, credit support, and after-sales service included.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       STATS
+  ═══════════════════════════════════════════════ -->
+  <div class="stats-section">
+    <div class="stats-inner">
+      <div class="stat-b rv">
+        <div class="stat-b-num"><span class="cu" data-t="20">0</span><span class="u">+ Yrs</span></div>
+        <div class="stat-b-label">Serving Sri Lankan farmers and agricultural businesses</div>
+        <div class="stat-bar"><div class="stat-fill" data-w="85"></div></div>
+      </div>
+      <div class="stat-b rv d1">
+        <div class="stat-b-num"><span class="cu" data-t="500">0</span><span class="u">+</span></div>
+        <div class="stat-b-label">Agricultural products stocked and available year-round</div>
+        <div class="stat-bar"><div class="stat-fill" data-w="72"></div></div>
+      </div>
+      <div class="stat-b rv d2">
+        <div class="stat-b-num"><span class="cu" data-t="5000">0</span><span class="u">+</span></div>
+        <div class="stat-b-label">Farmers and agribusinesses served across Sri Lanka</div>
+        <div class="stat-bar"><div class="stat-fill" data-w="90"></div></div>
+      </div>
+      <div class="stat-b rv d3">
+        <div class="stat-b-num"><span class="cu" data-t="50">0</span><span class="u">+</span></div>
+        <div class="stat-b-label">Trusted international and local agricultural brands</div>
+        <div class="stat-bar"><div class="stat-fill" data-w="65"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       TESTIMONIALS
+  ═══════════════════════════════════════════════ -->
+  <section class="testi-section">
+    <div class="testi-header">
+      <div class="sec-label rv" style="color:rgba(149,213,178,.7);justify-content:center;"><span></span>Customer Stories</div>
+      <h2 class="sec-h2 light rv d1" style="text-align:center;">What farmers say about us</h2>
+    </div>
+    <div class="testi-track rv d2">
+      <div class="testi-slide active">
+        <div class="testi-card">
+          <p class="testi-text">"MKC Trade Center has been my go-to for paddy farming inputs for over 10 years. Their agrochemicals are always genuine, and the staff really understand what a farmer needs during paddy season. Highly trusted!"</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:var(--gold);">K</div>
+            <div>
+              <div class="testi-name">Karunaratne Silva</div>
+              <div class="testi-role">Paddy Farmer — Kurunegala District</div>
+              <div class="testi-stars">★★★★★</div>
             </div>
-
-            <canvas id="bg-canvas"></canvas>
-            <div class="hero-overlay"></div>
-
-            <div class="hero-content">
-                <div class="hero-tag">
-                    <i class="fas fa-satellite"></i>
-                    <span>Next-Gen Distribution Hub</span>
-                </div>
-                <h1>Empowering Agro <span>Supply Chains</span></h1>
-                <p>MKC Trade Center revolutionizes distribution with precision logistics, real-time intelligence, and
-                    seamless inventory orchestration for the modern enterprise.</p>
-
-                <div class="hero-btns">
-                    <a href="/login" class="btn-primary">
-                        Access Hub <i class="fas fa-rocket"></i>
-                    </a>
-                    <a href="#features" class="btn-secondary">Explore Tech</a>
-                </div>
-
-                <div class="stats">
-                    <div class="stat-item">
-                        <h4 class="counter">100</h4>
-                        <span>% Uptime</span>
-                    </div>
-                    <div class="stat-item">
-                        <h4 class="counter">24</h4>
-                        <span>/7 Monitoring</span>
-                    </div>
-                    <div class="stat-item">
-                        <h4 class="counter">128</h4>
-                        <span>bit Encryption</span>
-                    </div>
-                </div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-slide">
+        <div class="testi-card">
+          <p class="testi-text">"I run a 15-acre vegetable farm and I depend on MKC for all my crop protection and fertilizer needs. They always have stock during peak season and their technical advice has improved my yields significantly."</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:var(--leaf);">S</div>
+            <div>
+              <div class="testi-name">Suresh Priyantha</div>
+              <div class="testi-role">Vegetable Farmer — Galgamuwa</div>
+              <div class="testi-stars">★★★★★</div>
             </div>
-        </section>
-
-        <section class="features" id="features">
-            <div class="section-header">
-                <h2>Precision Distribution</h2>
-                <p>Modern tools for high-performance agro-businesses.</p>
+          </div>
+        </div>
+      </div>
+      <div class="testi-slide">
+        <div class="testi-card">
+          <p class="testi-text">"As an agro-dealer myself, I source all my bulk agrochemicals from MKC. Their pricing is the best in the area, delivery is fast, and the products are 100% authentic. A reliable business partner."</p>
+          <div class="testi-author">
+            <div class="testi-av" style="background:#5C8A3F;">N</div>
+            <div>
+              <div class="testi-name">Nimal Bandara</div>
+              <div class="testi-role">Agro-Dealer — Puttalam Road</div>
+              <div class="testi-stars">★★★★★</div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="testi-dots" id="testiDots">
+      <div class="t-dot active" onclick="goSlide(0)"></div>
+      <div class="t-dot" onclick="goSlide(1)"></div>
+      <div class="t-dot" onclick="goSlide(2)"></div>
+    </div>
+  </section>
 
-            <div class="feature-grid">
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-box-open"></i></div>
-                    <h3>Inventory Tracking</h3>
-                    <p>Manage stock across multiple locations with real-time updates and automated low-stock alerts.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-truck-fast"></i></div>
-                    <h3>Route Optimization</h3>
-                    <p>Streamline delivery routes for maximum efficiency and reduced fuel consumption.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
-                    <h3>Sales Analytics</h3>
-                    <p>Deep insights into your commercial performance with beautiful, interactive visualizations.</p>
-                </div>
+  <!-- ══════════════════════════════════════════════
+       BRAND PARTNERS
+  ═══════════════════════════════════════════════ -->
+  <div class="brands-section">
+    <div class="brands-label">Our trusted brand partners</div>
+    <div style="overflow:hidden;">
+      <div class="brands-track">
+        <span class="brand-chip">Syngenta<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Bayer<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">BASF<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Honda<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Haifa<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Yara<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">FMC<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">UPL<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Kubota<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">CIC Agri<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Dow AgroSciences<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Corteva<span class="brand-sep">◆</span></span>
+        <!-- Duplicate for seamless loop -->
+        <span class="brand-chip">Syngenta<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Bayer<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">BASF<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Honda<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Haifa<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Yara<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">FMC<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">UPL<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Kubota<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">CIC Agri<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Dow AgroSciences<span class="brand-sep">◆</span></span>
+        <span class="brand-chip">Corteva<span class="brand-sep">◆</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       HOME GARDENING
+  ═══════════════════════════════════════════════ -->
+  <section id="garden" class="garden-section">
+    <div class="garden-layout">
+      <div>
+        <div class="sec-label rv">Home Gardening</div>
+        <h2 class="sec-h2 rv d1">Grow your own<br><em>paradise at home</em></h2>
+        <p class="sec-p rv d2">
+          Whether you have a balcony, a backyard, or a small plot — we have everything you need to grow fresh vegetables, beautiful flowers, and aromatic herbs right at home.
+        </p>
+        <ul style="margin:2rem 0; list-style:none; display:flex; flex-direction:column; gap:1rem;" class="rv d3">
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="width:24px;height:24px;border-radius:50%;background:rgba(82,183,136,.2);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.8rem;flex-shrink:0;margin-top:2px;"><i class="fas fa-check"></i></span>
+            <span style="font-size:.95rem;color:var(--muted);"><strong style="color:var(--text);">Vegetable & Herb Seeds</strong> — Open-pollinated and hybrid varieties for home gardens</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="width:24px;height:24px;border-radius:50%;background:rgba(82,183,136,.2);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.8rem;flex-shrink:0;margin-top:2px;"><i class="fas fa-check"></i></span>
+            <span style="font-size:.95rem;color:var(--muted);"><strong style="color:var(--text);">Organic Fertilizers</strong> — Compost, vermicompost, and natural soil amendments</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="width:24px;height:24px;border-radius:50%;background:rgba(82,183,136,.2);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.8rem;flex-shrink:0;margin-top:2px;"><i class="fas fa-check"></i></span>
+            <span style="font-size:.95rem;color:var(--muted);"><strong style="color:var(--text);">Garden Tools</strong> — Trowels, pruners, watering cans, and starter kits</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <span style="width:24px;height:24px;border-radius:50%;background:rgba(82,183,136,.2);display:flex;align-items:center;justify-content:center;color:var(--green);font-size:.8rem;flex-shrink:0;margin-top:2px;"><i class="fas fa-check"></i></span>
+            <span style="font-size:.95rem;color:var(--muted);"><strong style="color:var(--text);">Pots & Planters</strong> — Terracotta, plastic, and fabric grow bags in all sizes</span>
+          </li>
+        </ul>
+        <a href="#contact" class="btn-primary rv d4" style="display:inline-flex;">
+          Shop Garden Products <i class="fas fa-arrow-right"></i>
+        </a>
+      </div>
+      <div class="garden-vis rv d2">
+        <div class="g-card">
+          <div class="g-img gi-1"><span>🥬</span></div>
+          <div class="g-card-body"><h4>Vegetable Seeds</h4><p>50+ varieties</p></div>
+        </div>
+        <div class="g-card">
+          <div class="g-img gi-2"><span>🌸</span></div>
+          <div class="g-card-body"><h4>Flower Seeds</h4><p>Annual & perennial</p></div>
+        </div>
+        <div class="g-card">
+          <div class="g-img gi-3"><span>🌿</span></div>
+          <div class="g-card-body"><h4>Organic Fertilizers</h4><p>Natural solutions</p></div>
+        </div>
+        <div class="g-card">
+          <div class="g-img gi-4"><span>🪴</span></div>
+          <div class="g-card-body"><h4>Grow Bags & Pots</h4><p>All sizes</p></div>
+        </div>
+        <div class="g-card">
+          <div class="g-img gi-5"><span>🛠️</span></div>
+          <div class="g-card-body"><h4>Garden Tools</h4><p>Starter kits available</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════
+       CONTACT
+  ═══════════════════════════════════════════════ -->
+  <section id="contact" class="contact-section">
+    <div class="contact-layout">
+      <div class="contact-info rv">
+        <div class="sec-label" style="color:rgba(149,213,178,.7);">Get In Touch</div>
+        <h2 class="sec-h2 light" style="margin-bottom:2.5rem;">Visit us or reach<br><em>out anytime</em></h2>
+
+        <div class="c-detail">
+          <div class="c-icon"><i class="fas fa-location-dot"></i></div>
+          <div>
+            <div class="c-label">Our Location</div>
+            <div class="c-val">No. 69, Kurunegala Road,<br>Galgamuwa, Sri Lanka</div>
+          </div>
+        </div>
+        <div class="c-detail">
+          <div class="c-icon"><i class="fas fa-phone"></i></div>
+          <div>
+            <div class="c-label">Phone</div>
+            <div class="c-val"><a href="tel:+94000000000" style="color:var(--white);">+94 00 000 0000</a></div>
+          </div>
+        </div>
+        <div class="c-detail">
+          <div class="c-icon"><i class="fas fa-clock"></i></div>
+          <div>
+            <div class="c-label">Business Hours</div>
+            <div class="c-val">Mon – Sat: 8:00 AM – 6:00 PM<br>Sunday: 8:00 AM – 1:00 PM</div>
+          </div>
+        </div>
+        <div class="c-detail">
+          <div class="c-icon"><i class="fas fa-envelope"></i></div>
+          <div>
+            <div class="c-label">Email</div>
+            <div class="c-val"><a href="mailto:info@mkctrade.lk" style="color:var(--white);">info@mkctrade.lk</a></div>
+          </div>
+        </div>
+
+        <a href="https://wa.me/94000000000?text=Hello%20MKC%20Trade%20Center%2C%20I%20need%20agricultural%20product%20advice." class="wa-cta" target="_blank" rel="noopener">
+          <i class="fab fa-whatsapp"></i>
+          <div>
+            <div style="font-size:.7rem;opacity:.8;font-weight:400;">Chat with us instantly</div>
+            <div>WhatsApp: +94 00 000 0000</div>
+          </div>
+          <i class="fas fa-arrow-right" style="margin-left:auto;"></i>
+        </a>
+      </div>
+
+      <div class="contact-form-wrap rv d2">
+        <h3>Send an Enquiry</h3>
+        <p>Need advice on the right product? Our agronomy team will respond within 24 hours.</p>
+        <form onsubmit="handleFormSubmit(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" placeholder="Your name" required>
             </div>
-        </section>
-    </main>
+            <div class="form-group">
+              <label>Phone Number</label>
+              <input type="tel" placeholder="+94 xx xxx xxxx" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Product Category</label>
+            <select required>
+              <option value="" disabled selected>Select a category</option>
+              <option>Agrochemicals</option>
+              <option>Fertilizers</option>
+              <option>Seeds</option>
+              <option>Agricultural Machinery</option>
+              <option>Irrigation Equipment</option>
+              <option>Sprayers</option>
+              <option>Home Gardening</option>
+              <option>Farm Accessories</option>
+              <option>General Enquiry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Your Message</label>
+            <textarea placeholder="Describe your farming situation or the product you're looking for…"></textarea>
+          </div>
+          <button type="submit" class="btn-form-submit">
+            <i class="fas fa-paper-plane"></i> Send Enquiry
+          </button>
+        </form>
+      </div>
+    </div>
+  </section>
 
-    <footer>
-        <p>&copy; 2026 MKC Trade Center. All rights reserved. Designed for Excellence.</p>
-    </footer>
+  <!-- MAP -->
+  <div class="map-section">
+    <iframe
+      src="https://maps.google.com/maps?q=Galgamuwa%2C+Sri+Lanka&output=embed&z=13"
+      title="MKC Trade Center Location"
+      loading="lazy"
+      allowfullscreen
+    ></iframe>
+  </div>
 
-    <script>
-        // GSAP Initialization
-        gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
+  <!-- ══════════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════════ -->
+  <footer>
+    <div class="ft-top">
+      <div>
+        <a href="/" class="nav-logo" style="color:var(--white);">
+          <div class="nav-logo-img">🌿</div>
+          <span>M.K.C. Trade Center</span>
+        </a>
+        <p class="ft-brand-text">
+          Your trusted agricultural partner in Sri Lanka — supplying certified agrochemicals, fertilizers, seeds, machinery, and gardening products since 2000. Committed to better harvests for every farmer.
+        </p>
+      </div>
+      <div class="ft-col">
+        <h5>Products</h5>
+        <ul>
+          <li><a href="#categories">Agrochemicals</a></li>
+          <li><a href="#categories">Fertilizers</a></li>
+          <li><a href="#categories">Seeds</a></li>
+          <li><a href="#categories">Machinery</a></li>
+          <li><a href="#categories">Irrigation</a></li>
+          <li><a href="#garden">Home Garden</a></li>
+        </ul>
+      </div>
+      <div class="ft-col">
+        <h5>Services</h5>
+        <ul>
+          <li><a href="#contact">Agronomy Advice</a></li>
+          <li><a href="#contact">Bulk Supply</a></li>
+          <li><a href="#contact">Dealer Enquiries</a></li>
+          <li><a href="#contact">Product Demos</a></li>
+        </ul>
+      </div>
+      <div class="ft-col">
+        <h5>Contact</h5>
+        <ul>
+          <li><a href="tel:+94000000000">+94 00 000 0000</a></li>
+          <li><a href="mailto:info@mkctrade.lk">info@mkctrade.lk</a></li>
+          <li><a href="#" style="line-height:1.5;">No. 69, Kurunegala Road,<br>Galgamuwa, Sri Lanka</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="ft-bottom">
+      <p>© 2026 M.K.C. Trade Center, Galgamuwa. All rights reserved.</p>
+      <div class="ft-socials">
+        <a href="#" class="ft-soc" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+        <a href="#" class="ft-soc" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+        <a href="#" class="ft-soc" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+      </div>
+    </div>
+  </footer>
 
-        // Three.js Background Logic
-        const initThree = () => {
-            const canvas = document.querySelector('#bg-canvas');
-            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+  <!-- ══════════════════════════════════════════════
+       JAVASCRIPT
+  ═══════════════════════════════════════════════ -->
+  <script>
+  /* Progress bar */
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
+    document.getElementById('pg-bar').style.width = pct + '%';
+  });
 
-            camera.position.z = 20;
+  /* Nav */
+  const mainNav = document.getElementById('mainNav');
+  window.addEventListener('scroll', () => mainNav.classList.toggle('solid', window.scrollY > 60));
 
-            // Geometry: Distribution Network (Points)
-            const pointsCount = 400;
-            const positions = new Float32Array(pointsCount * 3);
-            const colors = new Float32Array(pointsCount * 3);
+  /* Mobile nav */
+  function openMob() { document.getElementById('mobNav').classList.add('open'); }
+  function closeMob() { document.getElementById('mobNav').classList.remove('open'); }
+  document.getElementById('mobClose').addEventListener('click', closeMob);
 
-            for (let i = 0; i < pointsCount; i++) {
-                positions[i * 3] = (Math.random() - 0.5) * 60;
-                positions[i * 3 + 1] = (Math.random() - 0.5) * 60;
-                positions[i * 3 + 2] = (Math.random() - 0.5) * 60;
+  /* Scroll reveal */
+  (function(){
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold:.12, rootMargin:'0px 0px -40px 0px' });
+    document.querySelectorAll('.rv').forEach(el => obs.observe(el));
+  })();
 
-                colors[i * 3] = 0.3; // R
-                colors[i * 3 + 1] = 0.8; // G
-                colors[i * 3 + 2] = 0.4; // B
-            }
+  /* Counter animation */
+  function countUp(el, target, dur = 1800) {
+    let start = null;
+    const step = ts => {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / dur, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.floor(e * target).toLocaleString();
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = target.toLocaleString();
+    };
+    requestAnimationFrame(step);
+  }
+  const cuObs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting && !e.target.dataset.done) {
+        e.target.dataset.done = '1';
+        countUp(e.target, +e.target.dataset.t);
+      }
+    });
+  }, { threshold:.5 });
+  document.querySelectorAll('.cu').forEach(el => cuObs.observe(el));
 
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  /* Stat bars */
+  const barObs = new IntersectionObserver(es => {
+    es.forEach(e => {
+      if (e.isIntersecting) {
+        const f = e.target.querySelector('.stat-fill');
+        if (f) f.style.width = f.dataset.w + '%';
+      }
+    });
+  }, { threshold:.5 });
+  document.querySelectorAll('.stat-b').forEach(b => barObs.observe(b));
 
-            const material = new THREE.PointsMaterial({
-                size: 0.15,
-                vertexColors: true,
-                transparent: true,
-                opacity: 0.6,
-                blending: THREE.AdditiveBlending
-            });
+  /* Product filter */
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const cat = this.dataset.cat;
+      document.querySelectorAll('.prod-card').forEach(card => {
+        const show = cat === 'all' || card.dataset.cat === cat;
+        card.style.display = show ? '' : 'none';
+      });
+    });
+  });
 
-            const points = new THREE.Points(geometry, material);
-            scene.add(points);
+  /* Category card 3D tilt */
+  document.querySelectorAll('.cat-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - .5;
+      const y = (e.clientY - rect.top) / rect.height - .5;
+      card.style.transform = `perspective(800px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-8px)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.transform = '';
+    });
+  });
 
-            // Connect some points with lines to simulate distribution routes
-            const linesMaterial = new THREE.LineBasicMaterial({ color: 0x2e7d32, transparent: true, opacity: 0.1 });
-            const linesGeometry = new THREE.BufferGeometry();
-            const linePositions = [];
+  /* Testimonial carousel */
+  let currentSlide = 0;
+  function goSlide(n) {
+    document.querySelectorAll('.testi-slide').forEach((s,i) => s.classList.toggle('active', i === n));
+    document.querySelectorAll('.t-dot').forEach((d,i) => d.classList.toggle('active', i === n));
+    currentSlide = n;
+  }
+  setInterval(() => goSlide((currentSlide + 1) % 3), 5000);
 
-            for (let i = 0; i < 50; i++) {
-                const idx1 = Math.floor(Math.random() * pointsCount);
-                const idx2 = Math.floor(Math.random() * pointsCount);
-                linePositions.push(positions[idx1 * 3], positions[idx1 * 3 + 1], positions[idx1 * 3 + 2]);
-                linePositions.push(positions[idx2 * 3], positions[idx2 * 3 + 1], positions[idx2 * 3 + 2]);
-            }
+  /* Smooth anchor scroll */
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const id = a.getAttribute('href').slice(1);
+      const el = document.getElementById(id);
+      if (el) { e.preventDefault(); window.scrollTo({ top: el.offsetTop - 72, behavior: 'smooth' }); }
+    });
+  });
 
-            linesGeometry.setAttribute('position', new THREE.Float32BufferAttribute(linePositions, 3));
-            const lines = new THREE.LineSegments(linesGeometry, linesMaterial);
-            scene.add(lines);
+  /* Contact form */
+  function handleFormSubmit(e) {
+    e.preventDefault();
+    const btn = e.target.querySelector('.btn-form-submit');
+    btn.innerHTML = '<i class="fas fa-check"></i> Enquiry Sent!';
+    btn.style.background = 'var(--leaf)';
+    setTimeout(() => {
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Enquiry';
+      btn.style.background = '';
+      e.target.reset();
+    }, 3500);
+  }
 
-            const animate = () => {
-                requestAnimationFrame(animate);
-                points.rotation.y += 0.001;
-                points.rotation.x += 0.0005;
-                lines.rotation.y += 0.001;
-                lines.rotation.x += 0.0005;
+  /* ── HERO SYSTEM (LIGHT MODE) ──────────────────────── */
+  (function() {
 
-                renderer.render(scene, camera);
-            };
+    /* Entrance sequence */
+    document.addEventListener('DOMContentLoaded', () => {
+      const set = (sel, ms, styles) => setTimeout(() => { const el = document.querySelector(sel); if(el) Object.assign(el.style, styles); }, ms);
+      set('.hero-eyebrow', 350, { opacity:'1', transform:'translateY(0)', transition:'opacity .8s ease, transform .8s ease' });
+      setTimeout(() => document.querySelectorAll('.hero-h1 .hli').forEach(el => el.classList.add('up')), 620);
+      set('.hero-divider', 1100, { opacity:'1', transition:'opacity .9s ease' });
+      set('.hero-sub',     1260, { opacity:'1', transition:'opacity 1s ease' });
+      set('.hero-btns',    1450, { opacity:'1', transition:'opacity .9s ease' });
+      set('.hero-trust',   1640, { opacity:'1', transition:'opacity 1s ease' });
+    });
 
-            const resize = () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            };
+    /* Word cycling */
+    const cycList = document.getElementById('heroCyc');
+    if (cycList) {
+      const IH = 1.06; let ci = 0;
+      const items = cycList.querySelectorAll('.h-cyc-item');
+      setInterval(() => { ci = (ci + 1) % (items.length - 1); cycList.style.transform = `translateY(${-ci * IH}em)`; }, 3000);
+    }
 
-            window.addEventListener('resize', resize);
-            resize();
-            animate();
-        };
+    /* ── Daylight field canvas ── */
+    const sc = document.getElementById('hero-sky-c');
+    if (!sc) return;
+    const sctx = sc.getContext('2d');
+    let T = 0;
+    const hv   = sc.parentElement;           /* .hv-clip — for canvas sizing */
+    const hvOuter = hv.parentElement;         /* .hero-visual — for mouse events */
 
-        // UI Animations
-        const initAnimations = () => {
-            const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
+    function resizeSky() { sc.width = hvOuter.offsetWidth || 600; sc.height = hvOuter.offsetHeight || 700; }
+    resizeSky();
+    window.addEventListener('resize', () => setTimeout(resizeSky, 60));
+    new ResizeObserver(resizeSky).observe(hvOuter);
 
-            tl.to(".hero-content", {
-                duration: 1.5,
-                opacity: 1,
-                y: 0,
-                stagger: 0.2
-            })
-                .from(".hero-tag", { duration: 1, scale: 0.8, opacity: 0 }, "-=1")
-                .from(".hero h1 span", { duration: 1.2, x: -50, opacity: 0 }, "-=0.8")
-                .from(".hero-btns a", { duration: 0.8, y: 20, opacity: 0, stagger: 0.1 }, "-=0.5")
-                .from(".stat-item", { duration: 1, y: 30, opacity: 0, stagger: 0.1 }, "-=0.5");
+    const clouds = Array.from({length: 7}, (_, i) => ({
+      x: (i / 7) * 1400 + Math.random() * 150,
+      y: 32 + Math.random() * 100,
+      rx: 100 + Math.random() * 190, ry: 16 + Math.random() * 24,
+      spd: .07 + Math.random() * .10, al: .45 + Math.random() * .28,
+    }));
 
-            // Mouse Move Parallax
-            document.addEventListener('mousemove', (e) => {
-                const x = (e.clientX / window.innerWidth - 0.5) * 20;
-                const y = (e.clientY / window.innerHeight - 0.5) * 20;
+    function drawSky() {
+      const W = sc.width, H = sc.height;
+      if (!W || !H) { T++; requestAnimationFrame(drawSky); return; }
+      sctx.clearRect(0, 0, W, H);
 
-                gsap.to(".hero-content", {
-                    x: x * 0.5,
-                    y: y * 0.5,
-                    duration: 1
-                });
-            });
+      /* Sky — bright daylight */
+      const sg = sctx.createLinearGradient(0, 0, 0, H);
+      sg.addColorStop(0,   '#A4D4EE');
+      sg.addColorStop(.25, '#BAE0F5');
+      sg.addColorStop(.50, '#D0ECF6');
+      sg.addColorStop(.64, '#DFF2DC');
+      sg.addColorStop(.76, '#D2E9B2');
+      sg.addColorStop(.88, '#C0D990');
+      sg.addColorStop(1,   '#AACF78');
+      sctx.fillStyle = sg; sctx.fillRect(0, 0, W, H);
 
-            // Feature Cards Scroll Animation
-            gsap.utils.toArray(".feature-card").forEach((card, i) => {
-                gsap.from(card, {
-                    scrollTrigger: {
-                        trigger: card,
-                        start: "top 85%",
-                        toggleActions: "play none none reverse"
-                    },
-                    duration: 1,
-                    y: 60,
-                    opacity: 0,
-                    ease: "power3.out",
-                    delay: i * 0.1
-                });
-            });
+      /* Sun — upper-right */
+      const sunX = W * .8, sunY = H * .18;
+      const ag = sctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, W * .52);
+      ag.addColorStop(0, `rgba(255,242,160,${.52 + Math.sin(T * .009) * .04})`);
+      ag.addColorStop(.18, 'rgba(255,228,120,.2)');
+      ag.addColorStop(.42, 'rgba(255,215,80,.05)');
+      ag.addColorStop(1, 'rgba(255,255,255,0)');
+      sctx.fillStyle = ag; sctx.fillRect(0, 0, W, H);
+      const disc = sctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 28);
+      disc.addColorStop(0, 'rgba(255,250,210,.92)');
+      disc.addColorStop(.6, 'rgba(255,238,155,.48)');
+      disc.addColorStop(1, 'rgba(255,230,100,0)');
+      sctx.fillStyle = disc; sctx.beginPath(); sctx.arc(sunX, sunY, 28, 0, Math.PI*2); sctx.fill();
 
-            // Counter Animation
-            const counters = document.querySelectorAll('.counter');
-            counters.forEach(counter => {
-                const target = +counter.innerText;
-                gsap.from(counter, {
-                    textContent: 0,
-                    duration: 2,
-                    snap: { textContent: 1 },
-                    scrollTrigger: {
-                        trigger: counter,
-                        start: "top 90%"
-                    }
-                });
-            });
-        };
+      /* God rays */
+      for (let r = 0; r < 10; r++) {
+        const ang = (-Math.PI * .5) + (r / 9) * Math.PI + T * .0004;
+        const len = Math.max(W, H) * .88;
+        const rg = sctx.createLinearGradient(sunX, sunY, sunX + Math.cos(ang)*len, sunY + Math.sin(ang)*len);
+        rg.addColorStop(0, 'rgba(255,245,150,.042)'); rg.addColorStop(1, 'rgba(255,245,150,0)');
+        sctx.strokeStyle = rg; sctx.lineWidth = 36;
+        sctx.beginPath(); sctx.moveTo(sunX, sunY);
+        sctx.lineTo(sunX + Math.cos(ang)*len, sunY + Math.sin(ang)*len); sctx.stroke();
+      }
 
-        // Window Load
-        window.addEventListener('load', () => {
-            initThree();
-            initAnimations();
-        });
+      /* Fluffy clouds */
+      clouds.forEach(cl => {
+        cl.x += cl.spd; if (cl.x > W + cl.rx*2) cl.x = -cl.rx*2;
+        sctx.save(); sctx.globalAlpha = cl.al * (.9 + Math.sin(T*.014 + cl.x*.001)*.1);
+        sctx.fillStyle = 'rgba(255,255,255,.97)';
+        sctx.shadowBlur = 14; sctx.shadowColor = 'rgba(255,255,255,.45)';
+        [[0,0,1,1],[-.34,-.5,.58,.75],[.32,-.42,.52,.67],[.6,-.14,.38,.54]].forEach(([ox,oy,rx,ry]) => {
+          sctx.beginPath(); sctx.ellipse(cl.x+ox*cl.rx, cl.y+oy*cl.ry, cl.rx*rx, cl.ry*ry, 0, 0, Math.PI*2); sctx.fill();
+        }); sctx.restore();
+      });
 
-        // Smooth scroll for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    gsap.to(window, {
-                        duration: 1,
-                        scrollTo: target.offsetTop - 100,
-                        ease: "power3.inOut"
-                    });
-                }
-            });
-        });
-    </script>
+      /* Rolling hills — 3 depth layers */
+      const hillDefs = [
+        { yf:.70, colors:['rgba(172,214,142,.68)','rgba(152,198,120,.80)'], amp:.040 },
+        { yf:.79, colors:['rgba(108,175,84,.74)','rgba(88,155,64,.86)'],   amp:.052 },
+        { yf:.87, colors:['rgba(66,142,56,.78)','rgba(50,118,42,.92)'],    amp:.064 },
+      ];
+      hillDefs.forEach((row, i) => {
+        const bY = H * row.yf;
+        sctx.beginPath();
+        for (let j = 0; j <= 28; j++) {
+          const x = (j/28)*W;
+          const pk = H * row.amp;
+          const y = bY - pk * Math.abs(Math.sin(j*.44 + i*1.9)) - pk*.3 * Math.abs(Math.cos(j*.72));
+          j === 0 ? sctx.moveTo(x, y) : sctx.lineTo(x, y);
+        }
+        sctx.lineTo(W,H); sctx.lineTo(0,H); sctx.closePath();
+        const gr = sctx.createLinearGradient(0, bY - H*row.amp, 0, H);
+        gr.addColorStop(0, row.colors[0]); gr.addColorStop(1, row.colors[1]);
+        sctx.fillStyle = gr; sctx.fill();
+      });
+
+      /* Paddy crop rows */
+      [
+        { yf:.89, mH:.070, pts:56, amp:2.0, spd:.026, c0:'rgba(92,146,56,0)',  c1:'rgba(92,146,56,.84)',  c2:'rgba(76,126,40,.94)' },
+        { yf:.945, mH:.095, pts:56, amp:3.0, spd:.020, c0:'rgba(60,116,36,0)', c1:'rgba(60,116,36,.88)', c2:'rgba(46,96,26,.96)' },
+      ].forEach((row, ri) => {
+        const bY = H * row.yf;
+        const gr = sctx.createLinearGradient(0, bY - H*row.mH, 0, bY);
+        gr.addColorStop(0, row.c0); gr.addColorStop(.4, row.c1); gr.addColorStop(1, row.c2);
+        sctx.fillStyle = gr;
+        sctx.beginPath();
+        for (let j = 0; j <= row.pts; j++) {
+          const x = (j/row.pts)*W;
+          const pH = H * row.mH * (.58 + Math.abs(Math.sin(j*.66))*.42);
+          const sw = Math.sin(j*.38 + T*row.spd) * row.amp;
+          j === 0 ? sctx.moveTo(x, bY-pH+sw) : sctx.lineTo(x, bY-pH+sw);
+        }
+        sctx.lineTo(W,H); sctx.lineTo(0,H); sctx.closePath(); sctx.fill();
+
+        if (ri === 1) {
+          sctx.save(); sctx.strokeStyle = 'rgba(44,88,20,.62)'; sctx.lineWidth = .95;
+          for (let s = 0; s < 64; s++) {
+            const sx = (s/64)*W + (Math.random()-.5)*9;
+            const sh = H * (.048 + Math.random()*.033);
+            const sw = Math.sin(T*row.spd + s*.3) * 2.6;
+            sctx.beginPath(); sctx.moveTo(sx, bY);
+            sctx.bezierCurveTo(sx+sw*.25, bY-sh*.45, sx+sw*.65, bY-sh*.78, sx+sw, bY-sh); sctx.stroke();
+            sctx.beginPath(); sctx.ellipse(sx+sw, bY-sh, 1.2, 2.6, Math.PI*.1, 0, Math.PI*2);
+            sctx.fillStyle = `rgba(${162+s%4*10},${122+s%6*7},${32+s%5*8},.52)`; sctx.fill();
+          }
+          sctx.restore();
+        }
+      });
+
+      /* Distant birds */
+      for (let b = 0; b < 5; b++) {
+        const bx = ((T * (.038 + b*.011) + b*200) % (W+80)) - 40;
+        const by = H * (.10 + b*.04);
+        const bs = 2.8 + b * .5;
+        sctx.save(); sctx.strokeStyle = `rgba(72,112,72,${.16+b*.022})`; sctx.lineWidth = .7;
+        sctx.beginPath(); sctx.moveTo(bx-bs, by); sctx.lineTo(bx, by-bs*.52); sctx.lineTo(bx+bs, by); sctx.stroke();
+        sctx.restore();
+      }
+
+      T++; requestAnimationFrame(drawSky);
+    }
+    drawSky();
+
+    /* ── Pollen + seed particles ── */
+    const pc = document.getElementById('hero-pollen-c');
+    if (!pc) return;
+    const pctx = pc.getContext('2d');
+    function resizePollen() { pc.width = hvOuter.offsetWidth||600; pc.height = hvOuter.offsetHeight||700; }
+    resizePollen();
+    window.addEventListener('resize', () => setTimeout(resizePollen, 60));
+
+    const pollens = Array.from({length: 52}, () => ({
+      x: Math.random() * 900, y: Math.random() * 750,
+      r: Math.random() * 1.7 + .4, vx: (Math.random()-.5)*.18, vy: -(Math.random()*.5+.08),
+      al: Math.random()*.35+.07, ph: Math.random()*Math.PI*2,
+      seed: Math.random() > .72, rot: Math.random()*Math.PI*2, gold: Math.random() > .44,
+    }));
+
+    function drawPollen() {
+      const PW = pc.width, PH = pc.height;
+      if (!PW||!PH) { requestAnimationFrame(drawPollen); return; }
+      pctx.clearRect(0, 0, PW, PH);
+      pollens.forEach(p => {
+        p.ph += .014; p.rot += .008;
+        p.x += p.vx + Math.sin(p.ph*.54)*.13;
+        p.y += p.vy + Math.cos(p.ph)*.07;
+        p.al = Math.max(.04, Math.min(.42, p.al + (Math.random()-.5)*.01));
+        if (p.y < -15) { p.y = PH+8; p.x = Math.random()*PW; }
+        if (p.x < -10) p.x = PW+5; if (p.x > PW+10) p.x = -5;
+        pctx.save(); pctx.globalAlpha = p.al;
+        if (p.seed) {
+          pctx.translate(p.x, p.y); pctx.rotate(p.rot);
+          pctx.fillStyle = p.gold ? '#A07018' : '#387028';
+          pctx.beginPath(); pctx.ellipse(0,0,p.r*.5,p.r*2.4,0,0,Math.PI*2); pctx.fill();
+        } else {
+          pctx.shadowBlur = p.r*4;
+          pctx.shadowColor = p.gold ? 'rgba(180,125,18,.3)' : 'rgba(52,126,52,.2)';
+          pctx.fillStyle = p.gold ? '#C09028' : '#4E9038';
+          pctx.beginPath(); pctx.arc(p.x, p.y, p.r, 0, Math.PI*2); pctx.fill();
+        }
+        pctx.restore();
+      });
+      requestAnimationFrame(drawPollen);
+    }
+    drawPollen();
+
+    /* Scroll: fade scroll cue */
+    window.addEventListener('scroll', () => {
+      const cue = document.querySelector('.hero-scroll-cue');
+      if (cue) cue.style.opacity = `${Math.max(0, 1 - window.scrollY / 220)}`;
+    }, { passive: true });
+
+    /* Mouse parallax — listen on .hero-visual (pointer-events enabled) */
+    let tmx=0, tmy=0, cmx=0, cmy=0;
+    hvOuter.addEventListener('mousemove', e => {
+      const r = hvOuter.getBoundingClientRect();
+      tmx = (e.clientX - r.left - r.width*.5) / r.width * 14;
+      tmy = (e.clientY - r.top - r.height*.5) / r.height * 8;
+    });
+    hvOuter.addEventListener('mouseleave', () => { tmx=0; tmy=0; });
+    (function animMouse() {
+      cmx += (tmx-cmx)*.07; cmy += (tmy-cmy)*.07;
+      sc.style.transform = `translate(${cmx*.44}px,${cmy*.28}px) scale(1.032)`;
+      pc.style.transform  = `translate(${cmx*.7}px,${cmy*.44}px)`;
+      requestAnimationFrame(animMouse);
+    })();
+
+  })();
+
+  /* ── ECOSYSTEM CANVAS ───────────────────────────────── */
+  (function(){
+    const canvas = document.getElementById('eco-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    const nodes = [
+      { label:'Seeds',       icon:'🌱', pct:.09 },
+      { label:'Fertilize',   icon:'💊', pct:.25 },
+      { label:'Irrigate',    icon:'💧', pct:.41 },
+      { label:'Protect',     icon:'🛡️', pct:.57 },
+      { label:'Grow',        icon:'🌾', pct:.73 },
+      { label:'Harvest',     icon:'🚜', pct:.88 },
+    ];
+
+    let W, H, phase = 0;
+    function resize() {
+      const rect = canvas.getBoundingClientRect();
+      W = canvas.width = rect.width || 1000;
+      H = canvas.height = 320;
+    }
+    resize();
+    new ResizeObserver(resize).observe(canvas);
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      const cy = H / 2;
+
+      // Draw path line
+      ctx.beginPath();
+      ctx.moveTo(W * .05, cy);
+      ctx.lineTo(W * .95, cy);
+      const lineGrad = ctx.createLinearGradient(W*.05, 0, W*.95, 0);
+      lineGrad.addColorStop(0, 'rgba(82,183,136,.1)');
+      lineGrad.addColorStop(.5, 'rgba(82,183,136,.35)');
+      lineGrad.addColorStop(1, 'rgba(233,168,24,.2)');
+      ctx.strokeStyle = lineGrad;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.lineDashOffset = -phase * .5;
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Animated pulse on line
+      const pulsePct = ((phase * .008) % 1);
+      const pulseX = W * .05 + (W * .9) * pulsePct;
+      const pulseGrad = ctx.createRadialGradient(pulseX, cy, 0, pulseX, cy, 30);
+      pulseGrad.addColorStop(0, 'rgba(233,168,24,.4)');
+      pulseGrad.addColorStop(1, 'rgba(233,168,24,0)');
+      ctx.beginPath();
+      ctx.arc(pulseX, cy, 30, 0, Math.PI * 2);
+      ctx.fillStyle = pulseGrad;
+      ctx.fill();
+
+      nodes.forEach((n, i) => {
+        const nx = W * n.pct;
+
+        // Node ring
+        const pulse = Math.sin(phase * .04 + i * 1.1) * 4;
+        ctx.beginPath();
+        ctx.arc(nx, cy, 30 + pulse, 0, Math.PI * 2);
+        const rGrad = ctx.createRadialGradient(nx, cy, 14, nx, cy, 30 + pulse);
+        rGrad.addColorStop(0, 'rgba(82,183,136,.08)');
+        rGrad.addColorStop(1, 'rgba(82,183,136,0)');
+        ctx.fillStyle = rGrad;
+        ctx.fill();
+
+        // Node circle
+        ctx.beginPath();
+        ctx.arc(nx, cy, 26, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(13,26,16,.9)';
+        ctx.fill();
+        ctx.strokeStyle = i === 5 ? 'rgba(233,168,24,.6)' : 'rgba(82,183,136,.4)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Icon
+        ctx.font = '18px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(n.icon, nx, cy);
+
+        // Label
+        ctx.font = `bold 11px Figtree,sans-serif`;
+        ctx.fillStyle = 'rgba(255,255,255,.65)';
+        ctx.fillText(n.label, nx, cy + 44);
+      });
+
+      phase++;
+      requestAnimationFrame(draw);
+    }
+    draw();
+  })();
+  </script>
 </body>
-
 </html>
