@@ -3,6 +3,7 @@ const path = require('path');
 const cron = require('node-cron');
 const settingsRepo = require('../repositories/settingsRepo');
 const { logEvent, logError } = require('../lib/logger');
+const { walCheckpoint } = require('../lib/db');
 
 const DB_PATH = path.join(__dirname, '..', 'agro_distribution.db');
 const BACKUP_DIR = path.join(__dirname, '..', 'backups');
@@ -15,6 +16,7 @@ if (!fs.existsSync(BACKUP_DIR)) {
 class BackupService {
     constructor() {
         this.task = null;
+        this.checkpointTask = null;
     }
 
     async initScheduler() {
@@ -50,6 +52,16 @@ class BackupService {
         } catch (error) {
             console.error('Failed to init backup scheduler:', error);
         }
+
+        // Hourly WAL checkpoint so the -wal file stays small during the day
+        // (independent of the backup-enabled setting).
+        if (!this.checkpointTask) {
+            this.checkpointTask = cron.schedule('0 * * * *', async () => {
+                const r = await walCheckpoint();
+                if (r) console.log('🧹 Hourly WAL checkpoint:', JSON.stringify(r));
+            });
+            console.log('✅ Hourly WAL checkpoint task started');
+        }
     }
 
     async performBackup(type = 'manual', userId = 0) {
@@ -58,6 +70,10 @@ class BackupService {
             const timestamp = date.toISOString().replace(/[:.]/g, '-');
             const fileName = `backup_${type}_${timestamp}.db`;
             const destPath = path.join(BACKUP_DIR, fileName);
+
+            // Flush the WAL into the main .db FIRST, otherwise the copy can miss
+            // recently committed transactions still sitting in the -wal file.
+            await walCheckpoint();
 
             // Copy File
             await fs.promises.copyFile(DB_PATH, destPath);
