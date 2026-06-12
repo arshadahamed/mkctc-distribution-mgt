@@ -3,6 +3,11 @@ const customerRepo = require('./customerRepo');
 const settingsRepo = require('./settingsRepo');
 const notificationService = require('../services/notificationService');
 
+// Discounts outside 0-100% are never valid regardless of pricing policy.
+function clampDiscountPct(value) {
+    return Math.min(Math.max(parseFloat(value) || 0, 0), 100);
+}
+
 class SalesRepository {
     async createInvoice(invoiceData) {
         if (!invoiceData.customer_id || invoiceData.customer_id === '') {
@@ -67,20 +72,21 @@ class SalesRepository {
                     INSERT INTO invoice_items (invoice_id, product_id, product_name, batch_number, msrp, discount_percentage, discount_amount, quantity, is_free, line_total)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
+                const discountPct = clampDiscountPct(item.discount_percentage);
                 const itemParams = [
                     invoiceId, item.product_id, item.product_name, item.batch_number || null, item.msrp,
-                    item.discount_percentage || 0, item.discount_amount || 0,
+                    discountPct, item.discount_amount || 0,
                     item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
                 await runQuery(itemSql, itemParams);
 
                 // Update customer-wise product discount memory
-                if (item.discount_percentage > 0 || item.discount_amount > 0) {
+                if (discountPct > 0 || item.discount_amount > 0) {
                     await this.updateCustomerProductDiscount(
                         invoiceData.customer_id,
                         item.product_id,
                         item.selected_price_id || 0,
-                        item.discount_percentage || 0,
+                        discountPct,
                         item.discount_amount || 0
                     );
                 }
@@ -288,7 +294,7 @@ class SalesRepository {
                 `;
                 const itemParams = [
                     id, item.product_id, item.product_name, item.batch_number || null, item.msrp,
-                    item.discount_percentage || 0, item.discount_amount || 0,
+                    clampDiscountPct(item.discount_percentage), item.discount_amount || 0,
                     item.quantity, item.is_free ? 1 : 0, item.line_total
                 ];
                 await runQuery(itemSql, itemParams);
