@@ -1773,7 +1773,7 @@
                     <button onclick="app.applyLedgerFilter()" style="background: rgba(76,175,80,0.8); color: white; border: none; padding: 4px 10px; border-radius: 5px; font-size: 0.7rem; font-weight: 800; cursor: pointer;">⚡ Go</button>
                     <button onclick="app.resetLedgerFilter()" style="background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; font-size: 0.7rem; font-weight: 700; cursor: pointer;">↻</button>
                     <span style="width:1px; height:20px; background: rgba(255,255,255,0.15);"></span>
-                    <select id="ledger-sort-mode" onchange="app.applyLedgerFilter()" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; outline: none;">
+                    <select id="ledger-sort-mode" onchange="app.resortLedger()" style="background: rgba(255,255,255,0.12); color: white; border: 1px solid rgba(255,255,255,0.25); padding: 4px 8px; border-radius: 5px; font-size: 0.72rem; font-weight: 700; outline: none;">
                         <option value="date-asc">Date ↑</option>
                         <option value="date-desc">Date ↓</option>
                         <option value="amount-desc">Amount ↓</option>

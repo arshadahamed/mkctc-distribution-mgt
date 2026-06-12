@@ -2276,6 +2276,13 @@ class AgroDistributionApp {
         await this._fetchAndRenderLedger(this._currentLedgerCustomerId, dateFrom, dateTo);
     }
 
+    // Sorting is purely cosmetic: re-render from the cached dataset instead
+    // of re-running the ledger query on the server.
+    resortLedger() {
+        if (!this._currentLedgerCustomer) return;
+        this.renderLedgerTable(this._fullLedgerData, this._currentLedgerCustomer);
+    }
+
     async resetLedgerFilter() {
         if (!this._currentLedgerCustomerId) return;
         const filterMode = document.getElementById('ledger-filter-mode');
@@ -4155,22 +4162,93 @@ class AgroDistributionApp {
 
     // --- PAYMENT LOGIC ---
     async loadPayments() {
+        // Filters changed: go back to page 1. The page is committed only on
+        // success so a failed request can't desync the counter.
+        const ok = await this.loadPaymentsPage(1, { scroll: false });
+        if (ok) this.paymentPage = 1;
+    }
+
+    // Debounced variant for the search box so each keystroke doesn't fire
+    // its own pair of DB queries.
+    debouncedLoadPayments() {
+        if (this._paymentSearchTimer) clearTimeout(this._paymentSearchTimer);
+        this._paymentSearchTimer = setTimeout(() => this.loadPayments(), 300);
+    }
+
+    updatePaymentPaginationControls(pagination) {
+        const paginationContainer = document.getElementById('payment-pagination');
+        const prevBtn = document.getElementById('btn-prev-page');
+        const nextBtn = document.getElementById('btn-next-page');
+        const pageInput = document.getElementById('payment-page-input');
+        const totalPagesSpan = document.getElementById('payment-total-pages');
+        const recordCountSpan = document.getElementById('payment-record-count');
+
+        if (paginationContainer) {
+            // Show pagination only if there are multiple pages
+            paginationContainer.style.display = pagination.totalPages > 1 ? 'flex' : 'none';
+
+            if (prevBtn) prevBtn.disabled = !pagination.hasPrev;
+            if (nextBtn) nextBtn.disabled = !pagination.hasNext;
+            if (pageInput) {
+                pageInput.value = pagination.page;
+                pageInput.max = pagination.totalPages;
+            }
+            if (totalPagesSpan) totalPagesSpan.textContent = `of ${pagination.totalPages}`;
+            if (recordCountSpan) {
+                const start = (pagination.page - 1) * pagination.limit + 1;
+                const end = Math.min(pagination.page * pagination.limit, pagination.total);
+                recordCountSpan.textContent = `Showing ${start}-${end} of ${pagination.total} records`;
+            }
+        }
+    }
+
+    async nextPaymentPage() {
+        if (this.paymentPage < this.paymentTotalPages) {
+            // Commit the page only after a successful load so a failed
+            // request can't drift the counter away from what's displayed.
+            const ok = await this.loadPaymentsPage(this.paymentPage + 1);
+            if (ok) this.paymentPage++;
+        }
+    }
+
+    async prevPaymentPage() {
+        if (this.paymentPage > 1) {
+            const ok = await this.loadPaymentsPage(this.paymentPage - 1);
+            if (ok) this.paymentPage--;
+        }
+    }
+
+    async goToPaymentPage() {
+        const pageInput = document.getElementById('payment-page-input');
+        const page = parseInt(pageInput.value) || 1;
+        if (page >= 1 && page <= this.paymentTotalPages) {
+            const ok = await this.loadPaymentsPage(page);
+            if (ok) this.paymentPage = page;
+        } else if (pageInput) {
+            // Out-of-range input: snap back to the current page
+            pageInput.value = this.paymentPage;
+        }
+    }
+
+    async loadPaymentsPage(page, { scroll = true } = {}) {
         const search = document.getElementById('payment-search')?.value || '';
         const method = document.getElementById('payment-method-filter')?.value || '';
         const cat = document.getElementById('payment-cat-filter')?.value || '';
 
-        // Reset to page 1 when filters change
-        this.paymentPage = 1;
-
-        let url = `/api/payments?page=${this.paymentPage}&limit=${this.paymentPageSize}`;
+        let url = `/api/payments?page=${page}&limit=${this.paymentPageSize}`;
         if (search) url += `&search=${encodeURIComponent(search)}`;
         if (method) url += `&payment_method=${method}`;
         if (cat) url += `&receipt_category=${cat}`;
 
+        // Drop out-of-order responses (e.g. rapid search keystrokes) so a
+        // slow earlier request can't paint over a newer one.
+        const reqSeq = (this._paymentsReqSeq = (this._paymentsReqSeq || 0) + 1);
+
         try {
             const res = await this.apiCall(url);
-            if (!res) return;
+            if (!res) return false;
             const data = await res.json();
+            if (reqSeq !== this._paymentsReqSeq) return false;
             if (data.success) {
                 const container = document.getElementById('payment-grid-container');
                 if (container) {
@@ -4184,7 +4262,6 @@ class AgroDistributionApp {
                     } else {
                         container.innerHTML = data.data.map(p => {
                             const isReturn = p.receipt_category === 'return';
-                            const methodClass = p.payment_type === 'cash' ? 'cash-tag' : 'chq-tag';
                             const displayDate = this.parseDBDate(p.receipt_date).toLocaleDateString();
 
                             return `
@@ -4255,166 +4332,9 @@ class AgroDistributionApp {
 
                 // Update Stats
                 this.updatePaymentStats(data.data, data.stats);
-            }
-        } catch (err) {
-            console.error('LoadPayments Error:', err);
-        }
-    }
 
-    updatePaymentPaginationControls(pagination) {
-        const paginationContainer = document.getElementById('payment-pagination');
-        const prevBtn = document.getElementById('btn-prev-page');
-        const nextBtn = document.getElementById('btn-next-page');
-        const pageInput = document.getElementById('payment-page-input');
-        const totalPagesSpan = document.getElementById('payment-total-pages');
-        const recordCountSpan = document.getElementById('payment-record-count');
-
-        if (paginationContainer) {
-            // Show pagination only if there are multiple pages
-            paginationContainer.style.display = pagination.totalPages > 1 ? 'flex' : 'none';
-
-            if (prevBtn) prevBtn.disabled = !pagination.hasPrev;
-            if (nextBtn) nextBtn.disabled = !pagination.hasNext;
-            if (pageInput) {
-                pageInput.value = pagination.page;
-                pageInput.max = pagination.totalPages;
-            }
-            if (totalPagesSpan) totalPagesSpan.textContent = `of ${pagination.totalPages}`;
-            if (recordCountSpan) {
-                const start = (pagination.page - 1) * pagination.limit + 1;
-                const end = Math.min(pagination.page * pagination.limit, pagination.total);
-                recordCountSpan.textContent = `Showing ${start}-${end} of ${pagination.total} records`;
-            }
-        }
-    }
-
-    async nextPaymentPage() {
-        if (this.paymentPage < this.paymentTotalPages) {
-            // Commit the page only after a successful load so a failed
-            // request can't drift the counter away from what's displayed.
-            const ok = await this.loadPaymentsPage(this.paymentPage + 1);
-            if (ok) this.paymentPage++;
-        }
-    }
-
-    async prevPaymentPage() {
-        if (this.paymentPage > 1) {
-            const ok = await this.loadPaymentsPage(this.paymentPage - 1);
-            if (ok) this.paymentPage--;
-        }
-    }
-
-    async goToPaymentPage() {
-        const pageInput = document.getElementById('payment-page-input');
-        const page = parseInt(pageInput.value) || 1;
-        if (page >= 1 && page <= this.paymentTotalPages) {
-            const ok = await this.loadPaymentsPage(page);
-            if (ok) this.paymentPage = page;
-        } else if (pageInput) {
-            // Out-of-range input: snap back to the current page
-            pageInput.value = this.paymentPage;
-        }
-    }
-
-    async loadPaymentsPage(page) {
-        const search = document.getElementById('payment-search')?.value || '';
-        const method = document.getElementById('payment-method-filter')?.value || '';
-        const cat = document.getElementById('payment-cat-filter')?.value || '';
-
-        let url = `/api/payments?page=${page}&limit=${this.paymentPageSize}`;
-        if (search) url += `&search=${encodeURIComponent(search)}`;
-        if (method) url += `&payment_method=${method}`;
-        if (cat) url += `&receipt_category=${cat}`;
-
-        try {
-            const res = await this.apiCall(url);
-            if (!res) return;
-            const data = await res.json();
-            if (data.success) {
-                const container = document.getElementById('payment-grid-container');
-                if (container) {
-                    if (data.data.length === 0) {
-                        container.innerHTML = `
-                            <div style="grid-column: 1/-1; padding: 5rem; text-align: center; color: var(--gray-400);">
-                                <i class="fas fa-receipt" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.2;"></i>
-                                <p>No financial records found matching your selection.</p>
-                            </div>
-                        `;
-                    } else {
-                        container.innerHTML = data.data.map(p => {
-                            const isReturn = p.receipt_category === 'return';
-                            const displayDate = this.parseDBDate(p.receipt_date).toLocaleDateString();
-
-                            return `
-                                <div class="log-card payment-premium-card" data-id="${p.id}">
-                                    <div class="status-strip ${isReturn ? 'closed' : 'open'}"></div>
-                                    <div class="log-card-header" style="margin-bottom: 0.8rem;">
-                                        <div>
-                                            <div class="log-customer-name" style="font-size: 1.05rem;">${p.customer_name}</div>
-                                            <div class="log-date"><i class="far fa-calendar-alt"></i> ${displayDate}</div>
-                                        </div>
-                                        <div class="payment-amount-badge ${isReturn ? 'neg' : 'pos'}" style="text-align: right;">
-                                            <div style="font-size: 0.7rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase;">Amount</div>
-                                            <div style="font-size: 1.1rem; font-weight: 800; letter-spacing: -0.5px;">
-                                                ${isReturn ? '-' : ''}LKR ${p.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; background: #f8fafc; padding: 10px 15px; border-radius: 12px; border: 1px solid #f1f5f9;">
-                                        <div style="display: flex; align-items: center; gap: 8px;">
-                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                                <i class="fas ${p.payment_type === 'cash' ? 'fa-wallet' : 'fa-money-check-alt'}" style="color: ${p.payment_type === 'cash' ? '#2ecc71' : '#3498db'}"></i>
-                                            </div>
-                                            <div>
-                                                <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Method</div>
-                                                <div style="font-size: 0.85rem; font-weight: 700; color: #475569;">${p.payment_type.toUpperCase()}</div>
-                                            </div>
-                                        </div>
-                                        <div style="text-align: right;">
-                                            <div style="font-size: 0.65rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">Receipt #</div>
-                                            <div style="font-size: 0.85rem; font-weight: 700; color: var(--primary-green-dark); font-family: monospace;">${p.receipt_number}</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="log-footer" style="padding-top: 0.8rem; border-top: 1px dashed #e2e8f0;">
-                                        <div class="log-user" style="font-size: 0.75rem;">
-                                            <div class="log-user-avatar" style="width: 20px; height: 20px; font-size: 0.6rem;">${(p.receiver_name || 'S')[0].toUpperCase()}</div>
-                                            <span>Staff: <strong>${p.receiver_name || 'System'}</strong></span>
-                                        </div>
-                                        <div class="action-btns">
-                                            ${this.hasPermission('payments', 'view') ? `<button class="btn-icon" title="Print Receipt" onclick="app.printReceipt(${p.id})"><i class="fas fa-print"></i></button>` : ''}
-                                            ${this.hasPermission('payments', 'edit') ? `<button class="btn-icon" title="Edit Record" onclick='app.openPaymentModal(null, ${JSON.stringify(p).replace(/"/g, '&quot;')})'><i class="fas fa-edit"></i></button>` : ''}
-                                            ${this.hasPermission('payments', 'delete') ? `<button class="btn-icon text-danger" title="Void Payment" onclick="app.handleDeletePayment(${p.id})"><i class="fas fa-trash"></i></button>` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                        }).join('');
-
-                        // GSAP Animation
-                        if (window.gsap) {
-                            gsap.from("#payment-grid-container .log-card", {
-                                duration: 0.6,
-                                opacity: 0,
-                                y: 30,
-                                stagger: 0.05,
-                                ease: "power3.out"
-                            });
-                        }
-                    }
-                }
-
-                // Update pagination controls
-                if (data.pagination) {
-                    this.updatePaymentPaginationControls(data.pagination);
-                }
-
-                // Update Stats
-                this.updatePaymentStats(data.data, data.stats);
-
-                // Scroll to top of payment grid
-                container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                // Scroll to top of payment grid (paging only, not filter loads)
+                if (scroll) container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 return true;
             }
         } catch (err) {

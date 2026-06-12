@@ -909,7 +909,7 @@
         <div class="filter-divider"></div>
 
         <label>Sort:</label>
-        <select id="sort-mode" onchange="applyFilter()">
+        <select id="sort-mode" onchange="resortLedger()">
             <option value="date-asc">Date (Oldest First)</option>
             <option value="date-desc">Date (Newest First)</option>
             <option value="amount-desc">Amount (Highest)</option>
@@ -1142,6 +1142,12 @@
             document.getElementById('filter-badge').style.display = 'none';
             document.getElementById('period-badge').classList.remove('active');
             fetchAndRenderLedger(null, null);
+        }
+
+        // Sorting is cosmetic: re-render from the cached dataset, no refetch.
+        function resortLedger() {
+            if (!_customer) return;
+            renderLedger(_allLedger, _customer);
         }
 
         function sortLedger(ledger) {

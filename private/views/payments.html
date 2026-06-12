@@ -64,7 +64,7 @@
                                 style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--gray-400);"></i>
                             <input type="text" id="payment-search" class="form-control"
                                 style="width: 100%; padding-left: 45px; margin:0; height: 48px; border-radius: 12px;"
-                                placeholder="Search by Receipt # or Customer..." onkeyup="app.loadPayments()">
+                                placeholder="Search by Receipt # or Customer..." onkeyup="app.debouncedLoadPayments()">
                         </div>
                         <select id="payment-method-filter" class="form-control"
                             style="width: 150px; margin:0; height: 48px; border-radius: 12px;"
