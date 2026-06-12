@@ -258,198 +258,318 @@
             border-bottom: 1px solid #eee;
         }
 
-        /* --- POS THERMAL FORMAT (80mm) --- */
+        /* ================================================================
+           POS THERMAL FORMAT — 78mm paper, 5mm margins = 68mm content
+           All rules use explicit #000 (no CSS variables) and font-weight
+           900 so every character burns clearly onto thermal paper.
+        ================================================================ */
+        body.format-pos,
+        body.format-pos * {
+            color: #000 !important;
+            background: #fff !important;
+            font-family: Arial, Helvetica, sans-serif !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
         body.format-pos {
-            background: #fff;
             padding: 0;
             margin: 0 auto;
-            width: 70mm;
-            /* 7cm as requested */
-            font-family: Arial, Helvetica, sans-serif !important;
+            width: 78mm;
+            font-size: 13px;
+            line-height: 1.4;
         }
 
         body.format-pos .invoice-wrapper {
-            width: 70mm;
-            /* 7cm */
-            padding: 4mm 6mm;
-            /* Adjusted for 7cm print area */
+            width: 78mm;
+            padding: 4mm 5mm;
             min-height: auto;
-            border: none;
+            border: none !important;
+            box-shadow: none !important;
             margin: 0 auto;
             box-sizing: border-box;
         }
 
+        /* ---- HEADER ---- */
         body.format-pos .header-main {
             flex-direction: column;
             align-items: center;
             text-align: center;
-            margin-bottom: 12px;
-            border-bottom: 2px dashed var(--ink);
-            padding-bottom: 8px;
+            margin-bottom: 0;
+            border: none !important;
+            padding-bottom: 0;
         }
 
         body.format-pos .company-branding {
             text-align: center;
+            width: 100%;
         }
 
         body.format-pos .company-branding h1 {
-            font-size: 24px;
-            /* Scaled up */
+            font-size: 16px !important;
             letter-spacing: 0;
-            margin-bottom: 5px;
-            font-weight: 900;
+            margin-bottom: 3px;
+            font-weight: 900 !important;
+            text-transform: uppercase;
         }
 
         body.format-pos .company-branding p {
-            font-size: 12px;
+            font-size: 12px !important;
             margin: 2px 0;
-            font-weight: 700;
+            font-weight: 700 !important;
         }
 
         body.format-pos .invoice-meta-box {
             text-align: center;
-            min-width: 100%;
-            margin-top: 8px;
+            width: 100%;
+            margin-top: 4px;
         }
 
         body.format-pos .type-label {
-            font-size: 22px;
-            letter-spacing: 1px;
-            margin-bottom: 2px;
+            font-size: 14px !important;
+            letter-spacing: 2px;
+            margin-bottom: 3px;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            display: block;
         }
 
         body.format-pos .meta-row {
-            justify-content: center;
-            font-size: 14px;
-            /* Scaled up */
-            gap: 12px;
-            font-weight: 800;
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            width: 100%;
+            margin-bottom: 1px;
         }
 
+        body.format-pos .meta-row b {
+            font-size: 12px !important;
+            font-weight: 900 !important;
+        }
+
+        /* ---- DIVIDER UTILITY ---- */
+        body.format-pos .pos-divider {
+            border: none;
+            border-top: 1px solid #000;
+            margin: 5px 0;
+        }
+
+        body.format-pos .pos-divider-dash {
+            border: none;
+            border-top: 1px dashed #000;
+            margin: 4px 0;
+        }
+
+        /* ---- CUSTOMER INFO ---- */
         body.format-pos .info-section {
-            grid-template-columns: 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
+            grid-template-columns: 1fr !important;
+            gap: 0;
+            margin-bottom: 0;
         }
 
         body.format-pos .address-card {
-            padding: 6px;
-            border: 1px solid var(--ink);
-            background: transparent !important;
+            padding: 4px 0;
+            border: none !important;
+            border-bottom: 1px dashed #000 !important;
         }
 
         body.format-pos .address-card h2 {
-            font-size: 10px;
-            padding-bottom: 3px;
-            margin-bottom: 5px;
+            font-size: 11px !important;
+            padding-bottom: 2px;
+            margin-bottom: 3px;
+            font-weight: 900 !important;
+            text-transform: uppercase;
         }
 
         body.format-pos .address-card p {
-            font-size: 14px;
-            font-weight: 800;
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            margin: 2px 0;
         }
 
         body.format-pos .summary-mini-card {
-            padding: 6px;
-            background: transparent !important;
+            padding: 4px 0;
+            border: none !important;
+            border-bottom: 1px dashed #000 !important;
         }
 
         body.format-pos .summary-mini-card h3 {
-            font-size: 10px;
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            margin-bottom: 4px;
         }
 
         body.format-pos .payment-line {
-            font-size: 12px;
-            font-weight: 900;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
         }
 
+        /* ---- ITEMS TABLE ---- */
         body.format-pos .items-table {
-            border: none;
-            border-top: 1px solid var(--ink);
-            border-bottom: 1px solid var(--ink);
-            margin-bottom: 12px;
+            border: none !important;
+            border-top: 1px solid #000 !important;
+            margin-top: 4px;
+            margin-bottom: 0;
         }
 
         body.format-pos .items-table thead {
             display: none;
-            /* Hide header for POS */
         }
 
         body.format-pos .items-table td {
-            padding: 10px 0;
-            border: none;
-            border-bottom: 1px solid #000;
+            padding: 5px 0 !important;
+            border: none !important;
+            border-bottom: 1px dashed #000 !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            vertical-align: top;
         }
 
+        body.format-pos .items-table tr:last-child td {
+            border-bottom: 1px solid #000 !important;
+        }
+
+        /* ---- TOTALS ---- */
         body.format-pos .footer-grid {
-            flex-direction: column;
+            flex-direction: column !important;
         }
 
         body.format-pos .terms-conditions {
-            display: none;
-            /* Removed from POS bill as requested */
-        }
-
-        body.format-pos .terms-conditions h4 {
-            font-size: 10px;
-            margin-bottom: 3px;
+            display: none !important;
         }
 
         body.format-pos .totals-block {
-            width: 100%;
-            padding: 8px 0;
-            border: none;
-            border-top: 2px solid var(--ink);
-            order: 1;
+            width: 100% !important;
+            padding: 4px 0;
+            border: none !important;
+            margin-top: 0;
         }
 
         body.format-pos .total-row {
-            font-size: 14px;
-            padding: 4px 0;
-            font-weight: 800;
+            display: flex !important;
+            justify-content: space-between !important;
+            font-size: 12px !important;
+            padding: 2px 0;
+            font-weight: 700 !important;
         }
 
         body.format-pos .total-row.net-total {
-            font-size: 22px;
-            border-top: 1px solid var(--ink);
-            margin-top: 5px;
-            padding-top: 5px;
+            font-size: 16px !important;
+            font-weight: 900 !important;
+            border-top: 2px solid #000 !important;
+            border-bottom: 2px solid #000 !important;
+            margin-top: 4px;
+            padding: 4px 0 !important;
         }
 
+        body.format-pos .total-row.cash-row {
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            border-top: 1px dashed #000 !important;
+            margin-top: 4px;
+            padding-top: 4px !important;
+        }
+
+        body.format-pos .total-row.change-row {
+            font-size: 15px !important;
+            font-weight: 900 !important;
+        }
+
+        /* ---- POS PAYMENT BREAKDOWN (multi-method) ---- */
+        body.format-pos .pos-pay-head {
+            border-top: 1px dashed #000 !important;
+            margin-top: 4px;
+            padding-top: 4px !important;
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        body.format-pos #pos-pay-lines .total-row {
+            font-size: 13px !important;
+            font-weight: 800 !important;
+            padding: 2px 0;
+        }
+
+        body.format-pos #pos-cheque-section {
+            margin-top: 4px;
+        }
+
+        body.format-pos .pos-cheque-line {
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            padding: 2px 0;
+            line-height: 1.35;
+        }
+
+        body.format-pos .pos-cheque-line .chq-top {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 900 !important;
+        }
+
+        body.format-pos .pos-cheque-line .chq-detail {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px !important;
+            font-weight: 700 !important;
+            color: #333;
+        }
+
+        /* ---- SIGNATURES ---- */
         body.format-pos .signature-group {
-            flex-direction: column;
-            gap: 25px;
-            margin-top: 30px;
+            flex-direction: column !important;
+            gap: 20px;
+            margin-top: 15px;
         }
 
         body.format-pos .sig-container {
-            width: 100%;
+            width: 100% !important;
         }
 
         body.format-pos .sig-line {
-            height: 30px;
+            height: 25px;
+            border-bottom: 1px solid #000 !important;
+            margin-bottom: 5px;
+        }
+
+        body.format-pos .sig-label {
+            font-size: 11px !important;
+            font-weight: 900 !important;
+            text-align: center;
+        }
+
+        body.format-pos .sig-sub {
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            text-align: center;
         }
 
         body.format-pos .watermark-status {
-            font-size: 32px;
-            top: 60mm;
-            padding: 8px 15px;
-            border-width: 3px;
-            opacity: 0.8 !important;
             display: none !important;
-            /* Hide by default in POS to save space/ink unless specifically needed */
         }
 
         body.format-pos .duplicate-tag {
             right: 2mm;
-            font-size: 10px;
+            font-size: 11px !important;
             padding: 2px 8px;
+            font-weight: 900 !important;
         }
 
         @media print {
             body.format-pos {
-                width: 70mm;
-                /* 7cm */
+                width: 78mm;
+            }
+
+            @page {
+                size: 78mm auto;
+                margin: 0;
             }
         }
 
@@ -815,6 +935,24 @@
                     <span>TOTAL</span>
                     <span id="txt-total">0.00</span>
                 </div>
+
+                <!-- POS: multi-method payment breakdown (Cash / Cheque / Account) -->
+                <div id="pos-pay-section" style="display:none;">
+                    <div class="total-row pos-pay-head"><span>PAYMENT</span><span></span></div>
+                    <div id="pos-pay-lines"></div>
+                </div>
+
+                <div class="total-row cash-row" id="cash-tendered-row" style="display:none;">
+                    <span>Cash Received</span>
+                    <span id="txt-cash-tendered">0.00</span>
+                </div>
+                <div class="total-row change-row" id="cash-change-row" style="display:none;">
+                    <span>Balance / Change</span>
+                    <span id="txt-cash-change">0.00</span>
+                </div>
+
+                <!-- POS: cheque instrument details (bank / number / due date) -->
+                <div id="pos-cheque-section" style="display:none;"></div>
                 <p style="text-align: right; font-size: 10px; font-weight: 800; margin-top: 10px;">All amounts are in
                     Sri Lankan Rupees (LKR)</p>
             </div>
@@ -834,12 +972,13 @@
         </div>
 
         <div id="pos-thank-you"
-            style="display: none; text-align: center; margin-top: 20px; border-top: 2px dashed #000; padding-top: 15px;">
-            <div id="pos-barcode-container" style="margin-bottom: 10px;">
+            style="display: none; text-align: center; margin-top: 10px; border-top: 1px solid #000; padding-top: 8px;">
+            <div id="pos-barcode-container" style="margin-bottom: 6px;">
                 <svg id="barcode-pos-inv"></svg>
             </div>
-            <p style="font-size: 14px; font-weight: 900; margin: 0; text-transform: uppercase;">*** Thank You! ***</p>
-            <p style="font-size: 12px; font-weight: 700; margin-top: 5px;">We Appreciate Your Business</p>
+            <p style="font-size: 13px; font-weight: 900; color: #000; margin: 0; text-transform: uppercase;">*** THANK YOU! ***</p>
+            <p style="font-size: 12px; font-weight: 700; color: #000; margin-top: 4px;">We Appreciate Your Business</p>
+            <p style="font-size: 11px; font-weight: 700; color: #000; margin-top: 3px;">Software by ArshaD AhameD</p>
         </div>
 
         <div id="a4-thank-you"
@@ -910,6 +1049,10 @@
                     if (format === 'pos') {
                         document.getElementById('a4-thank-you').style.display = 'none';
                         document.getElementById('pos-thank-you').style.display = 'block';
+                        // Override cust-name size for POS
+                        document.getElementById('cust-name').style.fontSize = '12px';
+                        // Hide summary-mini-card in POS (payment shown in totals block)
+                        document.querySelector('.summary-mini-card').style.display = 'none';
                     } else {
                         wrapper.classList.remove('template-classic', 'template-modern', 'template-minimal', 'template-corporate', 'template-custom', 'template-premium');
                         wrapper.classList.add(`template-${template}`);
@@ -1020,19 +1163,17 @@
                 if (format === 'pos') {
                     tbody.innerHTML = inv.items.map((it, idx) => `
                         <tr>
-                            <td colspan="6" style="padding: 12px 0; border-bottom: 1px dotted #000;">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
-                                    <div style="font-weight: 800; font-size: 16px; color: var(--ink); flex: 1; padding-right: 15px; line-height: 1.2;">
-                                        ${it.product_name} ${it.is_free ? '<span style="color:red; font-size:11px;">(FREE ISSUE)</span>' : ''}
+                            <td colspan="6">
+                                <div style="display:flex; justify-content:space-between; align-items:flex-start; color:#000;">
+                                    <div style="font-weight:900; font-size:13px; color:#000; flex:1; padding-right:8px; line-height:1.35;">
+                                        ${it.product_name}${it.is_free ? ' <span style="font-size:11px; font-weight:900; color:#000;">[FREE]</span>' : ''}
                                     </div>
-                                    <div style="font-weight: 900; font-size: 16px; white-space: nowrap;">
+                                    <div style="font-weight:900; font-size:13px; color:#000; white-space:nowrap;">
                                         ${it.is_free ? '0.00' : it.line_total.toFixed(2)}
                                     </div>
                                 </div>
-                                <div style="display: flex; gap: 12px; font-size: 13px; font-weight: 800; color: #000;">
-                                    <span>${it.quantity} ${it.unit || 'unit'}</span>
-                                    <span>@ ${it.msrp.toFixed(2)}</span>
-                                    ${it.discount_percentage > 0 ? `<span>(DISC: ${it.discount_percentage}%)</span>` : ''}
+                                <div style="font-size:12px; font-weight:700; color:#000;">
+                                    ${it.quantity} ${it.unit || 'pcs'} x ${it.msrp.toFixed(2)}${it.discount_percentage > 0 ? ` (${it.discount_percentage}% off)` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -1061,17 +1202,100 @@
                 document.getElementById('txt-discount').textContent = savings > 0 ? '-' + savings.toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
                 document.getElementById('txt-total').textContent = inv.net_total.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
+                // 6b. Cash Tendered / Change + Multi-Method Payment Breakdown (POS only)
+                if (format === 'pos') {
+                    const pd = typeof inv.payment_details === 'string' ? JSON.parse(inv.payment_details || '{}') : (inv.payment_details || {});
+                    const method = (inv.payment_method || '').toLowerCase();
+                    const money = (n) => parseFloat(n || 0).toLocaleString(undefined, { minimumFractionDigits: 2 });
+
+                    // --- Payment method breakdown: list every method actually used ---
+                    const payLines = [];
+                    if (method === 'split') {
+                        if (parseFloat(pd.cash) > 0)   payLines.push(['Cash', parseFloat(pd.cash)]);
+                        if (parseFloat(pd.cheque) > 0) payLines.push(['Cheque', parseFloat(pd.cheque)]);
+                        if (parseFloat(pd.credit) > 0) payLines.push(['Account (Credit)', parseFloat(pd.credit)]);
+                    } else if (method === 'cheque') {
+                        payLines.push(['Cheque', inv.net_total]);
+                    } else if (method === 'account') {
+                        payLines.push(['Account (Credit)', inv.net_total]);
+                    } else if (method === 'cash') {
+                        payLines.push(['Cash', inv.net_total]);
+                    }
+
+                    // Show the PAYMENT breakdown block whenever more than one method is used,
+                    // or a non-cash method is involved (so cheque/account totals are always visible).
+                    if (payLines.length > 1 || (payLines.length === 1 && method !== 'cash')) {
+                        document.getElementById('pos-pay-lines').innerHTML = payLines.map(([label, amt]) =>
+                            `<div class="total-row"><span>${label}</span><span>${money(amt)}</span></div>`
+                        ).join('');
+                        document.getElementById('pos-pay-section').style.display = 'block';
+                    }
+
+                    // --- Cash tendered / change (when physical cash was handed over) ---
+                    const cashTendered = parseFloat(pd.cash_tendered || pd.cash || 0);
+                    const cashChange = parseFloat(pd.cash_change || 0);
+                    if (cashTendered > 0) {
+                        document.getElementById('cash-tendered-row').style.display = 'flex';
+                        document.getElementById('txt-cash-tendered').textContent = money(cashTendered);
+                        document.getElementById('cash-change-row').style.display = 'flex';
+                        document.getElementById('txt-cash-change').textContent = money(cashChange);
+                    }
+
+                    // --- Cheque instrument details (bank / number / due date / amount) ---
+                    // Primary: cheque_details DB rows (inv.cheques from getById).
+                    // Fallback: payment_details.cheques[] JSON (older invoices or edge cases).
+                    const chequesToShow = (inv.cheques && inv.cheques.length > 0)
+                        ? inv.cheques
+                        : (pd.cheques || []);
+                    if (chequesToShow.length > 0) {
+                        const sec = document.getElementById('pos-cheque-section');
+                        const head = document.createElement('div');
+                        head.className = 'total-row pos-pay-head';
+                        head.innerHTML = '<span>CHEQUE DETAILS</span><span></span>';
+                        sec.innerHTML = '';
+                        sec.appendChild(head);
+                        chequesToShow.forEach(c => {
+                            const bank = c.bank || c.bank_name || 'Cheque';
+                            const num  = c.number || c.cheque_number || '';
+                            const date = c.date || c.cheque_date || '';
+                            const line = document.createElement('div');
+                            line.className = 'pos-cheque-line';
+                            const top = document.createElement('div');
+                            top.className = 'chq-top';
+                            const bankSpan = document.createElement('span');
+                            bankSpan.textContent = bank;
+                            const amtSpan = document.createElement('span');
+                            amtSpan.textContent = money(parseFloat(c.amount || 0));
+                            top.appendChild(bankSpan);
+                            top.appendChild(amtSpan);
+                            // Row 2 - Cheque No (left) | Due Date (right)
+                            const detail = document.createElement('div');
+                            detail.className = 'chq-detail';
+                            const numSpan = document.createElement('span');
+                            numSpan.textContent = 'No: ' + (num || '-');
+                            const dateSpan = document.createElement('span');
+                            dateSpan.textContent = date ? 'Due: ' + date : '';
+                            detail.appendChild(numSpan);
+                            detail.appendChild(dateSpan);
+                            line.appendChild(top);
+                            line.appendChild(detail);
+                            sec.appendChild(line);
+                        });
+                        sec.style.display = 'block';
+                    }
+                }
+
                 // 7. Generate Barcode for POS
                 if (format === 'pos') {
                     try {
                         JsBarcode("#barcode-pos-inv", inv.invoice_number, {
                             format: "CODE128",
-                            width: 1.5,
-                            height: 40,
+                            width: 1.2,
+                            height: 30,
                             displayValue: true,
-                            fontSize: 12,
+                            fontSize: 9,
                             fontOptions: "bold",
-                            margin: 10
+                            margin: 4
                         });
                     } catch (e) {
                         console.warn("Barcode generation failed:", e);
