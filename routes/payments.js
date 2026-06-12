@@ -25,16 +25,42 @@ const upload = multer({ storage });
 // Get all receipts
 router.get('/', async (req, res) => {
     try {
+        // Clamp pagination inputs: NaN/0/negative fall back to defaults,
+        // and limit is capped so a crafted request can't dump the table.
+        const limit = Math.min(Math.max(parseInt(req.query.limit) || 15, 1), 100);
+        const page = Math.max(parseInt(req.query.page) || 1, 1);
+
         const filters = {
             customer_id: req.query.customer_id,
             date_from: req.query.date_from,
             date_to: req.query.date_to,
             search: req.query.search,
             payment_method: req.query.payment_method,
-            receipt_category: req.query.receipt_category
+            receipt_category: req.query.receipt_category,
+            limit,
+            page
         };
-        const receipts = await paymentRepo.getAll(filters);
-        res.json({ success: true, data: receipts });
+
+        const [receipts, total, stats] = await Promise.all([
+            paymentRepo.getAll(filters),
+            paymentRepo.getCount(filters),
+            paymentRepo.getStats(filters)
+        ]);
+
+        const totalPages = Math.ceil(total / limit);
+        res.json({
+            success: true,
+            data: receipts,
+            stats,
+            pagination: {
+                total,
+                limit,
+                page,
+                totalPages,
+                hasNext: page < totalPages,
+                hasPrev: page > 1
+            }
+        });
     } catch (error) {
         await logError(req.user?.id || 0, 'GET_PAYMENTS', error);
         res.status(500).json({ success: false, error: error.message });

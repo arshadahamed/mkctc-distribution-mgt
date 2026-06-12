@@ -97,6 +97,24 @@
                     </div>
                 </div>
 
+                <!-- Pagination Controls -->
+                <div id="payment-pagination" style="display: none; margin-top: 2rem; justify-content: center; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                    <button id="btn-prev-page" class="btn btn-secondary" onclick="app.prevPaymentPage()" style="padding: 10px 20px; border-radius: 8px;">
+                        <i class="fas fa-chevron-left"></i> Previous
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span>Page</span>
+                        <input type="number" id="payment-page-input" min="1" max="1" value="1" style="width: 60px; padding: 8px; border: 1px solid #e2e8f0; border-radius: 8px; text-align: center;" onchange="app.goToPaymentPage()">
+                        <span id="payment-total-pages">of 1</span>
+                    </div>
+                    <button id="btn-next-page" class="btn btn-secondary" onclick="app.nextPaymentPage()" style="padding: 10px 20px; border-radius: 8px;">
+                        Next <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <div style="margin-left: auto;">
+                        <span id="payment-record-count" style="color: var(--gray-500); font-size: 0.9rem;">Showing 0 records</span>
+                    </div>
+                </div>
+
                 <!-- Fallback Table (Hidden) -->
                 <div class="table-container" style="display: none;">
                     <table class="data-table">

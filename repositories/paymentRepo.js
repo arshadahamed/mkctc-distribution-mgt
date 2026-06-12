@@ -125,47 +125,96 @@ class PaymentRepository {
         return `RCP${yearMonth}${sequence}`;
     }
 
-    async getAll(filters = {}) {
-        let query = `
-            SELECT r.*, c.name as customer_name
-            FROM receipts r
-            JOIN customers c ON r.customer_id = c.id
-            WHERE 1=1
-        `;
+    // Shared WHERE-clause builder for receipt list/count/stats queries.
+    // Assumes the query aliases receipts as r and customers as c.
+    _buildReceiptFilters(filters = {}) {
+        let where = '';
         const params = [];
 
         if (filters.customer_id) {
-            query += ' AND r.customer_id = ?';
+            where += ' AND r.customer_id = ?';
             params.push(filters.customer_id);
         }
 
         if (filters.date_from) {
-            query += ' AND r.receipt_date >= ?';
+            where += ' AND r.receipt_date >= ?';
             params.push(filters.date_from);
         }
 
         if (filters.date_to) {
-            query += ' AND r.receipt_date <= ?';
+            where += ' AND r.receipt_date <= ?';
             params.push(filters.date_to);
         }
 
         if (filters.search) {
-            query += ' AND (r.receipt_number LIKE ? OR c.name LIKE ?)';
+            where += ' AND (r.receipt_number LIKE ? OR c.name LIKE ?)';
             params.push(`%${filters.search}%`, `%${filters.search}%`);
         }
 
         if (filters.payment_method) {
-            query += ' AND r.payment_type = ?';
+            where += ' AND r.payment_type = ?';
             params.push(filters.payment_method);
         }
 
         if (filters.receipt_category) {
-            query += ' AND r.receipt_category = ?';
+            where += ' AND r.receipt_category = ?';
             params.push(filters.receipt_category);
         }
 
-        query += ' ORDER BY r.id DESC';
+        return { where, params };
+    }
+
+    async getAll(filters = {}) {
+        const { where, params } = this._buildReceiptFilters(filters);
+        let query = `
+            SELECT r.*, c.name as customer_name
+            FROM receipts r
+            JOIN customers c ON r.customer_id = c.id
+            WHERE 1=1${where}
+            ORDER BY r.id DESC
+        `;
+
+        // Pagination
+        const limit = parseInt(filters.limit) || 15;
+        const page = parseInt(filters.page) || 1;
+        const offset = (page - 1) * limit;
+        query += ` LIMIT ${limit} OFFSET ${offset}`;
+
         return await allQuery(query, params);
+    }
+
+    async getCount(filters = {}) {
+        const { where, params } = this._buildReceiptFilters(filters);
+        const query = `
+            SELECT COUNT(*) as total
+            FROM receipts r
+            JOIN customers c ON r.customer_id = c.id
+            WHERE 1=1${where}
+        `;
+        const result = await getQuery(query, params);
+        return result?.total || 0;
+    }
+
+    // Aggregate KPI totals over ALL receipts matching the filters (not just
+    // the current page). Mirrors the client-side updatePaymentStats logic:
+    // non-cash payment types (cheque, transfer) count toward the cheque flow.
+    async getStats(filters = {}) {
+        const { where, params } = this._buildReceiptFilters(filters);
+        const query = `
+            SELECT
+                COALESCE(SUM(CASE WHEN IFNULL(r.receipt_category, 'collection') != 'return' THEN r.amount ELSE 0 END), 0) as total,
+                COALESCE(SUM(CASE WHEN r.receipt_category = 'return' THEN r.amount ELSE 0 END), 0) as returns,
+                COALESCE(SUM(CASE WHEN r.payment_type = 'cash'
+                    THEN (CASE WHEN r.receipt_category = 'return' THEN -r.amount ELSE r.amount END)
+                    ELSE 0 END), 0) as cash,
+                COALESCE(SUM(CASE WHEN r.payment_type != 'cash'
+                    THEN (CASE WHEN r.receipt_category = 'return' THEN -r.amount ELSE r.amount END)
+                    ELSE 0 END), 0) as cheque
+            FROM receipts r
+            JOIN customers c ON r.customer_id = c.id
+            WHERE 1=1${where}
+        `;
+        return await getQuery(query, params);
     }
 
     async getById(id) {
