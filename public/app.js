@@ -4184,8 +4184,9 @@ class AgroDistributionApp {
         const recordCountSpan = document.getElementById('payment-record-count');
 
         if (paginationContainer) {
-            // Show pagination only if there are multiple pages
-            paginationContainer.style.display = pagination.totalPages > 1 ? 'flex' : 'none';
+            // Always visible when there are records, so the page/record
+            // counts show even when everything fits on a single page.
+            paginationContainer.style.display = pagination.total > 0 ? 'flex' : 'none';
 
             if (prevBtn) prevBtn.disabled = !pagination.hasPrev;
             if (nextBtn) nextBtn.disabled = !pagination.hasNext;
