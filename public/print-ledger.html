@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Account Ledger - M.K.C. TRADE CENTER</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* ═══════════════════════════════════════════
+           BASE — Courier New throughout (dot matrix)
+        ═══════════════════════════════════════════ */
         * {
             box-sizing: border-box;
             -webkit-print-color-adjust: exact;
@@ -14,346 +16,465 @@
         }
 
         :root {
-            --green-dark: #1b5e20;
-            --green-mid: #2e7d32;
-            --green-light: #e8f5e9;
-            --green-accent: #4caf50;
-            --ink: #111827;
-            --gray: #6b7280;
-            --gray-light: #f3f4f6;
-            --border: #e5e7eb;
+            --mono: 'Courier New', Courier, 'Lucida Console', monospace;
+            --paper: #fefcf0;
+            --paper-alt: #f5f3e6;
+            --strip: #dedad0;
+            --ink: #111111;
+            --ink-mid: #444444;
+            --ink-light: #888888;
+            --rule: #666666;
+            --rule-light: #bbbbbb;
+            --rule-dot: #cccccc;
         }
 
         body {
-            font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+            font-family: var(--mono);
             margin: 0;
             padding: 20px;
-            background: #e5e7eb;
+            background: #1e2030;
             color: var(--ink);
-            line-height: 1.5;
+            line-height: 1.4;
+            font-size: 13px;
         }
 
-        /* No-print controls */
+        /* ═══════════════════════════════════════════
+           SCREEN TOOLBAR
+        ═══════════════════════════════════════════ */
         .no-print-bar {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: #1f2937;
-            color: white;
-            padding: 10px 20px;
+            top: 0; left: 0; right: 0;
+            background: #0d0d0d;
+            color: #cccccc;
+            padding: 9px 20px;
             display: flex;
             align-items: center;
             gap: 12px;
             z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #3d7a4a;
+            font-family: var(--mono);
         }
 
         .no-print-bar h4 {
             margin: 0;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.8rem;
+            font-weight: 700;
             flex: 1;
+            letter-spacing: 0.5px;
+            color: #5ecb7a;
+            font-family: var(--mono);
         }
 
         .btn-print {
-            background: var(--green-mid);
-            color: white;
-            border: none;
-            padding: 8px 18px;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            background: #2a6e3a;
+            color: #ffffff;
+            border: 1px solid #3d9950;
+            padding: 6px 16px;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: background 0.2s;
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: background 0.15s;
         }
 
-        .btn-print:hover { background: var(--green-dark); }
+        .btn-print:hover { background: #1d5228; }
 
         .btn-close {
-            background: rgba(255,255,255,0.1);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.2);
-            padding: 8px 14px;
-            border-radius: 6px;
-            font-size: 0.85rem;
+            background: transparent;
+            color: #888888;
+            border: 1px solid #333333;
+            padding: 6px 12px;
+            font-size: 0.78rem;
             font-weight: 600;
             cursor: pointer;
+            font-family: var(--mono);
         }
 
-        /* Main A4 wrapper */
+        .btn-close:hover { background: #1a1a1a; color: #cccccc; }
+
+        /* ═══════════════════════════════════════════
+           FILTER BAR
+        ═══════════════════════════════════════════ */
+        .filter-bar {
+            position: fixed;
+            top: 44px; left: 0; right: 0;
+            background: #141414;
+            color: #aaaaaa;
+            padding: 7px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 999;
+            border-bottom: 1px solid #2a2a2a;
+            flex-wrap: wrap;
+            font-family: var(--mono);
+            font-size: 0.75rem;
+        }
+
+        .filter-bar label {
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #666666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-bar select,
+        .filter-bar input[type="date"],
+        .filter-bar input[type="month"] {
+            background: #1e1e1e;
+            color: #dddddd;
+            border: 1px solid #333333;
+            padding: 4px 8px;
+            font-size: 0.73rem;
+            font-family: var(--mono);
+            outline: none;
+        }
+
+        .filter-bar select option { background: #141414; color: #dddddd; }
+
+        .filter-bar input[type="date"]::-webkit-calendar-picker-indicator,
+        .filter-bar input[type="month"]::-webkit-calendar-picker-indicator { filter: invert(1); }
+
+        .filter-btn {
+            background: #2a6e3a;
+            color: white;
+            border: none;
+            padding: 4px 12px;
+            font-size: 0.73rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: var(--mono);
+            text-transform: uppercase;
+        }
+
+        .filter-btn:hover { background: #1d5228; }
+
+        .filter-btn.reset {
+            background: transparent;
+            border: 1px solid #333333;
+            color: #888888;
+        }
+
+        .filter-btn.reset:hover { background: #1e1e1e; color: #bbbbbb; }
+
+        .filter-divider { width: 1px; height: 22px; background: #2a2a2a; }
+
+        .filter-active-badge {
+            background: #c68000;
+            color: #ffffff;
+            padding: 2px 8px;
+            font-size: 0.67rem;
+            font-weight: 800;
+            display: none;
+            font-family: var(--mono);
+            letter-spacing: 0.5px;
+        }
+
+        /* ═══════════════════════════════════════════
+           DOT-MATRIX PAPER WRAPPER
+        ═══════════════════════════════════════════ */
         .ledger-wrapper {
             width: 210mm;
             min-height: 297mm;
-            margin: 55px auto 20px auto;
-            background: white;
+            margin: 98px auto 24px auto;
+            background: var(--paper);
             position: relative;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            /* paper shadow on screen */
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7);
         }
 
-        /* =====================
-           LETTERHEAD / HEADER
-        ===================== */
+        /* Pin-feed perforation strips — screen only */
+        .pin-strip {
+            position: absolute;
+            top: 0; bottom: 0;
+            width: 22px;
+            background-color: var(--strip);
+            background-image: radial-gradient(circle at center, #9a9488 5.5px, transparent 5.5px);
+            background-size: 22px 34px;
+            background-position: center 8px;
+            background-repeat: repeat-y;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .pin-strip.left  { left: 0;  border-right: 1px solid #c8c4b8; }
+        .pin-strip.right { right: 0; border-left:  1px solid #c8c4b8; }
+
+        /* All content sections must clear the pin strips */
+        .letterhead,
+        .info-section,
+        .summary-section,
+        .period-badge,
+        .loading-state,
+        .table-section,
+        .balance-insight,
+        .signatures,
+        .doc-footer {
+            margin-left: 22px;
+            margin-right: 22px;
+        }
+
+        /* ═══════════════════════════════════════════
+           LETTERHEAD
+        ═══════════════════════════════════════════ */
         .letterhead {
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 60%, #388e3c 100%);
-            padding: 28px 35px 0 35px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Decorative circles */
-        .letterhead::before {
-            content: '';
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.04);
-            top: -80px;
-            right: -60px;
-        }
-
-        .letterhead::after {
-            content: '';
-            position: absolute;
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-            bottom: 10px;
-            left: 30px;
+            padding: 14px 18px 12px 18px;
+            border-bottom: 2px solid var(--ink);
         }
 
         .lh-top {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            position: relative;
-            z-index: 1;
         }
 
         .company-brand h1 {
-            font-size: 26px;
-            font-weight: 900;
-            color: #ffffff;
-            margin: 0 0 6px 0;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .company-brand .tagline {
-            font-size: 11px;
-            color: rgba(255,255,255,0.75);
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-
-        .company-contact {
-            text-align: right;
-            color: rgba(255,255,255,0.85);
-            font-size: 11.5px;
-            font-weight: 500;
-            line-height: 1.7;
-        }
-
-        .company-contact strong {
-            color: #ffffff;
+            font-family: var(--mono);
+            font-size: 15px;
             font-weight: 700;
-        }
-
-        /* Document title band */
-        .doc-title-band {
-            background: rgba(0,0,0,0.2);
-            margin: 20px -35px 0 -35px;
-            padding: 10px 35px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
-            z-index: 1;
-        }
-
-        .doc-title-band .doc-label {
-            font-size: 18px;
-            font-weight: 900;
-            color: #ffffff;
+            color: var(--ink);
+            margin: 0 0 3px 0;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
 
-        .doc-title-band .doc-ref {
+        .company-brand .tagline {
+            font-size: 10px;
+            color: var(--ink-mid);
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            font-family: var(--mono);
+        }
+
+        .company-contact {
+            text-align: right;
+            color: var(--ink-mid);
+            font-size: 10px;
+            font-weight: 400;
+            line-height: 1.75;
+            font-family: var(--mono);
+        }
+
+        .company-contact strong {
+            color: var(--ink);
+            font-weight: 700;
+        }
+
+        .doc-title-band {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px dashed var(--rule);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .doc-title-band .doc-label {
+            font-family: var(--mono);
             font-size: 11px;
-            color: rgba(255,255,255,0.7);
-            font-weight: 600;
+            font-weight: 700;
+            color: var(--ink);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+
+        .doc-title-band .doc-ref {
+            font-size: 10px;
+            color: var(--ink-mid);
+            font-family: var(--mono);
         }
 
         .doc-title-band .doc-ref span {
-            color: #ffffff;
-            font-weight: 800;
+            color: var(--ink);
+            font-weight: 700;
         }
 
-        /* =====================
+        /* ═══════════════════════════════════════════
            CUSTOMER & PERIOD INFO
-        ===================== */
+        ═══════════════════════════════════════════ */
         .info-section {
             display: grid;
             grid-template-columns: 1.6fr 1fr;
-            gap: 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--rule);
         }
 
         .customer-block {
-            padding: 20px 25px 18px 35px;
-            border-right: 1px solid var(--border);
+            padding: 10px 16px 10px 18px;
+            border-right: 1px solid var(--rule);
         }
 
-        .customer-block .block-label {
-            font-size: 9px;
-            font-weight: 800;
+        .customer-block .block-label,
+        .period-block .block-label {
+            font-family: var(--mono);
+            font-size: 8.5px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--green-mid);
-            margin-bottom: 8px;
+            letter-spacing: 2px;
+            color: var(--ink-mid);
+            margin-bottom: 6px;
         }
 
         .customer-name {
-            font-size: 18px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 14px;
+            font-weight: 700;
             color: var(--ink);
             margin-bottom: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .customer-meta {
-            font-size: 12px;
-            color: var(--gray);
-            font-weight: 500;
-            line-height: 1.7;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-mid);
+            font-weight: 400;
+            line-height: 1.8;
         }
 
         .customer-meta strong {
             color: var(--ink);
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .period-block {
-            padding: 20px 25px 18px 25px;
-        }
-
-        .period-block .block-label {
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--green-mid);
-            margin-bottom: 8px;
+            padding: 10px 16px 10px 16px;
         }
 
         .period-item {
             display: flex;
             justify-content: space-between;
-            font-size: 11.5px;
-            color: var(--gray);
-            font-weight: 500;
-            padding: 3px 0;
+            font-family: var(--mono);
+            font-size: 10px;
+            color: var(--ink-mid);
+            padding: 2.5px 0;
+            border-bottom: 1px dotted var(--rule-dot);
         }
+
+        .period-item:last-child { border-bottom: none; }
 
         .period-item span:last-child {
             color: var(--ink);
             font-weight: 700;
         }
 
-        /* =====================
-           SUMMARY CARDS
-        ===================== */
+        /* ═══════════════════════════════════════════
+           SUMMARY BAR (compact horizontal row)
+        ═══════════════════════════════════════════ */
         .summary-section {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 0;
-            border-bottom: 3px solid var(--green-light);
+            padding: 8px 18px;
+            border-bottom: 2px solid var(--ink);
+            display: flex;
+            align-items: stretch;
+            justify-content: space-around;
+            background: var(--paper-alt);
         }
 
         .summary-card {
-            padding: 16px 20px;
-            border-right: 1px solid var(--border);
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 4px 8px;
+            border-right: 1px solid var(--rule-light);
         }
 
         .summary-card:last-child { border-right: none; }
 
-        .summary-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 3px;
-            height: 100%;
-        }
-
-        .summary-card.debit::before { background: #ef4444; }
-        .summary-card.credit::before { background: var(--green-mid); }
-        .summary-card.balance::before { background: #f59e0b; }
-        .summary-card.count::before { background: #6366f1; }
-
         .summary-card .card-label {
-            font-size: 9px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 7.5px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.2px;
-            color: var(--gray);
-            margin-bottom: 6px;
+            color: var(--ink-mid);
+            margin-bottom: 3px;
         }
 
         .summary-card .card-value {
-            font-size: 15px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 12px;
+            font-weight: 700;
             color: var(--ink);
-            line-height: 1.2;
+            letter-spacing: 0.3px;
         }
-
-        .summary-card.debit .card-value { color: #dc2626; }
-        .summary-card.credit .card-value { color: var(--green-dark); }
-        .summary-card.balance .card-value { color: #d97706; }
-        .summary-card.count .card-value { color: #4f46e5; }
 
         .summary-card .card-sub {
-            font-size: 9px;
-            color: var(--gray);
-            font-weight: 500;
-            margin-top: 3px;
+            font-family: var(--mono);
+            font-size: 8px;
+            color: var(--ink-light);
+            margin-top: 2px;
         }
 
-        /* =====================
-           TRANSACTION TABLE
-        ===================== */
-        .table-section {
-            padding: 0 35px 0 35px;
+        /* ═══════════════════════════════════════════
+           PERIOD BADGE
+        ═══════════════════════════════════════════ */
+        .period-badge {
+            display: none;
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--ink-mid);
+            font-weight: 400;
+            padding: 5px 18px;
+            font-style: italic;
+            border-bottom: 1px dotted var(--rule-dot);
         }
+
+        .period-badge.active { display: block; }
+
+        /* ═══════════════════════════════════════════
+           LOADING
+        ═══════════════════════════════════════════ */
+        .loading-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--ink-light);
+        }
+
+        .loading-state .spinner {
+            width: 32px; height: 32px;
+            border: 3px solid var(--rule-dot);
+            border-top-color: var(--ink);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px auto;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ═══════════════════════════════════════════
+           TRANSACTION TABLE
+        ═══════════════════════════════════════════ */
+        .ledger-content-area { flex: 1; }
+
+        .table-section { padding: 0 18px; }
 
         .table-section-title {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 14px 0 10px 0;
-            border-bottom: 2px solid var(--green-mid);
-            margin-bottom: 0;
+            padding: 8px 0 6px 0;
+            border-bottom: 1px solid var(--rule);
         }
 
         .table-section-title span {
-            font-size: 11px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 8.5px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--green-dark);
+            letter-spacing: 2.5px;
+            color: var(--ink);
         }
 
         .table-section-title .dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--green-mid);
+            width: 5px; height: 5px;
+            background: var(--ink);
         }
 
         .ledger-table {
@@ -362,270 +483,450 @@
         }
 
         .ledger-table thead tr {
-            background: var(--green-dark);
+            background: var(--ink);
         }
 
         .ledger-table th {
-            padding: 9px 10px;
+            font-family: var(--mono);
+            padding: 7px 6px;
             text-align: left;
-            font-size: 9.5px;
-            font-weight: 800;
+            font-size: 9px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: white;
+            letter-spacing: 1px;
+            color: var(--paper);
+            border: 1px solid #333333;
         }
 
         .ledger-table th.text-right { text-align: right; }
 
-        .ledger-table tbody tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        .ledger-table tbody tr:hover {
-            background: #f0fdf4;
-        }
+        /* Continuous-paper style: alternate row tint */
+        .ledger-table tbody tr:nth-child(odd)  { background: var(--paper); }
+        .ledger-table tbody tr:nth-child(even) { background: var(--paper-alt); }
 
         .ledger-table td {
-            padding: 8px 10px;
-            font-size: 11px;
-            font-weight: 500;
-            border-bottom: 1px solid #f3f4f6;
+            font-family: var(--mono);
+            padding: 5px 6px;
+            font-size: 10.5px;
+            font-weight: 400;
+            color: var(--ink);
+            border-bottom: 1px dotted var(--rule-dot);
+            border-left: 1px solid #dddddd;
+            border-right: 1px solid #dddddd;
             vertical-align: middle;
         }
 
         .ledger-table td.text-right {
             text-align: right;
             font-weight: 700;
-            font-size: 11.5px;
         }
 
         .ledger-table td.text-center { text-align: center; }
 
+        /* Reference number */
         .ledger-table .ref-code {
-            font-family: 'Courier New', monospace;
+            font-family: var(--mono);
             font-weight: 700;
-            color: var(--green-dark);
-            font-size: 11px;
+            color: var(--ink);
+            font-size: 10.5px;
         }
 
-        /* Type badges */
+        /* ── Type badges: bracket style for dot matrix ── */
         .type-badge {
-            display: inline-block;
-            padding: 2px 7px;
-            border-radius: 3px;
-            font-size: 9px;
-            font-weight: 800;
+            display: inline;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            background: none;
+            padding: 0;
+            border: none;
+            border-radius: 0;
+            color: var(--ink);
         }
 
-        .badge-invoice { background: #dbeafe; color: #1d4ed8; }
-        .badge-invoice-partial { background: #ede9fe; color: #6d28d9; }
-        .badge-receipt { background: #dcfce7; color: #15803d; }
-        .badge-rma { background: #fef3c7; color: #d97706; }
-        .badge-cheque { background: #fee2e2; color: #dc2626; }
+        .type-badge::before { content: '['; font-weight: 400; }
+        .type-badge::after  { content: ']'; font-weight: 400; }
 
-        .debit-val { color: #dc2626; font-weight: 700; }
-        .credit-val { color: #16a34a; font-weight: 700; }
-        .balance-pos { color: #dc2626; font-weight: 800; }
-        .balance-zero { color: #16a34a; font-weight: 800; }
-        .balance-neg { color: #059669; font-weight: 800; }
+        .badge-invoice,
+        .badge-invoice-partial,
+        .badge-receipt,
+        .badge-rma,
+        .badge-cheque { background: none; color: var(--ink); }
 
-        /* Subtotals row */
-        .subtotals-row {
-            background: var(--green-light) !important;
-            border-top: 2px solid var(--green-mid) !important;
-        }
+        /* Amount values — bold only (dot matrix is monochrome) */
+        .debit-val  { color: var(--ink); font-weight: 700; font-family: var(--mono); }
+        .credit-val { color: var(--ink); font-weight: 700; font-family: var(--mono); }
+        .balance-pos  { color: var(--ink); font-weight: 700; font-family: var(--mono); }
+        .balance-zero { color: var(--ink-mid); font-weight: 700; font-family: var(--mono); }
+        .balance-neg  { color: var(--ink); font-weight: 700; font-family: var(--mono); }
+
+        /* Subtotals footer row */
+        .subtotals-row { background: var(--ink) !important; }
 
         .subtotals-row td {
-            font-weight: 800 !important;
-            font-size: 11.5px !important;
-            color: var(--green-dark);
-            border-bottom: none !important;
-            padding: 10px 10px !important;
+            font-family: var(--mono) !important;
+            font-weight: 700 !important;
+            font-size: 11px !important;
+            color: var(--paper) !important;
+            border: 1px solid #333333 !important;
+            padding: 7px 6px !important;
         }
 
-        /* No Transactions */
+        /* No transactions */
         .no-data-row td {
             text-align: center;
-            color: var(--gray);
-            font-style: italic;
+            color: var(--ink-light);
             padding: 30px 10px !important;
-            font-size: 12px;
+            font-size: 11px;
+            font-style: italic;
+            font-family: var(--mono);
         }
 
-        /* =====================
-           RUNNING BALANCE INSIGHT
-        ===================== */
+        /* ═══════════════════════════════════════════
+           BALANCE INSIGHT
+        ═══════════════════════════════════════════ */
         .balance-insight {
-            margin: 14px 35px;
-            padding: 14px 18px;
-            border-radius: 6px;
+            margin: 10px 18px;
+            padding: 10px 14px;
+            border: 1.5px solid var(--ink);
+            border-left: 5px solid var(--ink);
             display: flex;
             align-items: center;
             gap: 12px;
+            font-family: var(--mono);
+            background: var(--paper-alt);
         }
 
-        .balance-insight.outstanding {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            border-left: 4px solid #ef4444;
-        }
-
-        .balance-insight.settled {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-left: 4px solid #22c55e;
-        }
-
+        /* All three states look the same — dot matrix has no color */
+        .balance-insight.outstanding,
+        .balance-insight.settled,
         .balance-insight.overpaid {
-            background: #eff6ff;
-            border: 1px solid #bfdbfe;
-            border-left: 4px solid #3b82f6;
+            background: var(--paper-alt);
+            border-color: var(--ink);
         }
 
-        .bi-icon {
-            font-size: 20px;
-        }
+        .bi-icon { font-size: 14px; }
 
         .bi-content .bi-title {
-            font-size: 11px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 10px;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1.5px;
+            color: var(--ink);
             margin-bottom: 2px;
         }
 
         .bi-content .bi-desc {
-            font-size: 10.5px;
-            color: var(--gray);
-            font-weight: 500;
+            font-family: var(--mono);
+            font-size: 9.5px;
+            color: var(--ink-mid);
+            font-weight: 400;
         }
 
         .bi-amount {
             margin-left: auto;
-            font-size: 16px;
-            font-weight: 900;
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink) !important;
         }
 
-        /* =====================
-           FOOTER
-        ===================== */
+        /* Force all colored amount spans to black for dot matrix */
+        .bi-amount span { color: var(--ink) !important; }
+
+        /* ═══════════════════════════════════════════
+           SIGNATURES
+        ═══════════════════════════════════════════ */
         .signatures {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 30px;
-            margin: 20px 35px 0 35px;
-            padding-top: 15px;
-            border-top: 1px dashed var(--border);
+            gap: 28px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dashed var(--rule);
         }
 
         .sig-box { text-align: center; }
 
         .sig-line {
-            border-bottom: 1.5px solid var(--ink);
-            height: 35px;
-            margin-bottom: 6px;
+            border-bottom: 1px solid var(--ink);
+            height: 32px;
+            margin-bottom: 5px;
         }
 
         .sig-label {
-            font-size: 10px;
-            font-weight: 800;
+            font-family: var(--mono);
+            font-size: 9px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.8px;
             color: var(--ink);
         }
 
         .sig-sub {
-            font-size: 9px;
-            color: var(--gray);
-            font-weight: 500;
+            font-family: var(--mono);
+            font-size: 8.5px;
+            color: var(--ink-mid);
+            font-weight: 400;
             margin-top: 2px;
         }
 
+        /* ═══════════════════════════════════════════
+           DOCUMENT FOOTER
+        ═══════════════════════════════════════════ */
         .doc-footer {
-            background: linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%);
-            margin-top: 20px;
-            padding: 12px 35px;
+            margin-top: auto;
+            padding: 7px 18px;
+            border-top: 2px solid var(--ink);
             display: flex;
             justify-content: space-between;
             align-items: center;
+            background: var(--paper-alt);
         }
 
         .doc-footer p {
             margin: 0;
-            font-size: 9px;
-            color: rgba(255,255,255,0.7);
-            font-weight: 500;
+            font-family: var(--mono);
+            font-size: 8.5px;
+            color: var(--ink-mid);
+            font-weight: 400;
         }
 
         .doc-footer p strong {
-            color: white;
+            color: var(--ink);
             font-weight: 700;
         }
 
-        /* =====================
-           PRINT MEDIA
-        ===================== */
+        /* ═══════════════════════════════════════════
+           PRINT MEDIA — dot matrix B&W output
+        ═══════════════════════════════════════════ */
         @media print {
             body {
                 background: white;
                 padding: 0;
+                font-size: 9.5pt;
+                color: #000000;
+                font-family: 'Courier New', Courier, monospace;
             }
 
-            .no-print-bar {
-                display: none !important;
-            }
+            .no-print-bar,
+            .filter-bar { display: none !important; }
+
+            /* Remove pin strips in print */
+            .pin-strip { display: none !important; }
 
             .ledger-wrapper {
-                margin: 0 auto;
+                margin: 0;
                 width: 100%;
-                max-width: 210mm;
+                max-width: 100%;
+                min-height: auto;
                 box-shadow: none;
+                background: white;
+                border: none;
             }
+
+            /* Clear pin-strip margins in print */
+            .letterhead,
+            .info-section,
+            .summary-section,
+            .period-badge,
+            .loading-state,
+            .table-section,
+            .balance-insight,
+            .signatures,
+            .doc-footer {
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+
+            /* LETTERHEAD */
+            .letterhead {
+                padding: 0 0 8pt 0;
+                border-bottom: 2pt solid #000;
+                background: white;
+            }
+
+            .company-brand h1 { font-size: 13pt; color: #000; }
+            .company-brand .tagline { font-size: 8.5pt; color: #000; }
+            .company-contact { font-size: 9pt; color: #000; }
+            .doc-title-band .doc-label { font-size: 10pt; color: #000; letter-spacing: 3px; }
+            .doc-title-band .doc-ref { font-size: 9pt; color: #000; }
+            .doc-title-band { border-top-color: #000; }
+
+            /* INFO SECTION */
+            .info-section { border-bottom-color: #000; }
+            .customer-block { border-right-color: #000; }
+            .customer-block .block-label,
+            .period-block .block-label { color: #000; font-size: 8pt; }
+            .customer-name { font-size: 12pt; color: #000; }
+            .customer-meta { font-size: 9pt; color: #000; }
+            .customer-meta strong { color: #000; }
+            .period-item { font-size: 9pt; color: #000; border-bottom-color: #aaaaaa; }
+            .period-item span:last-child { color: #000; }
+
+            /* SUMMARY BAR */
+            .summary-section { background: #eeeeee; border-bottom: 2pt solid #000; }
+            .summary-card .card-label { color: #000; font-size: 7.5pt; }
+            .summary-card .card-value { font-size: 11pt; color: #000; }
+            .summary-card .card-sub { font-size: 7.5pt; color: #000; }
+            .summary-card { border-right-color: #aaaaaa; }
+
+            /* TABLE */
+            .table-section { padding: 0; }
+            .table-section-title { border-bottom-color: #000; }
+            .table-section-title span { font-size: 8pt; color: #000; }
+
+            .ledger-table thead tr { background: #000000; }
+            .ledger-table th {
+                background: #000000;
+                color: #ffffff;
+                font-size: 8.5pt;
+                padding: 5pt 5pt;
+                border-color: #000;
+            }
+
+            .ledger-table tbody tr:nth-child(odd)  { background: white; }
+            .ledger-table tbody tr:nth-child(even) { background: #eeeeee; }
+
+            .ledger-table td {
+                font-size: 9.5pt;
+                padding: 4pt 5pt;
+                border-color: #999999;
+                color: #000000;
+            }
+
+            .type-badge {
+                font-size: 9pt !important;
+                color: #000 !important;
+                background: none !important;
+            }
+
+            .debit-val, .credit-val,
+            .balance-pos, .balance-zero, .balance-neg {
+                color: #000000 !important;
+            }
+
+            .ref-code { color: #000000 !important; }
+
+            .subtotals-row { background: #000000 !important; }
+            .subtotals-row td {
+                background: #000000 !important;
+                color: #ffffff !important;
+                font-size: 10pt !important;
+                border-color: #000 !important;
+            }
+
+            /* BALANCE INSIGHT */
+            .balance-insight {
+                margin: 8pt 0;
+                padding: 8pt 12pt;
+                border: 1.5pt solid #000;
+                border-left: 5pt solid #000;
+                background: #eeeeee;
+            }
+
+            .balance-insight.outstanding,
+            .balance-insight.settled,
+            .balance-insight.overpaid {
+                background: #eeeeee;
+                border-color: #000;
+            }
+
+            .bi-icon { display: none; }
+            .bi-content .bi-title { font-size: 9pt; color: #000; }
+            .bi-content .bi-desc  { font-size: 8.5pt; color: #000; }
+            .bi-amount { font-size: 11pt; color: #000 !important; }
+            .bi-amount span { color: #000 !important; }
+
+            /* SIGNATURES */
+            .signatures {
+                margin: 10pt 0 0 0;
+                border-top-color: #000;
+            }
+
+            .sig-line { border-bottom-color: #000; }
+            .sig-label { font-size: 8pt; color: #000; }
+            .sig-sub   { font-size: 7.5pt; color: #000; }
+
+            /* FOOTER */
+            .doc-footer {
+                background: #eeeeee;
+                border-top: 1.5pt solid #000;
+            }
+
+            .doc-footer p { font-size: 8pt; color: #000; }
+            .doc-footer p strong { color: #000; }
+
+            /* Prevent rows from breaking across pages */
+            tr { page-break-inside: avoid; }
+            .balance-insight { page-break-inside: avoid; }
+            .signatures { page-break-inside: avoid; }
         }
 
+        /* Page setup — A4 works on most dot matrix drivers
+           For 9.5" continuous paper, change size to: 241mm auto  */
         @page {
             size: A4;
-            margin: 8mm;
-        }
-
-        .loading-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: var(--gray);
-        }
-
-        .loading-state .spinner {
-            width: 36px;
-            height: 36px;
-            border: 3px solid var(--green-light);
-            border-top-color: var(--green-mid);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px auto;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            margin: 8mm 10mm;
         }
     </style>
 </head>
 
 <body>
 
-    <!-- No-print toolbar -->
+    <!-- Screen toolbar -->
     <div class="no-print-bar" id="print-bar">
-        <h4>📄 Customer Ledger Report &nbsp;—&nbsp; <span id="toolbar-cust-name">Loading...</span></h4>
-        <button class="btn-print" onclick="window.print()">
-            🖨️ Print / Save as PDF
-        </button>
-        <button class="btn-close" onclick="window.close()">✕ Close</button>
+        <h4>&gt;_ Customer Ledger Report &nbsp;&mdash;&nbsp; <span id="toolbar-cust-name">Loading...</span></h4>
+        <button class="btn-print" onclick="window.print()">[ PRINT / SAVE AS PDF ]</button>
+        <button class="btn-close" onclick="window.close()">[ CLOSE ]</button>
     </div>
 
+    <!-- Filter Bar -->
+    <div class="filter-bar" id="filter-bar">
+        <label>Filter:</label>
+        <select id="filter-mode" onchange="toggleFilterMode()">
+            <option value="all">All Transactions</option>
+            <option value="month">By Month</option>
+            <option value="range">Date Range</option>
+        </select>
+
+        <div id="month-filter-group" style="display:none; align-items:center; gap:6px;">
+            <input type="month" id="filter-month">
+        </div>
+
+        <div id="range-filter-group" style="display:none; align-items:center; gap:6px;">
+            <label>From:</label>
+            <input type="date" id="filter-from">
+            <label>To:</label>
+            <input type="date" id="filter-to">
+        </div>
+
+        <button class="filter-btn" onclick="applyFilter()">&gt; Apply</button>
+        <button class="filter-btn reset" onclick="resetFilter()">Reset</button>
+
+        <div class="filter-divider"></div>
+
+        <label>Sort:</label>
+        <select id="sort-mode" onchange="applyFilter()">
+            <option value="date-asc">Date (Oldest First)</option>
+            <option value="date-desc">Date (Newest First)</option>
+            <option value="amount-desc">Amount (Highest)</option>
+            <option value="amount-asc">Amount (Lowest)</option>
+        </select>
+
+        <span class="filter-active-badge" id="filter-badge">FILTERED</span>
+    </div>
+
+    <!-- ═══════ LEDGER DOCUMENT ═══════ -->
     <div class="ledger-wrapper" id="ledger-doc">
 
-        <!-- ===== LETTERHEAD ===== -->
+        <!-- Pin-feed holes (screen only, hidden in print) -->
+        <div class="pin-strip left"  aria-hidden="true"></div>
+        <div class="pin-strip right" aria-hidden="true"></div>
+
+        <!-- ═══ LETTERHEAD ═══ -->
         <div class="letterhead">
             <div class="lh-top">
                 <div class="company-brand">
@@ -633,20 +934,20 @@
                     <div class="tagline" id="comp-tagline">Agricultural &amp; General Distribution</div>
                 </div>
                 <div class="company-contact" id="comp-contact">
-                    <strong>📍</strong> No. 69, Kurunegala Road, Galgamuwa.<br>
-                    <strong>📞</strong> --<br>
-                    <strong>✉️</strong> --
+                    <strong>ADDR:</strong> No. 69, Kurunegala Road, Galgamuwa.<br>
+                    <strong>TEL:</strong> --<br>
+                    <strong>EMAIL:</strong> --
                 </div>
             </div>
             <div class="doc-title-band">
                 <span class="doc-label">Customer Account Ledger</span>
                 <div class="doc-ref">
-                    Printed On: <span id="print-date">--</span>
+                    Printed: <span id="print-date">--</span>
                 </div>
             </div>
         </div>
 
-        <!-- ===== CUSTOMER & PERIOD INFO ===== -->
+        <!-- ═══ CUSTOMER & PERIOD ═══ -->
         <div class="info-section">
             <div class="customer-block">
                 <div class="block-label">Account Holder</div>
@@ -661,35 +962,38 @@
             <div class="period-block">
                 <div class="block-label">Ledger Details</div>
                 <div class="period-item"><span>First Transaction:</span> <span id="first-tx">--</span></div>
-                <div class="period-item"><span>Last Transaction:</span> <span id="last-tx">--</span></div>
-                <div class="period-item"><span>Credit Limit:</span> <span id="credit-limit">--</span></div>
-                <div class="period-item"><span>Account Status:</span> <span id="acct-status">--</span></div>
+                <div class="period-item"><span>Last Transaction:</span>  <span id="last-tx">--</span></div>
+                <div class="period-item"><span>Credit Limit:</span>      <span id="credit-limit">--</span></div>
+                <div class="period-item"><span>Account Status:</span>    <span id="acct-status">--</span></div>
             </div>
         </div>
 
-        <!-- ===== SUMMARY CARDS ===== -->
+        <!-- ═══ SUMMARY BAR ═══ -->
         <div class="summary-section">
-            <div class="summary-card debit">
+            <div class="summary-card">
                 <div class="card-label">Total Invoiced</div>
                 <div class="card-value" id="sum-debit">LKR 0.00</div>
                 <div class="card-sub">Sales &amp; Credit Notes</div>
             </div>
-            <div class="summary-card credit">
+            <div class="summary-card">
                 <div class="card-label">Total Collected</div>
                 <div class="card-value" id="sum-credit">LKR 0.00</div>
                 <div class="card-sub">Payments Received</div>
             </div>
-            <div class="summary-card balance">
+            <div class="summary-card">
                 <div class="card-label">Outstanding Balance</div>
                 <div class="card-value" id="sum-balance">LKR 0.00</div>
                 <div class="card-sub">Payable to Company</div>
             </div>
-            <div class="summary-card count">
+            <div class="summary-card">
                 <div class="card-label">Transactions</div>
                 <div class="card-value" id="sum-count">0</div>
                 <div class="card-sub">Total Entries</div>
             </div>
         </div>
+
+        <!-- Period badge (visible when filter active) -->
+        <div class="period-badge" id="period-badge"></div>
 
         <!-- Loading state -->
         <div class="loading-state" id="loading-placeholder">
@@ -697,65 +1001,69 @@
             <p>Fetching ledger data...</p>
         </div>
 
-        <!-- ===== TRANSACTION TABLE ===== -->
-        <div class="table-section" id="table-section" style="display:none;">
-            <div class="table-section-title">
-                <div class="dot"></div>
-                <span>Transaction History</span>
+        <!-- ═══ CONTENT AREA ═══ -->
+        <div class="ledger-content-area" id="ledger-content-area">
+
+            <!-- Transaction table -->
+            <div class="table-section" id="table-section" style="display:none;">
+                <div class="table-section-title">
+                    <div class="dot"></div>
+                    <span>Transaction History</span>
+                </div>
+
+                <table class="ledger-table">
+                    <thead>
+                        <tr>
+                            <th style="width:28px;">#</th>
+                            <th style="width:84px;">Date</th>
+                            <th style="width:118px;">Reference No.</th>
+                            <th>Type</th>
+                            <th class="text-right" style="width:102px;">Debit (LKR)</th>
+                            <th class="text-right" style="width:102px;">Credit (LKR)</th>
+                            <th class="text-right" style="width:112px;">Balance (LKR)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledger-tbody">
+                        <!-- Rows injected by JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="subtotals-row" id="subtotals-row">
+                            <td colspan="4" style="text-align:right; letter-spacing:1px;">TOTALS</td>
+                            <td class="text-right" id="foot-debit">0.00</td>
+                            <td class="text-right" id="foot-credit">0.00</td>
+                            <td class="text-right" id="foot-balance">0.00</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
 
-            <table class="ledger-table">
-                <thead>
-                    <tr>
-                        <th style="width:30px;">#</th>
-                        <th style="width:82px;">Date</th>
-                        <th style="width:115px;">Reference No.</th>
-                        <th>Type</th>
-                        <th class="text-right" style="width:100px;">Debit (LKR)</th>
-                        <th class="text-right" style="width:100px;">Credit (LKR)</th>
-                        <th class="text-right" style="width:110px;">Balance (LKR)</th>
-                    </tr>
-                </thead>
-                <tbody id="ledger-tbody">
-                    <!-- Rows injected by JS -->
-                </tbody>
-                <tfoot>
-                    <tr class="subtotals-row" id="subtotals-row">
-                        <td colspan="4" style="text-align:right;">TOTALS</td>
-                        <td class="text-right" id="foot-debit">0.00</td>
-                        <td class="text-right" id="foot-credit">0.00</td>
-                        <td class="text-right" id="foot-balance">0.00</td>
-                    </tr>
-                </tfoot>
-            </table>
+            <!-- Balance insight -->
+            <div id="balance-insight-box" style="display:none;"></div>
+
+            <!-- Signatures -->
+            <div class="signatures" id="signatures-block" style="display:none;">
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Customer's Signature</div>
+                    <div class="sig-sub">I confirm the above details are correct.</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Accounts Officer</div>
+                    <div class="sig-sub">Verified &amp; Issued By</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-line"></div>
+                    <div class="sig-label">Authorized Signatory</div>
+                    <div class="sig-sub" id="sig-comp-name">M.K.C. Trade Center</div>
+                </div>
+            </div>
         </div>
 
-        <!-- ===== BALANCE INSIGHT BANNER ===== -->
-        <div id="balance-insight-box" style="display:none;"></div>
-
-        <!-- ===== SIGNATURES ===== -->
-        <div class="signatures" id="signatures-block" style="display:none;">
-            <div class="sig-box">
-                <div class="sig-line"></div>
-                <div class="sig-label">Customer's Signature</div>
-                <div class="sig-sub">I confirm the above account details are correct.</div>
-            </div>
-            <div class="sig-box">
-                <div class="sig-line"></div>
-                <div class="sig-label">Accounts Officer</div>
-                <div class="sig-sub">Verified &amp; Issued By</div>
-            </div>
-            <div class="sig-box">
-                <div class="sig-line"></div>
-                <div class="sig-label">Authorized Signatory</div>
-                <div class="sig-sub" id="sig-comp-name">M.K.C. Trade Center</div>
-            </div>
-        </div>
-
-        <!-- ===== DOCUMENT FOOTER ===== -->
+        <!-- ═══ DOCUMENT FOOTER ═══ -->
         <div class="doc-footer">
-            <p>⚠️ This is a computer-generated statement. No physical seal is required for this document.</p>
-            <p><strong>M.K.C. TRADE CENTER</strong> &nbsp;|&nbsp; Ledger Report</p>
+            <p>* Computer-generated statement. No physical seal required. *</p>
+            <p><strong id="footer-comp-name">M.K.C. TRADE CENTER</strong> &nbsp;|&nbsp; Customer Ledger</p>
         </div>
 
     </div>
@@ -764,165 +1072,289 @@
         const fmt = (n) => n.toLocaleString('en-LK', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '--';
 
+        let _customerId = null;
+        let _customer = null;
+        let _allLedger = [];
+        let _openingBalance = 0;
+        let _filterActive = false;
+
         function typeBadge(type) {
             if (!type) return '';
             const t = type.toLowerCase();
             if (t.includes('invoice (partial')) return `<span class="type-badge badge-invoice-partial">Partial Credit</span>`;
-            if (t.includes('invoice')) return `<span class="type-badge badge-invoice">Invoice</span>`;
+            if (t.includes('invoice'))          return `<span class="type-badge badge-invoice">Invoice</span>`;
             if (t.includes('credit note') || t.includes('rma')) return `<span class="type-badge badge-rma">Credit Note</span>`;
-            if (t.includes('receipt')) return `<span class="type-badge badge-receipt">Receipt</span>`;
-            if (t.includes('chq') || t.includes('cheque') || t.includes('returned')) return `<span class="type-badge badge-cheque">Returned Cheque</span>`;
+            if (t.includes('receipt'))          return `<span class="type-badge badge-receipt">Receipt</span>`;
+            if (t.includes('chq') || t.includes('cheque') || t.includes('returned')) return `<span class="type-badge badge-cheque">Rtn Cheque</span>`;
             return `<span class="type-badge badge-invoice">${type}</span>`;
         }
 
+        // ── Filter controls ──
+        function toggleFilterMode() {
+            const mode = document.getElementById('filter-mode').value;
+            document.getElementById('month-filter-group').style.display = mode === 'month' ? 'flex' : 'none';
+            document.getElementById('range-filter-group').style.display = mode === 'range' ? 'flex' : 'none';
+        }
+
+        function getFilterDates() {
+            const mode = document.getElementById('filter-mode').value;
+            let dateFrom = null, dateTo = null;
+            if (mode === 'month') {
+                const monthVal = document.getElementById('filter-month').value;
+                if (monthVal) {
+                    const [y, m] = monthVal.split('-').map(Number);
+                    dateFrom = `${y}-${String(m).padStart(2,'0')}-01`;
+                    const lastDay = new Date(y, m, 0).getDate();
+                    dateTo = `${y}-${String(m).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+                }
+            } else if (mode === 'range') {
+                dateFrom = document.getElementById('filter-from').value || null;
+                dateTo   = document.getElementById('filter-to').value   || null;
+            }
+            return { dateFrom, dateTo };
+        }
+
+        async function applyFilter() {
+            const { dateFrom, dateTo } = getFilterDates();
+            await fetchAndRenderLedger(dateFrom, dateTo);
+
+            const badge = document.getElementById('filter-badge');
+            const periodBadge = document.getElementById('period-badge');
+            if (dateFrom || dateTo) {
+                badge.style.display = 'inline-block';
+                const fromStr = dateFrom ? fmtDate(dateFrom) : 'Start';
+                const toStr   = dateTo   ? fmtDate(dateTo)   : 'Present';
+                periodBadge.textContent = `Period: ${fromStr} -- ${toStr}`;
+                periodBadge.classList.add('active');
+            } else {
+                badge.style.display = 'none';
+                periodBadge.classList.remove('active');
+            }
+        }
+
+        function resetFilter() {
+            document.getElementById('filter-mode').value  = 'all';
+            document.getElementById('filter-month').value = '';
+            document.getElementById('filter-from').value  = '';
+            document.getElementById('filter-to').value    = '';
+            document.getElementById('sort-mode').value    = 'date-asc';
+            toggleFilterMode();
+            document.getElementById('filter-badge').style.display = 'none';
+            document.getElementById('period-badge').classList.remove('active');
+            fetchAndRenderLedger(null, null);
+        }
+
+        function sortLedger(ledger) {
+            const sortMode = document.getElementById('sort-mode').value;
+            const sorted = [...ledger];
+            switch (sortMode) {
+                case 'date-asc':    sorted.sort((a,b) => new Date(a.date) - new Date(b.date)); break;
+                case 'date-desc':   sorted.sort((a,b) => new Date(b.date) - new Date(a.date)); break;
+                case 'amount-desc': sorted.sort((a,b) => ((b.debit||0)+(b.credit||0)) - ((a.debit||0)+(a.credit||0))); break;
+                case 'amount-asc':  sorted.sort((a,b) => ((a.debit||0)+(a.credit||0)) - ((b.debit||0)+(b.credit||0))); break;
+            }
+            return sorted;
+        }
+
+        // ── Main render ──
+        function renderLedger(ledger, customer) {
+            const sortedLedger = sortLedger(ledger);
+            const dateOrderLedger = [...ledger].sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            // Running balances are computed in CHRONOLOGICAL order (seeded with
+            // any opening balance from the date filter) so the balance column
+            // stays historically correct under every display sort.
+            const balances = new Map();
+            let runBal = _openingBalance;
+            let totalDebit = 0, totalCredit = 0;
+            dateOrderLedger.forEach(entry => {
+                runBal += ((entry.debit || 0) - (entry.credit || 0));
+                totalDebit  += (entry.debit  || 0);
+                totalCredit += (entry.credit || 0);
+                balances.set(entry, runBal);
+            });
+            const finalBalance = runBal;
+
+            const rows = sortedLedger.map((entry, idx) => {
+                const entryBal = balances.get(entry);
+
+                const debitCell  = entry.debit  > 0
+                    ? `<span class="debit-val">${fmt(entry.debit)}</span>`
+                    : `<span style="color:#999;">--</span>`;
+
+                const creditCell = entry.credit > 0
+                    ? `<span class="credit-val">${fmt(entry.credit)}</span>`
+                    : `<span style="color:#999;">--</span>`;
+
+                const balClass = entryBal > 0 ? 'balance-pos' : entryBal < 0 ? 'balance-neg' : 'balance-zero';
+                const balSuffix = entryBal < 0 ? ' Cr' : ' Dr';
+
+                return `<tr>
+                    <td style="color:#999; font-size:9.5px; text-align:right;">${idx + 1}</td>
+                    <td style="font-size:10px; white-space:nowrap;">${fmtDate(entry.date)}</td>
+                    <td><span class="ref-code">${entry.reference || '--'}</span></td>
+                    <td>${typeBadge(entry.type)}</td>
+                    <td class="text-right">${debitCell}</td>
+                    <td class="text-right">${creditCell}</td>
+                    <td class="text-right"><span class="${balClass}">${fmt(Math.abs(entryBal))}${balSuffix}</span></td>
+                </tr>`;
+            });
+
+            // Opening balance carried forward (when a from-date filter is active)
+            if (_filterActive) {
+                const obClass = _openingBalance > 0 ? 'balance-pos' : _openingBalance < 0 ? 'balance-neg' : 'balance-zero';
+                const obSuffix = _openingBalance < 0 ? ' Cr' : ' Dr';
+                rows.unshift(`<tr>
+                    <td></td>
+                    <td colspan="5" style="font-style:italic;">Opening Balance b/f</td>
+                    <td class="text-right"><span class="${obClass}">${fmt(Math.abs(_openingBalance))}${obSuffix}</span></td>
+                </tr>`);
+            }
+
+            // Summary bar
+            document.getElementById('sum-debit').textContent   = `LKR ${fmt(totalDebit)}`;
+            document.getElementById('sum-credit').textContent  = `LKR ${fmt(totalCredit)}`;
+            document.getElementById('sum-balance').textContent = `LKR ${fmt(Math.abs(finalBalance))}`;
+            document.getElementById('sum-count').textContent   = ledger.length;
+
+            // Footer totals
+            document.getElementById('foot-debit').textContent   = fmt(totalDebit);
+            document.getElementById('foot-credit').textContent  = fmt(totalCredit);
+            document.getElementById('foot-balance').textContent = fmt(Math.abs(finalBalance)) + (finalBalance < 0 ? ' Cr' : ' Dr');
+
+            // First / last dates
+            if (dateOrderLedger.length > 0) {
+                document.getElementById('first-tx').textContent = fmtDate(dateOrderLedger[0].date);
+                document.getElementById('last-tx').textContent  = fmtDate(dateOrderLedger[dateOrderLedger.length - 1].date);
+            } else {
+                document.getElementById('first-tx').textContent = 'No Transactions';
+                document.getElementById('last-tx').textContent  = 'No Transactions';
+            }
+
+            // Table body
+            const tbody = document.getElementById('ledger-tbody');
+            tbody.innerHTML = rows.length === 0
+                ? `<tr class="no-data-row"><td colspan="7">No transactions found for the selected period.</td></tr>`
+                : rows.join('');
+
+            // Balance insight
+            const insightBox = document.getElementById('balance-insight-box');
+            insightBox.style.display = 'block';
+            let insightClass, insightTitle, insightDesc, insightAmt;
+
+            if (finalBalance > 0) {
+                insightClass = 'outstanding';
+                insightTitle = '*** OUTSTANDING AMOUNT DUE ***';
+                insightDesc  = `${customer.name} has an outstanding balance of LKR ${fmt(finalBalance)} payable to the company.`;
+                insightAmt   = `<span>LKR ${fmt(finalBalance)} Dr</span>`;
+            } else if (finalBalance < 0) {
+                insightClass = 'overpaid';
+                insightTitle = '*** ACCOUNT IN CREDIT ***';
+                insightDesc  = `${customer.name} has overpaid by LKR ${fmt(Math.abs(finalBalance))}. A refund or credit note may apply.`;
+                insightAmt   = `<span>LKR ${fmt(Math.abs(finalBalance))} Cr</span>`;
+            } else {
+                insightClass = 'settled';
+                insightTitle = '*** ACCOUNT FULLY SETTLED ***';
+                insightDesc  = `${customer.name}'s account is fully settled with no outstanding amount.`;
+                insightAmt   = `<span>LKR 0.00</span>`;
+            }
+
+            insightBox.innerHTML = `
+                <div class="balance-insight ${insightClass}">
+                    <div class="bi-content">
+                        <div class="bi-title">${insightTitle}</div>
+                        <div class="bi-desc">${insightDesc}</div>
+                    </div>
+                    <div class="bi-amount">${insightAmt}</div>
+                </div>`;
+
+            document.getElementById('loading-placeholder').style.display = 'none';
+            document.getElementById('table-section').style.display       = 'block';
+            document.getElementById('signatures-block').style.display    = 'grid';
+        }
+
+        // ── Fetch ledger ──
+        async function fetchAndRenderLedger(dateFrom, dateTo) {
+            if (!_customerId) return;
+            let url = `/api/customers/${_customerId}/ledger`;
+            const qp = [];
+            if (dateFrom) qp.push(`dateFrom=${encodeURIComponent(dateFrom)}`);
+            if (dateTo)   qp.push(`dateTo=${encodeURIComponent(dateTo)}`);
+            if (qp.length > 0) url += '?' + qp.join('&');
+
+            try {
+                const lr = await fetch(url);
+                const lj = await lr.json();
+                if (!lj.success) throw new Error(lj.error || 'Failed to load ledger');
+                _customer       = lj.data.customer;
+                _allLedger      = lj.data.ledger;
+                _openingBalance = dateFrom ? (parseFloat(lj.data.openingBalance) || 0) : 0;
+                _filterActive   = !!dateFrom;
+                renderLedger(_allLedger, _customer);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('loading-placeholder').innerHTML = `
+                    <p style="color:#c00; padding:40px; text-align:center; font-family:monospace;">
+                        *** ERROR: Failed to load ledger data. ***<br><small>${err.message}</small>
+                    </p>`;
+                document.getElementById('loading-placeholder').style.display = 'block';
+                document.getElementById('table-section').style.display = 'none';
+            }
+        }
+
+        // ── Initial load ──
         async function loadAndRender() {
             const params = new URLSearchParams(window.location.search);
-            const customerId = params.get('id');
-            if (!customerId) {
-                document.getElementById('loading-placeholder').innerHTML = '<p style="color:red; padding: 40px; text-align:center;">⚠️ Missing customer ID. Close this tab.</p>';
+            _customerId = params.get('id');
+            if (!_customerId) {
+                document.getElementById('loading-placeholder').innerHTML =
+                    '<p style="color:#c00; padding:40px; text-align:center; font-family:monospace;">*** Missing customer ID. Close this tab. ***</p>';
                 return;
             }
 
             try {
-                // Fetch company settings
-                let compData = null;
+                // Company settings
                 try {
                     const cr = await fetch('/api/settings/company');
                     const cj = await cr.json();
-                    if (cj.success) compData = cj.data;
-                } catch (e) { console.warn('No company settings'); }
-
-                if (compData) {
-                    if (compData.company_name) document.getElementById('comp-name').textContent = compData.company_name;
-                    if (compData.address) {
-                        document.getElementById('comp-contact').innerHTML = `
-                            <strong>📍</strong> ${compData.address}<br>
-                            <strong>📞</strong> ${compData.contact_numbers || '--'}<br>
-                            <strong>✉️</strong> ${compData.email || '--'}
-                        `;
+                    if (cj.success && cj.data) {
+                        const compData = cj.data;
+                        if (compData.company_name) {
+                            document.getElementById('comp-name').textContent = compData.company_name;
+                            document.getElementById('sig-comp-name').textContent = compData.company_name;
+                            if (document.getElementById('footer-comp-name'))
+                                document.getElementById('footer-comp-name').textContent = compData.company_name.toUpperCase();
+                            document.title = `Customer Ledger - ${compData.company_name}`;
+                        }
+                        if (compData.address) {
+                            document.getElementById('comp-contact').innerHTML =
+                                `<strong>ADDR:</strong> ${compData.address}<br>` +
+                                `<strong>TEL:</strong> ${compData.contact_numbers || '--'}<br>` +
+                                `<strong>EMAIL:</strong> ${compData.email || '--'}`;
+                        }
                     }
-                    if (compData.company_name) {
-                        document.getElementById('sig-comp-name').textContent = compData.company_name;
-                        document.title = `Customer Ledger - ${compData.company_name}`;
-                    }
-                }
+                } catch (e) { console.warn('No company settings', e); }
 
-                // Fetch ledger
-                const lr = await fetch(`/api/customers/${customerId}/ledger`);
+                // Ledger data
+                const lr = await fetch(`/api/customers/${_customerId}/ledger`);
                 const lj = await lr.json();
                 if (!lj.success) throw new Error(lj.error || 'Failed to load ledger');
 
-                const { customer, ledger } = lj.data;
+                _customer  = lj.data.customer;
+                _allLedger = lj.data.ledger;
 
-                // Populate customer info
-                document.getElementById('cust-name').textContent = customer.name;
-                document.getElementById('cust-contact').textContent = customer.contact || 'N/A';
-                document.getElementById('cust-address').textContent = customer.address || 'Not Provided';
-                document.getElementById('cust-category').textContent = customer.category || 'N/A';
-                document.getElementById('cust-route').textContent = customer.route_name || 'N/A';
-                document.getElementById('credit-limit').textContent = `LKR ${fmt(customer.credit_limit || 0)}`;
-                document.getElementById('acct-status').textContent = (customer.status || 'active').toUpperCase();
-                document.getElementById('toolbar-cust-name').textContent = customer.name;
-                document.getElementById('print-date').textContent = fmtDate(new Date().toISOString());
+                document.getElementById('cust-name').textContent     = _customer.name;
+                document.getElementById('cust-contact').textContent  = _customer.contact || 'N/A';
+                document.getElementById('cust-address').textContent  = _customer.address || 'Not Provided';
+                document.getElementById('cust-category').textContent = _customer.category || 'N/A';
+                document.getElementById('cust-route').textContent    = _customer.route_name || 'N/A';
+                document.getElementById('credit-limit').textContent  = `LKR ${fmt(_customer.credit_limit || 0)}`;
+                document.getElementById('acct-status').textContent   = (_customer.status || 'active').toUpperCase();
+                document.getElementById('toolbar-cust-name').textContent = _customer.name;
+                document.getElementById('print-date').textContent    = fmtDate(new Date().toISOString());
 
-                // First & last transaction dates
-                if (ledger.length > 0) {
-                    const sorted = [...ledger].sort((a, b) => new Date(a.date) - new Date(b.date));
-                    document.getElementById('first-tx').textContent = fmtDate(sorted[0].date);
-                    document.getElementById('last-tx').textContent = fmtDate(sorted[sorted.length - 1].date);
-                } else {
-                    document.getElementById('first-tx').textContent = 'No Transactions';
-                    document.getElementById('last-tx').textContent = 'No Transactions';
-                }
+                renderLedger(_allLedger, _customer);
 
-                // Build table rows
-                let totalDebit = 0, totalCredit = 0, runningBalance = 0;
-                const rows = ledger.map((entry, idx) => {
-                    runningBalance += ((entry.debit || 0) - (entry.credit || 0));
-                    totalDebit += (entry.debit || 0);
-                    totalCredit += (entry.credit || 0);
-
-                    const debitCell = entry.debit > 0
-                        ? `<span class="debit-val">${fmt(entry.debit)}</span>`
-                        : `<span style="color:#d1d5db;">—</span>`;
-
-                    const creditCell = entry.credit > 0
-                        ? `<span class="credit-val">${fmt(entry.credit)}</span>`
-                        : `<span style="color:#d1d5db;">—</span>`;
-
-                    const balClass = runningBalance > 0 ? 'balance-pos' : runningBalance < 0 ? 'balance-neg' : 'balance-zero';
-
-                    return `<tr>
-                        <td style="color:#9ca3af; font-size:10px;">${idx + 1}</td>
-                        <td style="font-size:10.5px; white-space:nowrap;">${fmtDate(entry.date)}</td>
-                        <td><span class="ref-code">${entry.reference || '—'}</span></td>
-                        <td>${typeBadge(entry.type)}</td>
-                        <td class="text-right">${debitCell}</td>
-                        <td class="text-right">${creditCell}</td>
-                        <td class="text-right"><span class="${balClass}">${fmt(Math.abs(runningBalance))}${runningBalance < 0 ? ' Cr' : ''}</span></td>
-                    </tr>`;
-                });
-
-                // Populate summary
-                document.getElementById('sum-debit').textContent = `LKR ${fmt(totalDebit)}`;
-                document.getElementById('sum-credit').textContent = `LKR ${fmt(totalCredit)}`;
-                document.getElementById('sum-balance').textContent = `LKR ${fmt(Math.abs(runningBalance))}`;
-                document.getElementById('sum-count').textContent = ledger.length;
-
-                // Foot totals
-                document.getElementById('foot-debit').textContent = fmt(totalDebit);
-                document.getElementById('foot-credit').textContent = fmt(totalCredit);
-                document.getElementById('foot-balance').textContent = fmt(Math.abs(runningBalance)) + (runningBalance < 0 ? ' Cr' : ' Dr');
-
-                // Table body
-                const tbody = document.getElementById('ledger-tbody');
-                if (rows.length === 0) {
-                    tbody.innerHTML = `<tr class="no-data-row"><td colspan="7">No transactions found for this customer.</td></tr>`;
-                } else {
-                    tbody.innerHTML = rows.join('');
-                }
-
-                // Balance insight box
-                const insightBox = document.getElementById('balance-insight-box');
-                insightBox.style.display = 'block';
-                let insightClass, insightIcon, insightTitle, insightDesc, insightAmt;
-
-                if (runningBalance > 0) {
-                    insightClass = 'outstanding';
-                    insightIcon = '⚠️';
-                    insightTitle = 'Outstanding Amount Due';
-                    insightDesc = `${customer.name} has an outstanding balance of LKR ${fmt(runningBalance)} payable to the company.`;
-                    insightAmt = `<span style="color:#dc2626;">LKR ${fmt(runningBalance)}</span>`;
-                } else if (runningBalance < 0) {
-                    insightClass = 'overpaid';
-                    insightIcon = '💙';
-                    insightTitle = 'Account in Credit';
-                    insightDesc = `${customer.name} has overpaid by LKR ${fmt(Math.abs(runningBalance))}. A credit note or refund may apply.`;
-                    insightAmt = `<span style="color:#2563eb;">LKR ${fmt(Math.abs(runningBalance))} Cr</span>`;
-                } else {
-                    insightClass = 'settled';
-                    insightIcon = '✅';
-                    insightTitle = 'Account Fully Settled';
-                    insightDesc = `${customer.name}'s account is fully settled with no outstanding amount.`;
-                    insightAmt = `<span style="color:#16a34a;">LKR 0.00</span>`;
-                }
-
-                insightBox.innerHTML = `
-                    <div class="balance-insight ${insightClass}">
-                        <div class="bi-icon">${insightIcon}</div>
-                        <div class="bi-content">
-                            <div class="bi-title">${insightTitle}</div>
-                            <div class="bi-desc">${insightDesc}</div>
-                        </div>
-                        <div class="bi-amount">${insightAmt}</div>
-                    </div>`;
-
-                // Show table & hide loader
-                document.getElementById('loading-placeholder').style.display = 'none';
-                document.getElementById('table-section').style.display = 'block';
-                document.getElementById('signatures-block').style.display = 'grid';
-
-                // Auto-print if requested
                 if (params.get('autoprint') === 'true') {
                     setTimeout(() => window.print(), 800);
                 }
@@ -930,8 +1362,8 @@
             } catch (err) {
                 console.error(err);
                 document.getElementById('loading-placeholder').innerHTML = `
-                    <p style="color:red; padding: 40px; text-align:center;">
-                        ⚠️ Failed to load ledger data.<br><small>${err.message}</small>
+                    <p style="color:#c00; padding:40px; text-align:center; font-family:monospace;">
+                        *** ERROR: Failed to load ledger data. ***<br><small>${err.message}</small>
                     </p>`;
             }
         }

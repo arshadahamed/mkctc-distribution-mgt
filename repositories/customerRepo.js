@@ -115,54 +115,119 @@ class CustomerRepository {
         return await runQuery(sql, [amount, customerId]);
     }
 
-    async getLedger(customerId) {
+    async getLedger(customerId, filters = {}) {
+        const { dateFrom, dateTo } = filters;
+
+        // Build a parameterized date filter for a given column. Column names
+        // are fixed by this function; only the values come from the caller.
+        const dateFilter = (column) => {
+            let clause = '';
+            if (dateFrom) clause += ` AND ${column} >= ?`;
+            if (dateTo) clause += ` AND ${column} <= ?`;
+            return clause;
+        };
+        const dateParams = [];
+        if (dateFrom) dateParams.push(dateFrom);
+        if (dateTo) dateParams.push(dateTo);
+
         const sql = `
-            SELECT 
-                invoice_date as date, 
-                invoice_number as reference, 
-                CASE 
+            SELECT
+                invoice_date as date,
+                invoice_number as reference,
+                CASE
                     WHEN payment_method = 'split' THEN 'Invoice (Partial Credit)'
-                    ELSE 'Invoice' 
-                END as type, 
-                CASE 
-                    WHEN payment_method = 'split' THEN 
+                    ELSE 'Invoice'
+                END as type,
+                CASE
+                    WHEN payment_method = 'split' THEN
                         CAST(json_extract(payment_details, '$.credit') AS REAL)
-                    ELSE net_total 
-                END as debit, 
+                    ELSE net_total
+                END as debit,
                 0 as credit
-            FROM invoices 
-            WHERE customer_id = ? AND (payment_method = 'account' OR (payment_method = 'split' AND CAST(json_extract(payment_details, '$.credit') AS REAL) > 0))
+            FROM invoices
+            WHERE customer_id = ?
+              AND (payment_method = 'account' OR (payment_method = 'split' AND CAST(json_extract(payment_details, '$.credit') AS REAL) > 0))
+              ${dateFilter('invoice_date')}
 
             UNION ALL
 
-            SELECT 
-                receipt_date as date, 
-                receipt_number as reference, 
-                CASE 
+            SELECT
+                receipt_date as date,
+                receipt_number as reference,
+                CASE
                     WHEN receipt_category = 'collection' AND receiver_name = 'RMA Settlement' THEN 'Credit Note (RMA)'
                     ELSE 'Receipt'
-                END as type, 
-                0 as debit, 
+                END as type,
+                0 as debit,
                 amount as credit
-            FROM receipts 
+            FROM receipts
             WHERE customer_id = ?
+              ${dateFilter('receipt_date')}
 
             UNION ALL
 
-            SELECT 
-                cd.cheque_date as date, 
-                cd.cheque_number as reference, 
-                'Returned Cheque' as type, 
-                cd.amount as debit, 
+            SELECT
+                cd.cheque_date as date,
+                cd.cheque_number as reference,
+                'Returned Cheque' as type,
+                cd.amount as debit,
                 0 as credit
             FROM cheque_details cd
             LEFT JOIN receipts r ON cd.receipt_id = r.id
             LEFT JOIN invoices i ON cd.invoice_id = i.id
             WHERE COALESCE(r.customer_id, i.customer_id) = ? AND cd.status = 'Returned'
+              ${dateFilter('cd.cheque_date')}
 
             ORDER BY date ASC
         `;
-        return await allQuery(sql, [customerId, customerId, customerId]);
+        return await allQuery(sql, [
+            customerId, ...dateParams,
+            customerId, ...dateParams,
+            customerId, ...dateParams
+        ]);
+    }
+
+    // Net balance (debits - credits) of all ledger activity strictly BEFORE
+    // dateFrom, so date-filtered ledgers can carry an opening balance forward
+    // instead of pretending the account starts at zero.
+    async getLedgerOpeningBalance(customerId, dateFrom) {
+        const sql = `
+            SELECT COALESCE(SUM(debit), 0) - COALESCE(SUM(credit), 0) as opening
+            FROM (
+                SELECT
+                    CASE
+                        WHEN payment_method = 'split' THEN
+                            CAST(json_extract(payment_details, '$.credit') AS REAL)
+                        ELSE net_total
+                    END as debit,
+                    0 as credit
+                FROM invoices
+                WHERE customer_id = ?
+                  AND (payment_method = 'account' OR (payment_method = 'split' AND CAST(json_extract(payment_details, '$.credit') AS REAL) > 0))
+                  AND invoice_date < ?
+
+                UNION ALL
+
+                SELECT 0 as debit, amount as credit
+                FROM receipts
+                WHERE customer_id = ? AND receipt_date < ?
+
+                UNION ALL
+
+                SELECT cd.amount as debit, 0 as credit
+                FROM cheque_details cd
+                LEFT JOIN receipts r ON cd.receipt_id = r.id
+                LEFT JOIN invoices i ON cd.invoice_id = i.id
+                WHERE COALESCE(r.customer_id, i.customer_id) = ? AND cd.status = 'Returned'
+                  AND cd.cheque_date < ?
+            )
+        `;
+        const result = await getQuery(sql, [
+            customerId, dateFrom,
+            customerId, dateFrom,
+            customerId, dateFrom
+        ]);
+        return result?.opening || 0;
     }
 
     /**

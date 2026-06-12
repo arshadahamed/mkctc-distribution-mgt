@@ -124,10 +124,19 @@ router.put('/:id/restore', async (req, res) => {
 router.get('/:id/ledger', async (req, res) => {
     try {
         const customer = await customerRepo.getById(req.params.id);
-        const ledger = await customerRepo.getLedger(req.params.id);
+        const filters = {
+            dateFrom: req.query.dateFrom || null,
+            dateTo: req.query.dateTo || null
+        };
+        const [ledger, openingBalance] = await Promise.all([
+            customerRepo.getLedger(req.params.id, filters),
+            filters.dateFrom
+                ? customerRepo.getLedgerOpeningBalance(req.params.id, filters.dateFrom)
+                : Promise.resolve(0)
+        ]);
         res.json({
             success: true,
-            data: { customer, ledger }
+            data: { customer, ledger, openingBalance }
         });
     } catch (error) {
         await logError(0, 'GET_CUSTOMER_LEDGER', error);
